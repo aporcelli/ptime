@@ -1,30 +1,33 @@
-// app/layout.tsx
 import type { Metadata } from "next";
-import { Outfit, DM_Serif_Display, DM_Mono, Geist } from "next/font/google";
+import { Outfit, DM_Serif_Display, DM_Mono } from "next/font/google";
+import { ThemeProvider } from "next-themes";
 import "./globals.css";
-import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
 
 const dmSerif = DM_Serif_Display({
-  subsets:  ["latin"],
-  weight:   "400",
-  style:    ["normal", "italic"],
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
   variable: "--font-serif",
-  display:  "swap",
+  display: "swap",
 });
 
 const dmMono = DM_Mono({
-  subsets:  ["latin"],
-  weight:   ["400", "500"],
+  subsets: ["latin"],
+  weight: ["400", "500"],
   variable: "--font-mono",
-  display:  "swap",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title:       { default: "Ptime", template: "%s | Ptime" },
+  title: { default: "Ptime", template: "%s | Ptime" },
   description: "Gestión y carga de horas para servicios profesionales",
-  robots:      { index: false, follow: false }, // App privada
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({
@@ -36,10 +39,17 @@ export default function RootLayout({
     <html
       lang="es"
       suppressHydrationWarning
-      className={cn(dmSerif.variable, dmMono.variable, "font-sans", geist.variable)}
+      className={`${outfit.variable} ${dmSerif.variable} ${dmMono.variable}`}
     >
       <body className="min-h-screen bg-surface font-sans antialiased">
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

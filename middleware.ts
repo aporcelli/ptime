@@ -1,5 +1,4 @@
-// middleware.ts — Protección de rutas y RBAC
-// ─────────────────────────────────────────────────────────────────────────────
+// middleware.ts
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 
@@ -7,37 +6,30 @@ export default auth((req) => {
   const { pathname } = req.nextUrl;
   const session      = req.auth;
 
-  // Rutas públicas — no requieren autenticación
-  const publicPaths = ["/login", "/register", "/api/auth"];
-  const isPublic    = publicPaths.some((p) => pathname.startsWith(p));
+  // Rutas siempre públicas
+  const isPublic = ["/login", "/api/auth", "/setup"].some((p) => pathname.startsWith(p));
   if (isPublic) return NextResponse.next();
 
-  // Si no hay sesión, redirigir al login
+  // Sin sesión → login
   if (!session) {
-    const loginUrl = new URL("/login", req.url);
-    loginUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(loginUrl);
+    const url = new URL("/login", req.url);
+    url.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(url);
   }
 
-  // Rutas de admin — requieren rol ADMIN
-  const isAdminRoute = pathname.startsWith("/admin");
-  if (isAdminRoute && session.user.role !== "ADMIN") {
-    // Redirigir a dashboard con mensaje de acceso denegado
-    return NextResponse.redirect(new URL("/dashboard?error=unauthorized", req.url));
+  // Admin routes — solo bloquear si el rol es explícitamente USER y la ruta es /admin
+  // (en esta versión todos los usuarios pueden acceder al admin de su propio sheet)
+  // Mantener para futuras implementaciones multi-tenant.
+
+  // Sin sheet configurado → setup
+  const sheetId = req.cookies.get("ptime-sheet-id")?.value;
+  if (!sheetId) {
+    return NextResponse.redirect(new URL("/setup", req.url));
   }
 
   return NextResponse.next();
 });
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths EXCEPT:
-     * - _next/static (static files)
-     * - _next/image (image optimization)
-     * - favicon.ico
-     * - public folder
-     */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 };

@@ -1,82 +1,64 @@
 // lib/sheets/client.ts
 // ─────────────────────────────────────────────────────────────────────────────
-// Singleton del cliente de Google Sheets.
-// Este módulo SOLO ejecuta en servidor (Server Actions / Route Handlers).
-// Las credenciales NUNCA cruzan al bundle de cliente.
+// Cliente de Google Sheets usando el OAuth token del usuario autenticado.
+// NO usa Service Account — las credenciales son del propio usuario.
 // ─────────────────────────────────────────────────────────────────────────────
-
 import { google, sheets_v4 } from "googleapis";
 
-let _sheetsClient: sheets_v4.Sheets | null = null;
-
-function getSheetsClient(): sheets_v4.Sheets {
-  if (_sheetsClient) return _sheetsClient;
-
-  const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-  const key   = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
-
-  if (!email || !key) {
-    throw new Error(
-      "[Ptime] GOOGLE_SERVICE_ACCOUNT_EMAIL y GOOGLE_PRIVATE_KEY son requeridos. " +
-      "Revisa tu .env.local"
-    );
-  }
-
-  const auth = new google.auth.GoogleAuth({
-    credentials: {
-      client_email: email,
-      private_key:  key,
-    },
-    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-  });
-
-  _sheetsClient = google.sheets({ version: "v4", auth });
-  return _sheetsClient;
+/**
+ * Crea un cliente de Sheets autenticado con el access token del usuario.
+ * Se instancia por request (no singleton) porque cada usuario tiene su token.
+ */
+function createSheetsClient(accessToken: string): sheets_v4.Sheets {
+  const auth = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+  );
+  auth.setCredentials({ access_token: accessToken });
+  return google.sheets({ version: "v4", auth });
 }
-
-const SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID!;
 
 // ── Helpers públicos ──────────────────────────────────────────────────────────
 
-/**
- * Lee un rango del Spreadsheet y retorna filas como arrays de strings.
- * Omite la primera fila (encabezados).
- */
-export async function getSheetRows(range: string): Promise<string[][]> {
-  const sheets = getSheetsClient();
+export async function getSheetRows(
+  spreadsheetId: string,
+  accessToken: string,
+  range: string
+): Promise<string[][]> {
+  const sheets = createSheetsClient(accessToken);
   const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: SPREADSHEET_ID,
+    spreadsheetId,
     range,
-    valueRenderOption: "UNFORMATTED_VALUE",
+    valueRenderOption:    "UNFORMATTED_VALUE",
     dateTimeRenderOption: "FORMATTED_STRING",
   });
   const rows = res.data.values ?? [];
-  return rows.slice(1); // Saltar encabezados
+  return rows.slice(1); // Saltar fila de encabezados
 }
 
-/**
- * Lee incluyendo encabezados (útil para validación inicial).
- */
-export async function getSheetRowsWithHeaders(range: string): Promise<string[][]> {
-  const sheets = getSheetsClient();
+export async function getSheetRowsWithHeaders(
+  spreadsheetId: string,
+  accessToken: string,
+  range: string
+): Promise<string[][]> {
+  const sheets = createSheetsClient(accessToken);
   const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: SPREADSHEET_ID,
+    spreadsheetId,
     range,
     valueRenderOption: "UNFORMATTED_VALUE",
   });
   return res.data.values ?? [];
 }
 
-/**
- * Agrega una nueva fila al final de la hoja.
- */
 export async function appendSheetRow(
+  spreadsheetId: string,
+  accessToken: string,
   range: string,
   values: (string | number | boolean)[]
 ): Promise<void> {
-  const sheets = getSheetsClient();
+  const sheets = createSheetsClient(accessToken);
   await sheets.spreadsheets.values.append({
-    spreadsheetId: SPREADSHEET_ID,
+    spreadsheetId,
     range,
     valueInputOption: "USER_ENTERED",
     insertDataOption: "INSERT_ROWS",
@@ -84,44 +66,117 @@ export async function appendSheetRow(
   });
 }
 
-/**
- * Actualiza una fila específica por su número (1-indexed, incluyendo header).
- */
 export async function updateSheetRow(
+  spreadsheetId: string,
+  accessToken: string,
   sheetName: string,
   rowNumber: number,
   values: (string | number | boolean)[]
 ): Promise<void> {
-  const sheets = getSheetsClient();
-  const range = `${sheetName}!A${rowNumber}`;
+  const sheets = createSheetsClient(accessToken);
   await sheets.spreadsheets.values.update({
-    spreadsheetId: SPREADSHEET_ID,
-    range,
+    spreadsheetId,
+    range:            `${sheetName}!A${rowNumber}`,
     valueInputOption: "USER_ENTERED",
     requestBody: { values: [values] },
   });
 }
 
-/**
- * Elimina (limpia) una fila específica.
- * En Google Sheets no existe "delete row" via API values, se deja en blanco
- * o se usa batchUpdate para eliminar la fila físicamente.
- */
 export async function clearSheetRow(
+  spreadsheetId: string,
+  accessToken: string,
   sheetName: string,
   rowNumber: number
 ): Promise<void> {
-  const sheets = getSheetsClient();
+  const sheets = createSheetsClient(accessToken);
   await sheets.spreadsheets.values.clear({
-    spreadsheetId: SPREADSHEET_ID,
+    spreadsheetId,
     range: `${sheetName}!A${rowNumber}:Z${rowNumber}`,
   });
 }
 
 /**
- * Obtiene el número de la próxima fila vacía en una hoja.
+ * Verifica que el spreadsheet existe y es accesible con el token dado.
+ * Usado en el setup inicial para validar el Sheet ID.
  */
-export async function getNextEmptyRow(sheetName: string): Promise<number> {
-  const rows = await getSheetRowsWithHeaders(`${sheetName}!A:A`);
-  return rows.length + 1;
+export async function validateSpreadsheet(
+  spreadsheetId: string,
+  accessToken: string
+): Promise<{ valid: boolean; title?: string; error?: string }> {
+  try {
+    const sheets = createSheetsClient(accessToken);
+    const res = await sheets.spreadsheets.get({
+      spreadsheetId,
+      fields: "properties.title",
+    });
+    return { valid: true, title: res.data.properties?.title ?? "Sin título" };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Error desconocido";
+    return { valid: false, error: msg };
+  }
+}
+
+/**
+ * Crea las 5 hojas requeridas en el spreadsheet si no existen.
+ */
+export async function initializeSpreadsheet(
+  spreadsheetId: string,
+  accessToken: string
+): Promise<void> {
+  const sheets  = createSheetsClient(accessToken);
+  const headers = {
+    Registros_Horas: ["id","proyecto_id","tarea_id","usuario_id","fecha","horas","descripcion","precio_hora_aplicado","monto_total","estado","created_at","updated_at"],
+    Proyectos:       ["id","nombre","cliente_id","presupuesto_horas","horas_acumuladas","umbral_precio_alto","precio_base","precio_alto","estado","created_at","updated_at"],
+    Clientes:        ["id","nombre","email","telefono","activo","created_at","updated_at"],
+    Tareas:          ["id","nombre","categoria","activa","created_at"],
+    Configuraciones: ["clave","valor","updated_at"],
+    Usuarios:        ["id","nombre","email","rol","activo","ultimo_acceso","sheet_id"],
+  };
+
+  // Obtener hojas existentes
+  const meta = await sheets.spreadsheets.get({ spreadsheetId, fields: "sheets.properties.title" });
+  const existentes = new Set((meta.data.sheets ?? []).map((s) => s.properties?.title ?? ""));
+
+  const requests: sheets_v4.Schema$Request[] = [];
+  const nuevas: string[] = [];
+
+  for (const nombre of Object.keys(headers)) {
+    if (!existentes.has(nombre)) {
+      requests.push({ addSheet: { properties: { title: nombre } } });
+      nuevas.push(nombre);
+    }
+  }
+
+  if (requests.length > 0) {
+    await sheets.spreadsheets.batchUpdate({ spreadsheetId, requestBody: { requests } });
+  }
+
+  // Escribir encabezados en hojas nuevas (o vacías)
+  for (const [nombre, cols] of Object.entries(headers)) {
+    if (nuevas.includes(nombre) || !existentes.has(nombre)) {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range:            `${nombre}!A1`,
+        valueInputOption: "RAW",
+        requestBody: { values: [cols] },
+      });
+    }
+  }
+
+  // Insertar configuración por defecto
+  if (nuevas.includes("Configuraciones")) {
+    const defaults = [
+      ["precio_base_global",  "35",    new Date().toISOString()],
+      ["precio_alto_global",  "45",    new Date().toISOString()],
+      ["umbral_horas_global", "20",    new Date().toISOString()],
+      ["moneda",              "USD",   new Date().toISOString()],
+      ["nombre_empresa",      "Ptime", new Date().toISOString()],
+    ];
+    await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range:            "Configuraciones!A2",
+      valueInputOption: "RAW",
+      requestBody: { values: defaults },
+    });
+  }
 }

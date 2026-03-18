@@ -1,14 +1,15 @@
-// lib/schemas/hour.ts
 import { z } from "zod";
 import { HORA_MIN, HORA_MAX, DESCRIPCION_MIN, DESCRIPCION_MAX } from "@/lib/constants";
 
 export const hourFormSchema = z.object({
   proyecto_id: z
-    .string({ required_error: "Selecciona un proyecto" })
-    .uuid("Proyecto inválido"),
+    .string()
+    .min(1, "Selecciona un proyecto")
+    .uuid("Selecciona un proyecto válido"),
   tarea_id: z
-    .string({ required_error: "Selecciona una tarea" })
-    .uuid("Tarea inválida"),
+    .string()
+    .min(1, "Selecciona una tarea")
+    .uuid("Selecciona una tarea válida"),
   fecha: z
     .string({ required_error: "La fecha es requerida" })
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Formato requerido: YYYY-MM-DD"),

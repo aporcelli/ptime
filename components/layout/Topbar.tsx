@@ -3,6 +3,7 @@
 
 import { signOut } from "next-auth/react";
 import { LogOut, User } from "lucide-react";
+import ThemeToggle from "./ThemeToggle";
 
 interface Props {
   user: { name?: string | null; email?: string | null; role: string };
@@ -27,6 +28,8 @@ export default function Topbar({ user }: Props) {
         <div className="w-8 h-8 rounded-full bg-brand-600 flex items-center justify-center">
           <User size={14} className="text-white" />
         </div>
+
+        <ThemeToggle />
 
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
