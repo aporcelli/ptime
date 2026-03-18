@@ -102,6 +102,13 @@ npm run test     # Tests unitarios (Vitest)
 npm run lint     # ESLint
 ```
 
+## Endpoints
+
+| Ruta | Descripción |
+|------|-------------|
+| `GET /api/health` | Health check — verifica env vars y retorna estado |
+| `GET/POST /api/auth/[...nextauth]` | Autenticación NextAuth |
+
 ## Seguridad
 
 - Las credenciales de Google NUNCA se exponen al cliente
@@ -110,6 +117,12 @@ npm run lint     # ESLint
 - Sanitización XSS con DOMPurify
 - Sesiones HttpOnly + JWT con NextAuth v5
 - RBAC: rutas `/admin/*` requieren rol `ADMIN`
+- **Rate Limiting** en endpoints de autenticación (5 req/60s por IP)
+- **Security Headers**: `X-Frame-Options`, `HSTS`, `X-Content-Type-Options`, `Permissions-Policy`, `X-XSS-Protection`
+
+## Changelog
+
+Ver [CHANGELOG.md](./CHANGELOG.md) para el historial completo de versiones y la guía de deploy en Vercel.
 
 ## Créditos
 

@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ptime — Plan de Implementación Detallado</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --ink: #0D1117;
+    --ink-2: #1C2333;
+    --ink-3: #2D3748;
+    --muted: #64748B;
+    --muted-2: #94A3B8;
+    --accent: #1A56DB;
+    --accent-2: #3B82F6;
+    --accent-warm: #F59E0B;
+    --accent-green: #10B981;
+    --accent-red: #EF4444;
+    --surface: #F8FAFC;
+    --surface-2: #EFF4FF;
+    --surface-3: #FEFCE8;
+    --border: #E2E8F0;
+    --border-2: #CBD5E1;
+    --white: #FFFFFF;
+    --code-bg: #0F172A;
+    --code-text: #94E2D5;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.7;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* ── COVER ── */
+  .cover {
+    background: var(--ink);
+    color: var(--white);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 72px 80px;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -200px; right: -200px;
+    width: 700px; height: 700px;
+    background: radial-gradient(circle, #1A56DB44 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .cover::after {
+    content: '';
+    position: absolute;
+    bottom: -100px; left: -100px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, #F59E0B22 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .cover-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    margin-bottom: 24px;
+    position: relative; z-index: 1;
+  }
+  .cover-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 80px;
+    line-height: 1;
+    font-weight: 400;
+    position: relative; z-index: 1;
+    margin-bottom: 8px;
+  }
+  .cover-title span {
+    color: var(--accent-warm);
+    font-style: italic;
+  }
+  .cover-subtitle {
+    font-size: 22px;
+    font-weight: 300;
+    color: #94A3B8;
+    position: relative; z-index: 1;
+    margin-bottom: 60px;
+  }
+  .cover-meta {
+    display: flex;
+    gap: 48px;
+    position: relative; z-index: 1;
+    padding-top: 32px;
+    border-top: 1px solid #2D3748;
+  }
+  .cover-meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .cover-meta-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: #64748B; }
+  .cover-meta-value { font-size: 13px; color: #CBD5E1; font-weight: 500; }
+
+  /* ── LAYOUT ── */
+  .page { max-width: 900px; margin: 0 auto; padding: 60px 80px; }
+  @media(max-width:768px) { .page { padding: 40px 24px; } .cover { padding: 40px 24px; } .cover-title { font-size: 48px; } }
+
+  /* ── TOC ── */
+  .toc-page { background: var(--ink-2); color: var(--white); padding: 60px 80px; page-break-after: always; }
+  .toc-title { font-family: 'DM Serif Display', serif; font-size: 40px; color: var(--white); margin-bottom: 40px; }
+  .toc-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+  .toc-list li a {
+    display: flex; align-items: baseline; gap: 12px;
+    color: #94A3B8; text-decoration: none; font-size: 14px;
+    padding: 8px 0; border-bottom: 1px solid #2D3748;
+    transition: color 0.2s;
+  }
+  .toc-list li a:hover { color: var(--accent-2); }
+  .toc-num { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent-2); min-width: 28px; }
+  .toc-section { font-weight: 600; color: var(--white) !important; font-size: 15px !important; }
+
+  /* ── SECTION HEADERS ── */
+  .section-header {
+    display: flex; align-items: flex-start; gap: 20px;
+    margin-bottom: 40px; padding-bottom: 24px;
+    border-bottom: 2px solid var(--border);
+  }
+  .section-num {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    color: var(--accent); background: var(--surface-2);
+    border: 1px solid #BFDBFE;
+    padding: 6px 12px; border-radius: 6px;
+    white-space: nowrap; margin-top: 6px;
+  }
+  .section-title { font-family: 'DM Serif Display', serif; font-size: 36px; line-height: 1.2; font-weight: 400; }
+  .section-desc { color: var(--muted); font-size: 15px; margin-top: 8px; }
+
+  h2 { font-size: 22px; font-weight: 600; color: var(--ink); margin: 40px 0 16px; }
+  h3 { font-size: 16px; font-weight: 600; color: var(--ink-3); margin: 28px 0 12px; letter-spacing: -0.01em; }
+  h4 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin: 20px 0 8px; }
+  p { margin-bottom: 12px; color: var(--ink-3); }
+
+  /* ── CODE BLOCKS ── */
+  pre {
+    background: var(--code-bg); color: var(--code-text);
+    border-radius: 10px; padding: 20px 24px;
+    font-family: 'DM Mono', monospace; font-size: 12.5px;
+    line-height: 1.8; overflow-x: auto; margin: 16px 0;
+    border: 1px solid #1E293B;
+  }
+  code { font-family: 'DM Mono', monospace; font-size: 12.5px; }
+  p code, li code {
+    background: #EFF6FF; color: #1D4ED8;
+    padding: 2px 6px; border-radius: 4px; font-size: 12px;
+  }
+
+  /* ── CALLOUTS ── */
+  .callout {
+    border-radius: 10px; padding: 16px 20px; margin: 20px 0;
+    display: flex; gap: 14px; align-items: flex-start;
+  }
+  .callout.info { background: #EFF6FF; border-left: 3px solid var(--accent); }
+  .callout.warn { background: #FFFBEB; border-left: 3px solid var(--accent-warm); }
+  .callout.success { background: #F0FDF4; border-left: 3px solid var(--accent-green); }
+  .callout.danger { background: #FFF1F2; border-left: 3px solid var(--accent-red); }
+  .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .callout-content { font-size: 14px; color: var(--ink-3); line-height: 1.6; }
+  .callout-content strong { display: block; margin-bottom: 4px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* ── TABLES ── */
+  .table-wrap { overflow-x: auto; margin: 20px 0; border-radius: 10px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--ink); color: var(--white); }
+  thead th { padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; font-family: 'DM Mono', monospace; }
+  tbody tr:nth-child(even) { background: var(--surface); }
+  tbody tr:hover { background: var(--surface-2); }
+  td { padding: 11px 16px; font-size: 13.5px; border-top: 1px solid var(--border); color: var(--ink-3); vertical-align: top; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 100px; font-size: 11px; font-weight: 600; font-family: 'DM Mono', monospace; }
+  .tag.blue { background: #DBEAFE; color: #1D4ED8; }
+  .tag.green { background: #D1FAE5; color: #065F46; }
+  .tag.yellow { background: #FEF3C7; color: #92400E; }
+  .tag.red { background: #FEE2E2; color: #991B1B; }
+  .tag.gray { background: #F1F5F9; color: #475569; }
+
+  /* ── FOLDER TREE ── */
+  .folder-tree {
+    background: var(--code-bg); border-radius: 10px;
+    padding: 24px; font-family: 'DM Mono', monospace;
+    font-size: 12.5px; line-height: 2; color: #94A3B8;
+    border: 1px solid #1E293B;
+  }
+  .ft-dir { color: #60A5FA; }
+  .ft-file { color: #94E2D5; }
+  .ft-comment { color: #64748B; }
+  .ft-special { color: #F59E0B; }
+
+  /* ── BADGES ── */
+  .badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 100px; font-size: 12px;
+    font-weight: 500; border: 1px solid transparent;
+  }
+  .badge.next { background: #000; color: #fff; }
+  .badge.ts { background: #3178C6; color: #fff; }
+  .badge.tw { background: #0EA5E9; color: #fff; }
+  .badge.shadcn { background: #18181B; color: #fff; }
+  .badge.google { background: #4285F4; color: #fff; }
+  .badge.zod { background: #2464BD; color: #fff; }
+  .badge.framer { background: #0055FF; color: #fff; }
+  .badge.recharts { background: #22C55E; color: #fff; }
+  .badge.auth { background: #7C3AED; color: #fff; }
+
+  /* ── FLOW DIAGRAM (CSS) ── */
+  .flow { display: flex; flex-direction: column; gap: 0; margin: 24px 0; }
+  .flow-row { display: flex; align-items: center; gap: 0; }
+  .flow-node {
+    flex: 1; background: var(--white); border: 1px solid var(--border-2);
+    border-radius: 8px; padding: 12px 16px; text-align: center;
+    font-size: 13px; font-weight: 500; color: var(--ink);
+    position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .flow-node.primary { background: var(--accent); color: white; border-color: var(--accent); }
+  .flow-node.secondary { background: var(--surface-2); border-color: #BFDBFE; color: var(--accent); }
+  .flow-node.warn { background: #FFFBEB; border-color: #FDE68A; }
+  .flow-node.success { background: #F0FDF4; border-color: #A7F3D0; }
+  .flow-arrow { color: #94A3B8; font-size: 20px; padding: 0 8px; flex-shrink: 0; }
+  .flow-down { text-align: center; color: #94A3B8; font-size: 20px; padding: 4px 0; }
+
+  /* ── GRID CARDS ── */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+  }
+  .card-icon { font-size: 28px; margin-bottom: 12px; }
+  .card-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 4px; }
+  .card-title { font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
+  .card-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  /* ── NUMBERED LIST ── */
+  .num-list { display: flex; flex-direction: column; gap: 12px; margin: 16px 0; }
+  .num-item { display: flex; gap: 16px; align-items: flex-start; }
+  .num-badge {
+    min-width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; font-family: 'DM Mono', monospace;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .num-content { font-size: 14px; color: var(--ink-3); line-height: 1.6; }
+  .num-content strong { color: var(--ink); }
+
+  /* ── COLOR SWATCH ── */
+  .swatch-row { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+  .swatch {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    width: 90px;
+  }
+  .swatch-color { width: 64px; height: 64px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); }
+  .swatch-name { font-size: 11px; font-weight: 600; color: var(--ink-3); text-align: center; }
+  .swatch-hex { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
+
+  /* ── SECURITY CARD ── */
+  .security-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; margin: 20px 0; }
+  .security-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 20px 20px 16px;
+    border-left: 4px solid var(--accent);
+  }
+  .security-card.warn { border-left-color: var(--accent-warm); }
+  .security-card.danger { border-left-color: var(--accent-red); }
+  .security-card.green { border-left-color: var(--accent-green); }
+  .security-num { font-family: 'DM Mono', monospace; font-size: 28px; font-weight: 500; color: var(--border-2); line-height: 1; margin-bottom: 8px; }
+  .security-title { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+  .security-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .security-code { margin-top: 10px; background: var(--code-bg); color: var(--code-text); border-radius: 6px; padding: 10px 14px; font-family: 'DM Mono', monospace; font-size: 11.5px; line-height: 1.7; }
+
+  /* ── PAGE BREAK ── */
+  .break { page-break-before: always; padding-top: 60px; }
+
+  /* ── DIVIDER ── */
+  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+  ul, ol { padding-left: 24px; margin: 12px 0; }
+  li { margin-bottom: 6px; color: var(--ink-3); font-size: 14px; }
+  li strong { color: var(--ink); }
+
+  .text-mono { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); }
+  .mt-0 { margin-top: 0; }
+  .mb-0 { margin-bottom: 0; }
+</style>
+</head>
+<body>
+
+<!-- ── COVER ── -->
+<div class="cover">
+  <div class="cover-eyebrow">Arquitectura de Software · Documento Técnico · v1.0</div>
+  <div class="cover-title">P<span>time</span></div>
+  <div class="cover-subtitle">Plan de Implementación Detallado — SaaS de Gestión de Horas</div>
+  <div class="cover-meta">
+    <div class="cover-meta-item">
+      <span class="cover-meta-label">Stack Principal</span>
+      <span class="cover-meta-value">Next.js 14 · TypeScript · Google Sheets</span>
+    </div>
+    <div class="cover-meta-item">
+      <span class="cover-meta-label">Versión</span>
+      <span class="cover-meta-value">1.0.0 — 2026</span>
+    </div>
+    <div class="cover-meta-item">
+      <span class="cover-meta-label">Clasificación</span>
+      <span class="cover-meta-value">Confidencial · Interno</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── TABLE OF CONTENTS ── -->
+<div class="toc-page">
+  <div class="toc-title">Índice</div>
+  <ul class="toc-list">
+    <li><a href="#s1" class="toc-section"><span class="toc-num">01</span>Stack Tecnológico y Dependencias</a></li>
+    <li><a href="#s2" class="toc-section"><span class="toc-num">02</span>Arquitectura de Datos · Google Sheets</a></li>
+    <li><a href="#s3" class="toc-section"><span class="toc-num">03</span>Lógica de Negocio y Precios</a></li>
+    <li><a href="#s4" class="toc-section"><span class="toc-num">04</span>Estructura de Carpetas</a></li>
+    <li><a href="#s5" class="toc-section"><span class="toc-num">05</span>Flujo de Datos (Data Flow)</a></li>
+    <li><a href="#s6" class="toc-section"><span class="toc-num">06</span>Módulos de la Aplicación</a></li>
+    <li><a href="#s7" class="toc-section"><span class="toc-num">07</span>UX / UI · Diseño y Sistema Visual</a></li>
+    <li><a href="#s8" class="toc-section"><span class="toc-num">08</span>Seguridad · Guía de 5 Puntos Clave</a></li>
+    <li><a href="#s9" class="toc-section"><span class="toc-num">09</span>Fases de Desarrollo</a></li>
+  </ul>
+</div>
+
+<!-- ── SECTION 1 ── -->
+<div class="page" id="s1">
+  <div class="section-header">
+    <div class="section-num">01 / 09</div>
+    <div>
+      <div class="section-title">Stack Tecnológico<br>y Dependencias</div>
+      <div class="section-desc">Todas las librerías críticas con su justificación técnica</div>
+    </div>
+  </div>
+
+  <div class="badge-row">
+    <span class="badge next">Next.js 14+</span>
+    <span class="badge ts">TypeScript</span>
+    <span class="badge tw">Tailwind CSS</span>
+    <span class="badge shadcn">Shadcn/UI</span>
+    <span class="badge google">Google Sheets v4</span>
+    <span class="badge zod">Zod</span>
+    <span class="badge framer">Framer Motion</span>
+    <span class="badge recharts">Recharts</span>
+    <span class="badge auth">NextAuth.js</span>
+  </div>
+
+  <h2>Dependencias de Producción</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Paquete</th>
+          <th>Versión</th>
+          <th>Propósito</th>
+          <th>Crítico</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>next</code></td><td>14.x</td><td>Framework principal, App Router, Server Actions</td><td><span class="tag red">Sí</span></td></tr>
+        <tr><td><code>react</code> / <code>react-dom</code></td><td>18.x</td><td>UI Layer</td><td><span class="tag red">Sí</span></td></tr>
+        <tr><td><code>typescript</code></td><td>5.x</td><td>Tipado estático, seguridad en tiempo de compilación</td><td><span class="tag red">Sí</span></td></tr>
+        <tr><td><code>tailwindcss</code></td><td>3.x</td><td>Utility-first CSS, Mobile First</td><td><span class="tag red">Sí</span></td></tr>
+        <tr><td><code>@shadcn/ui</code></td><td>latest</td><td>Componentes accesibles (Radix UI + Tailwind)</td><td><span class="tag red">Sí</span></td></tr>
+        <tr><td><code>framer-motion</code></td><td>11.x</td><td>Animaciones, transiciones de ruta, micro-interacciones</td><td><span class="tag yellow">Medio</span></td></tr>
+        <tr><td><code>zod</code></td><td>3.x</td><td>Validación de esquemas, tipado runtime</td><td><span class="tag red">Sí</span></td></tr>
+        <tr><td><code>next-auth</code></td><td>5.x (beta)</td><td>Autenticación, sesiones, RBAC</td><td><span class="tag red">Sí</span></td></tr>
+        <tr><td><code>googleapis</code></td><td>144.x</td><td>Cliente oficial Google Sheets API v4</td><td><span class="tag red">Sí</span></td></tr>
+        <tr><td><code>recharts</code></td><td>2.x</td><td>Gráficas BI (barras, líneas, torta)</td><td><span class="tag yellow">Medio</span></td></tr>
+        <tr><td><code>@react-pdf/renderer</code></td><td>3.x</td><td>Exportación PDF profesional</td><td><span class="tag yellow">Medio</span></td></tr>
+        <tr><td><code>date-fns</code></td><td>3.x</td><td>Manejo de fechas/períodos en reportes</td><td><span class="tag blue">Bajo</span></td></tr>
+        <tr><td><code>uuid</code></td><td>9.x</td><td>Generación de UUID v4 para IDs únicos</td><td><span class="tag red">Sí</span></td></tr>
+        <tr><td><code>DOMPurify</code></td><td>3.x</td><td>Sanitización de inputs contra XSS (cliente)</td><td><span class="tag red">Sí</span></td></tr>
+        <tr><td><code>@tanstack/react-query</code></td><td>5.x</td><td>Cache de datos, optimistic updates, stale-while-revalidate</td><td><span class="tag yellow">Medio</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Variables de Entorno Requeridas</h2>
+  <pre>
+# .env.local — NUNCA exponer en el cliente (sin prefijo NEXT_PUBLIC_)
+GOOGLE_SERVICE_ACCOUNT_EMAIL="ptime@proyecto.iam.gserviceaccount.com"
+GOOGLE_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----\n..."
+GOOGLE_SPREADSHEET_ID="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms"
+
+# Auth
+NEXTAUTH_SECRET="un-secreto-de-al-menos-32-chars-generado-con-openssl"
+NEXTAUTH_URL="https://ptime.tu-dominio.com"
+
+# Opcionales
+NEXT_PUBLIC_APP_URL="https://ptime.tu-dominio.com"   # Solo si se necesita en cliente
+LOG_LEVEL="info"</pre>
+
+  <div class="callout warn">
+    <div class="callout-icon">⚠️</div>
+    <div class="callout-content">
+      <strong>Seguridad crítica</strong>
+      Todas las credenciales de Google deben estar en variables sin prefijo <code>NEXT_PUBLIC_</code>. El cliente Next.js nunca debe tener acceso a las API Keys. La comunicación con Sheets ocurre únicamente en Server Actions y Route Handlers.
+    </div>
+  </div>
+</div>
+
+<!-- ── SECTION 2 ── -->
+<div class="page break" id="s2">
+  <div class="section-header">
+    <div class="section-num">02 / 09</div>
+    <div>
+      <div class="section-title">Arquitectura de Datos<br>· Google Sheets</div>
+      <div class="section-desc">Estructura de hojas, esquemas, campos de auditoría y convenciones de ID</div>
+    </div>
+  </div>
+
+  <div class="callout info">
+    <div class="callout-icon">ℹ️</div>
+    <div class="callout-content">
+      El Spreadsheet actúa como base de datos. Se organiza en <strong>5 hojas</strong>. Cada hoja tiene una fila 1 de encabezados congelada. Los IDs son UUID v4 generados en servidor. Los campos de auditoría se marcan en la fila 1 con fondo gris oscuro para indicar que son de solo lectura desde la UI.
+    </div>
+  </div>
+
+  <h2>Hoja 1: Registros_Horas</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Columna</th><th>Tipo</th><th>Descripción</th><th>Ejemplo</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>String (UUID v4)</td><td>Identificador único del registro</td><td>a1b2c3d4-...</td></tr>
+        <tr><td><code>proyecto_id</code></td><td>String (UUID)</td><td>FK → Proyectos.id</td><td>uuid</td></tr>
+        <tr><td><code>tarea_id</code></td><td>String (UUID)</td><td>FK → Tareas.id</td><td>uuid</td></tr>
+        <tr><td><code>usuario_id</code></td><td>String</td><td>ID del usuario autenticado (session)</td><td>user@email.com</td></tr>
+        <tr><td><code>fecha</code></td><td>Date (ISO 8601)</td><td>Fecha del trabajo realizado</td><td>2026-03-15</td></tr>
+        <tr><td><code>horas</code></td><td>Number (decimal)</td><td>Horas trabajadas con decimales</td><td>1.5 / 2.25</td></tr>
+        <tr><td><code>descripcion</code></td><td>String (sanitized)</td><td>Descripción libre del trabajo</td><td>Reunión de kickoff</td></tr>
+        <tr><td><code>precio_hora_aplicado</code></td><td>Number</td><td>Precio capturado al momento del registro</td><td>35.00 / 45.00</td></tr>
+        <tr><td><code>monto_total</code></td><td>Number (calculado)</td><td>horas × precio_hora_aplicado</td><td>67.50</td></tr>
+        <tr><td><code>estado</code></td><td>Enum</td><td>borrador / confirmado / facturado</td><td>confirmado</td></tr>
+        <tr><td><code>created_at</code> 🔒</td><td>DateTime (ISO)</td><td>Timestamp de creación (solo servidor)</td><td>2026-03-15T10:30:00Z</td></tr>
+        <tr><td><code>updated_at</code> 🔒</td><td>DateTime (ISO)</td><td>Timestamp de última modificación</td><td>2026-03-15T11:00:00Z</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Hoja 2: Proyectos</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Columna</th><th>Tipo</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>UUID v4</td><td>PK del proyecto</td></tr>
+        <tr><td><code>nombre</code></td><td>String</td><td>Nombre descriptivo del proyecto</td></tr>
+        <tr><td><code>cliente_id</code></td><td>UUID → FK</td><td>Referencia a Clientes</td></tr>
+        <tr><td><code>presupuesto_horas</code></td><td>Number</td><td>Horas presupuestadas (opcional)</td></tr>
+        <tr><td><code>horas_acumuladas</code></td><td>Number (calculado)</td><td>Suma viva de horas cargadas</td></tr>
+        <tr><td><code>umbral_precio_alto</code></td><td>Number</td><td>Horas tras las cuales sube el precio (default: 20)</td></tr>
+        <tr><td><code>precio_base</code></td><td>Number</td><td>Precio por hora base (default: 35)</td></tr>
+        <tr><td><code>precio_alto</code></td><td>Number</td><td>Precio tras umbral (default: 45)</td></tr>
+        <tr><td><code>estado</code></td><td>Enum</td><td>activo / pausado / cerrado</td></tr>
+        <tr><td><code>created_at</code> 🔒</td><td>DateTime</td><td>Auditoría</td></tr>
+        <tr><td><code>updated_at</code> 🔒</td><td>DateTime</td><td>Auditoría</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Hoja 3: Clientes</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Columna</th><th>Tipo</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>UUID v4</td><td>PK del cliente</td></tr>
+        <tr><td><code>nombre</code></td><td>String</td><td>Razón social o nombre</td></tr>
+        <tr><td><code>email</code></td><td>Email (validado Zod)</td><td>Contacto principal</td></tr>
+        <tr><td><code>telefono</code></td><td>String</td><td>Teléfono de contacto</td></tr>
+        <tr><td><code>activo</code></td><td>Boolean</td><td>true / false</td></tr>
+        <tr><td><code>created_at</code> 🔒</td><td>DateTime</td><td>Auditoría</td></tr>
+        <tr><td><code>updated_at</code> 🔒</td><td>DateTime</td><td>Auditoría</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Hoja 4: Tareas</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Columna</th><th>Tipo</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>UUID v4</td><td>PK de la tarea</td></tr>
+        <tr><td><code>nombre</code></td><td>String</td><td>Ej: "Desarrollo Backend", "Diseño UX"</td></tr>
+        <tr><td><code>categoria</code></td><td>String</td><td>Agrupador semántico</td></tr>
+        <tr><td><code>activa</code></td><td>Boolean</td><td>Visible en formulario usuario</td></tr>
+        <tr><td><code>created_at</code> 🔒</td><td>DateTime</td><td>Auditoría</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Hoja 5: Configuraciones</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Clave</th><th>Valor</th><th>Tipo</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td><code>precio_base_global</code></td><td>35</td><td>Number</td><td>Precio hora base por defecto</td></tr>
+        <tr><td><code>precio_alto_global</code></td><td>45</td><td>Number</td><td>Precio tras umbral por defecto</td></tr>
+        <tr><td><code>umbral_horas_global</code></td><td>20</td><td>Number</td><td>Horas que activan precio alto</td></tr>
+        <tr><td><code>moneda</code></td><td>USD</td><td>String</td><td>Símbolo / código de moneda</td></tr>
+        <tr><td><code>nombre_empresa</code></td><td>Ptime S.A.</td><td>String</td><td>Aparece en PDFs</td></tr>
+        <tr><td><code>logo_url</code></td><td>https://...</td><td>URL</td><td>Logo para reportes PDF</td></tr>
+        <tr><td><code>updated_at</code> 🔒</td><td>DateTime</td><td>DateTime</td><td>Última modificación por admin</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── SECTION 3 ── -->
+<div class="page break" id="s3">
+  <div class="section-header">
+    <div class="section-num">03 / 09</div>
+    <div>
+      <div class="section-title">Lógica de Negocio<br>y Precios</div>
+      <div class="section-desc">Algoritmo de cálculo escalonado, manejo de decimales e inyección de configuración</div>
+    </div>
+  </div>
+
+  <h2>Reglas de Precios</h2>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">💰</div>
+      <div class="card-label">Tramo 1</div>
+      <div class="card-title">$35 / hora</div>
+      <div class="card-desc">Aplica desde la hora 0 hasta las primeras 20 horas acumuladas en el proyecto.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📈</div>
+      <div class="card-label">Tramo 2</div>
+      <div class="card-title">$45 / hora</div>
+      <div class="card-desc">Aplica a partir de la hora 20.01 en adelante. La transición es precisa al decimal.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚙️</div>
+      <div class="card-label">Configurable</div>
+      <div class="card-title">Por proyecto</div>
+      <div class="card-desc">Cada proyecto puede sobreescribir los precios globales desde el módulo Admin.</div>
+    </div>
+  </div>
+
+  <h2>Algoritmo de Cálculo (TypeScript)</h2>
+  <pre>
+// lib/pricing/calculateHoursAmount.ts
+// ─────────────────────────────────────────────────────────────
+// Principio: función pura, sin efectos secundarios, totalmente testeable
+
+interface PricingConfig {
+  precioBase: number;       // default: 35
+  precioAlto: number;       // default: 45
+  umbralHoras: number;      // default: 20
+}
+
+interface CalculationResult {
+  montoTotal: number;
+  precioAplicado: number;   // precio predominante del tramo
+  desglose: {
+    horasEnTramo1: number;
+    horasEnTramo2: number;
+    montoTramo1: number;
+    montoTramo2: number;
+  };
+}
+
+export function calculateHoursAmount(
+  horasNuevas: number,            // Horas del nuevo registro (puede ser decimal)
+  horasAcumuladasAntes: number,   // Total de horas del proyecto ANTES de este registro
+  config: PricingConfig
+): CalculationResult {
+  const { precioBase, precioAlto, umbralHoras } = config;
+
+  // Redondear a máximo 4 decimales para evitar errores de punto flotante
+  const horas = Math.round(horasNuevas * 10000) / 10000;
+  const acum = Math.round(horasAcumuladasAntes * 10000) / 10000;
+
+  const horasEnTramo2Antes = Math.max(0, acum - umbralHoras);
+  const horasEnTramo1Antes = acum - horasEnTramo2Antes;
+
+  const capacidadRestanteTramo1 = Math.max(0, umbralHoras - horasEnTramo1Antes);
+
+  const horasEnTramo1 = Math.min(horas, capacidadRestanteTramo1);
+  const horasEnTramo2 = Math.max(0, horas - horasEnTramo1);
+
+  const montoTramo1 = Math.round(horasEnTramo1 * precioBase * 100) / 100;
+  const montoTramo2 = Math.round(horasEnTramo2 * precioAlto * 100) / 100;
+  const montoTotal  = Math.round((montoTramo1 + montoTramo2) * 100) / 100;
+
+  // El precio "aplicado" es el del tramo donde cayó la mayoría de las horas
+  const precioAplicado = horasEnTramo2 > horasEnTramo1 ? precioAlto : precioBase;
+
+  return {
+    montoTotal,
+    precioAplicado,
+    desglose: { horasEnTramo1, horasEnTramo2, montoTramo1, montoTramo2 }
+  };
+}
+
+// ── EJEMPLO DE USO ──────────────────────────────────────────
+// Proyecto con 18h acumuladas, nuevo registro de 4h
+// calculateHoursAmount(4, 18, { precioBase: 35, precioAlto: 45, umbralHoras: 20 })
+// → { montoTotal: 160, desglose: { horasEnTramo1: 2 ($70), horasEnTramo2: 2 ($90) } }
+</pre>
+
+  <div class="callout success">
+    <div class="callout-icon">✅</div>
+    <div class="callout-content">
+      <strong>Precisión Decimal</strong>
+      El algoritmo usa multiplicación por <code>10000</code> + redondeo antes de cada suma para eliminar errores de punto flotante. Los montos finales siempre tienen 2 decimales exactos. Se recomienda agregar tests unitarios con Vitest para todos los edge cases (ej. 19.75h + 1.5h).
+    </div>
+  </div>
+
+  <h2>Inyección de Configuración (Server Action)</h2>
+  <pre>
+// app/actions/pricing.ts
+'use server'
+import { getSheetData } from '@/lib/sheets/client'
+import { configSchema }  from '@/lib/schemas/config'
+
+let _configCache: PricingConfig | null = null;
+let _cacheTs: number = 0;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
+
+export async function getPricingConfig(): Promise&lt;PricingConfig&gt; {
+  const now = Date.now();
+  if (_configCache && (now - _cacheTs) &lt; CACHE_TTL_MS) return _configCache;
+
+  const rows = await getSheetData('Configuraciones!A:B');
+  const raw  = Object.fromEntries(rows.map(([k, v]) => [k, v]));
+
+  _configCache = configSchema.parse({
+    precioBase:   Number(raw.precio_base_global  ?? 35),
+    precioAlto:   Number(raw.precio_alto_global  ?? 45),
+    umbralHoras:  Number(raw.umbral_horas_global ?? 20),
+  });
+  _cacheTs = now;
+  return _configCache;
+}</pre>
+</div>
+
+<!-- ── SECTION 4 ── -->
+<div class="page break" id="s4">
+  <div class="section-header">
+    <div class="section-num">04 / 09</div>
+    <div>
+      <div class="section-title">Estructura de<br>Carpetas</div>
+      <div class="section-desc">Arquitectura feature-based con separación clara de responsabilidades</div>
+    </div>
+  </div>
+
+  <div class="folder-tree">
+<span class="ft-special">ptime/</span>
+├── <span class="ft-dir">app/</span>                          <span class="ft-comment"># Next.js App Router</span>
+│   ├── <span class="ft-dir">(auth)/</span>                   <span class="ft-comment"># Route Group - sin layout principal</span>
+│   │   ├── <span class="ft-dir">login/</span>
+│   │   │   └── <span class="ft-file">page.tsx</span>
+│   │   └── <span class="ft-dir">register/</span>
+│   │       └── <span class="ft-file">page.tsx</span>
+│   ├── <span class="ft-dir">(dashboard)/</span>               <span class="ft-comment"># Route Group - layout con sidebar</span>
+│   │   ├── <span class="ft-file">layout.tsx</span>              <span class="ft-comment"># Layout con nav + sidebar</span>
+│   │   ├── <span class="ft-dir">dashboard/</span>
+│   │   │   └── <span class="ft-file">page.tsx</span>            <span class="ft-comment"># Vista resumen principal</span>
+│   │   ├── <span class="ft-dir">horas/</span>
+│   │   │   ├── <span class="ft-file">page.tsx</span>            <span class="ft-comment"># Listado de registros</span>
+│   │   │   ├── <span class="ft-dir">nuevo/</span>
+│   │   │   │   └── <span class="ft-file">page.tsx</span>        <span class="ft-comment"># Formulario de carga</span>
+│   │   │   └── <span class="ft-dir">[id]/</span>
+│   │   │       └── <span class="ft-file">page.tsx</span>        <span class="ft-comment"># Detalle / edición</span>
+│   │   ├── <span class="ft-dir">reportes/</span>
+│   │   │   └── <span class="ft-file">page.tsx</span>            <span class="ft-comment"># BI Dashboard con filtros</span>
+│   │   └── <span class="ft-dir">admin/</span>
+│   │       ├── <span class="ft-dir">clientes/</span>
+│   │       ├── <span class="ft-dir">proyectos/</span>
+│   │       ├── <span class="ft-dir">tareas/</span>
+│   │       └── <span class="ft-dir">configuracion/</span>
+│   ├── <span class="ft-dir">actions/</span>                    <span class="ft-comment"># Server Actions (única puerta hacia Sheets)</span>
+│   │   ├── <span class="ft-file">hours.ts</span>               <span class="ft-comment"># createHour, updateHour, deleteHour</span>
+│   │   ├── <span class="ft-file">projects.ts</span>
+│   │   ├── <span class="ft-file">clients.ts</span>
+│   │   ├── <span class="ft-file">tasks.ts</span>
+│   │   ├── <span class="ft-file">config.ts</span>
+│   │   └── <span class="ft-file">reports.ts</span>             <span class="ft-comment"># Queries agregadas para BI</span>
+│   ├── <span class="ft-dir">api/</span>
+│   │   └── <span class="ft-dir">auth/</span>
+│   │       └── <span class="ft-dir">[...nextauth]/</span>
+│   │           └── <span class="ft-file">route.ts</span>
+│   ├── <span class="ft-file">layout.tsx</span>                  <span class="ft-comment"># Root layout</span>
+│   └── <span class="ft-file">globals.css</span>
+├── <span class="ft-dir">components/</span>                    <span class="ft-comment"># Componentes reutilizables</span>
+│   ├── <span class="ft-dir">ui/</span>                        <span class="ft-comment"># Shadcn primitives (auto-generados)</span>
+│   ├── <span class="ft-dir">forms/</span>
+│   │   ├── <span class="ft-file">HorasForm.tsx</span>          <span class="ft-comment"># Formulario principal con validación RT</span>
+│   │   ├── <span class="ft-file">ClienteForm.tsx</span>
+│   │   └── <span class="ft-file">ProyectoForm.tsx</span>
+│   ├── <span class="ft-dir">charts/</span>
+│   │   ├── <span class="ft-file">HorasPorProyecto.tsx</span>
+│   │   ├── <span class="ft-file">IngresosLineChart.tsx</span>
+│   │   └── <span class="ft-file">TareasPieChart.tsx</span>
+│   ├── <span class="ft-dir">pdf/</span>
+│   │   └── <span class="ft-file">ReporteTemplate.tsx</span>    <span class="ft-comment"># @react-pdf/renderer template</span>
+│   ├── <span class="ft-dir">layout/</span>
+│   │   ├── <span class="ft-file">Sidebar.tsx</span>
+│   │   ├── <span class="ft-file">Topbar.tsx</span>
+│   │   └── <span class="ft-file">PageHeader.tsx</span>
+│   └── <span class="ft-dir">shared/</span>
+│       ├── <span class="ft-file">DataTable.tsx</span>
+│       ├── <span class="ft-file">FilterBar.tsx</span>
+│       └── <span class="ft-file">ExportButton.tsx</span>
+├── <span class="ft-dir">lib/</span>                           <span class="ft-comment"># Utilidades y servicios core</span>
+│   ├── <span class="ft-dir">sheets/</span>
+│   │   ├── <span class="ft-file">client.ts</span>              <span class="ft-comment"># Singleton Google Sheets client</span>
+│   │   ├── <span class="ft-file">queries.ts</span>             <span class="ft-comment"># Funciones de lectura</span>
+│   │   └── <span class="ft-file">mutations.ts</span>           <span class="ft-comment"># Funciones de escritura/actualización</span>
+│   ├── <span class="ft-dir">pricing/</span>
+│   │   └── <span class="ft-file">calculateHoursAmount.ts</span>
+│   ├── <span class="ft-dir">schemas/</span>                   <span class="ft-comment"># Zod schemas centralizados</span>
+│   │   ├── <span class="ft-file">hour.ts</span>
+│   │   ├── <span class="ft-file">project.ts</span>
+│   │   ├── <span class="ft-file">client.ts</span>
+│   │   └── <span class="ft-file">config.ts</span>
+│   ├── <span class="ft-dir">auth/</span>
+│   │   └── <span class="ft-file">config.ts</span>              <span class="ft-comment"># NextAuth config + RBAC helpers</span>
+│   ├── <span class="ft-dir">utils/</span>
+│   │   ├── <span class="ft-file">sanitize.ts</span>            <span class="ft-comment"># DOMPurify wrapper (server-safe)</span>
+│   │   ├── <span class="ft-file">formatCurrency.ts</span>
+│   │   └── <span class="ft-file">uuid.ts</span>
+│   └── <span class="ft-file">constants.ts</span>               <span class="ft-comment"># SHEET_RANGES, etc.</span>
+├── <span class="ft-dir">hooks/</span>                         <span class="ft-comment"># Custom React hooks</span>
+│   ├── <span class="ft-file">useHours.ts</span>
+│   ├── <span class="ft-file">useProjects.ts</span>
+│   └── <span class="ft-file">usePricingPreview.ts</span>       <span class="ft-comment"># Preview de monto en tiempo real</span>
+├── <span class="ft-dir">types/</span>                         <span class="ft-comment"># TypeScript types globales</span>
+│   ├── <span class="ft-file">entities.ts</span>
+│   ├── <span class="ft-file">api.ts</span>
+│   └── <span class="ft-file">auth.d.ts</span>
+├── <span class="ft-file">middleware.ts</span>                   <span class="ft-comment"># Protección de rutas, RBAC</span>
+├── <span class="ft-file">next.config.ts</span>
+├── <span class="ft-file">tailwind.config.ts</span>
+└── <span class="ft-file">auth.ts</span>                        <span class="ft-comment"># NextAuth v5 init</span>
+  </div>
+</div>
+
+<!-- ── SECTION 5 ── -->
+<div class="page break" id="s5">
+  <div class="section-header">
+    <div class="section-num">05 / 09</div>
+    <div>
+      <div class="section-title">Flujo de Datos</div>
+      <div class="section-desc">Descripción textual del data flow para cada operación crítica del sistema</div>
+    </div>
+  </div>
+
+  <h2>Flujo A — Carga de Horas (Happy Path)</h2>
+  <div class="flow">
+    <div class="flow-row">
+      <div class="flow-node secondary">👤 Usuario completa formulario<br><span style="font-size:11px;color:#64748B">HorasForm.tsx</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node secondary">🔍 Validación Zod en cliente<br><span style="font-size:11px;color:#64748B">react-hook-form + zod resolver</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node secondary">🧹 Sanitización DOMPurify<br><span style="font-size:11px;color:#64748B">lib/utils/sanitize.ts</span></div>
+    </div>
+    <div class="flow-down">↓</div>
+    <div class="flow-row">
+      <div class="flow-node primary">🔒 Server Action invocada<br><span style="font-size:11px;opacity:0.8">app/actions/hours.ts → createHour()</span></div>
+    </div>
+    <div class="flow-down">↓</div>
+    <div class="flow-row">
+      <div class="flow-node secondary">🔑 Verificar sesión NextAuth<br><span style="font-size:11px;color:#64748B">auth() → getSession()</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node secondary">✅ Re-validación Zod servidor<br><span style="font-size:11px;color:#64748B">hourSchema.safeParse()</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node warn">💲 Calcular precios<br><span style="font-size:11px;color:#92400E">getPricingConfig() + calculateHoursAmount()</span></div>
+    </div>
+    <div class="flow-down">↓</div>
+    <div class="flow-row">
+      <div class="flow-node success">📊 Append a Sheets<br><span style="font-size:11px;color:#065F46">sheets.spreadsheets.values.append()</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node success">🔄 Actualizar horas_acumuladas<br><span style="font-size:11px;color:#065F46">UPDATE fila Proyecto correspondiente</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node secondary">↩️ Retornar { success, data }<br><span style="font-size:11px;color:#64748B">revalidatePath('/horas')</span></div>
+    </div>
+  </div>
+
+  <h2>Flujo B — Consulta de Reportes BI</h2>
+  <div class="flow">
+    <div class="flow-row">
+      <div class="flow-node secondary">🎛️ Usuario aplica filtros<br><span style="font-size:11px;color:#64748B">FilterBar.tsx (cliente)</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node primary">📡 Server Action getReportData()<br><span style="font-size:11px;opacity:0.8">app/actions/reports.ts</span></div>
+    </div>
+    <div class="flow-down">↓</div>
+    <div class="flow-row">
+      <div class="flow-node secondary">📖 Leer Registros_Horas completo<br><span style="font-size:11px;color:#64748B">sheets.values.get() → LIMIT por fecha</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node secondary">🔗 JOIN en memoria con Proyectos<br><span style="font-size:11px;color:#64748B">Map() lookup O(1)</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node warn">📊 Agregar datos<br><span style="font-size:11px;color:#92400E">reduce() → métricas por proyecto/cliente/período</span></div>
+    </div>
+    <div class="flow-down">↓</div>
+    <div class="flow-row">
+      <div class="flow-node success">📈 Recharts recibe datos serializados<br><span style="font-size:11px;color:#065F46">Componentes chart hidratados en cliente</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node secondary">📄 PDF opcional vía @react-pdf<br><span style="font-size:11px;color:#64748B">PDFDownloadLink → Blob descarga</span></div>
+    </div>
+  </div>
+
+  <h2>Flujo C — Autenticación y Control de Acceso</h2>
+  <div class="num-list">
+    <div class="num-item">
+      <div class="num-badge">1</div>
+      <div class="num-content"><strong>Request entrante</strong> → <code>middleware.ts</code> intercepta toda ruta bajo <code>/(dashboard)</code> y <code>/api</code> protegidas.</div>
+    </div>
+    <div class="num-item">
+      <div class="num-badge">2</div>
+      <div class="num-content"><strong>NextAuth verifica JWT</strong> en la cookie <code>next-auth.session-token</code> (HttpOnly, Secure, SameSite=Lax).</div>
+    </div>
+    <div class="num-item">
+      <div class="num-badge">3</div>
+      <div class="num-content"><strong>Si no autenticado</strong>: redirect a <code>/login</code>. Si autenticado pero sin rol requerido: <code>403 Forbidden</code>.</div>
+    </div>
+    <div class="num-item">
+      <div class="num-badge">4</div>
+      <div class="num-content"><strong>Roles definidos</strong>: <code>USER</code> → solo formulario + historial propio. <code>ADMIN</code> → acceso total incluyendo maestros y configuración.</div>
+    </div>
+    <div class="num-item">
+      <div class="num-badge">5</div>
+      <div class="num-content"><strong>Cada Server Action</strong> re-verifica sesión y rol internamente. No confiar únicamente en el middleware de ruta.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SECTION 6 ── -->
+<div class="page break" id="s6">
+  <div class="section-header">
+    <div class="section-num">06 / 09</div>
+    <div>
+      <div class="section-title">Módulos de la<br>Aplicación</div>
+      <div class="section-desc">Detalle funcional de los tres módulos principales</div>
+    </div>
+  </div>
+
+  <h2>Módulo Usuario — Formulario de Carga de Horas</h2>
+  <div class="callout info">
+    <div class="callout-icon">🖊️</div>
+    <div class="callout-content">El formulario utiliza <strong>react-hook-form</strong> con resolución Zod para validación en tiempo real. Cada campo se valida on-blur y on-change. Un componente <code>PricingPreview</code> calcula el monto estimado al vuelo sin llamadas al servidor.</div>
+  </div>
+
+  <pre>
+// Esquema Zod del formulario de horas
+export const hourFormSchema = z.object({
+  proyecto_id: z.string().uuid({ message: "Selecciona un proyecto válido" }),
+  tarea_id:    z.string().uuid({ message: "Selecciona una tarea" }),
+  fecha:       z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato YYYY-MM-DD"),
+  horas:       z.number()
+                 .min(0.25, "Mínimo 15 minutos (0.25)")
+                 .max(24, "No puedes cargar más de 24h por registro")
+                 .multipleOf(0.25, "Incrementos de 15 minutos"),
+  descripcion: z.string()
+                 .min(10, "Descripción mínima de 10 caracteres")
+                 .max(500, "Máximo 500 caracteres")
+                 .transform(val => DOMPurify.sanitize(val.trim())),
+});
+  </pre>
+
+  <h3>Características UX del Formulario</h3>
+  <ul>
+    <li><strong>Selector de horas con pasos de 0.25</strong> (15 min), con opción de texto libre para decimales exactos.</li>
+    <li><strong>Preview de precio en vivo</strong>: muestra "~$52.50" mientras se escribe, usando el hook <code>usePricingPreview</code>.</li>
+    <li><strong>Estado optimista</strong>: el registro aparece en la lista inmediatamente, con indicador de sincronización.</li>
+    <li><strong>Detección de solapamiento</strong>: advertencia si hay registros en la misma fecha para el mismo proyecto.</li>
+  </ul>
+
+  <h2>Módulo Admin — Gestión de Maestros</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Sección</th><th>Operaciones CRUD</th><th>Validaciones</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Clientes</strong></td>
+          <td>Crear, Listar, Editar, Desactivar (soft delete)</td>
+          <td>Email único, nombre requerido</td>
+        </tr>
+        <tr>
+          <td><strong>Proyectos</strong></td>
+          <td>Crear, Listar, Editar, Cerrar</td>
+          <td>Cliente existente, precios opcionales (usa global si no)</td>
+        </tr>
+        <tr>
+          <td><strong>Tareas</strong></td>
+          <td>Crear, Listar, Activar/Desactivar</td>
+          <td>Nombre único</td>
+        </tr>
+        <tr>
+          <td><strong>Configuración</strong></td>
+          <td>Editar precios base/alto/umbral, moneda, empresa</td>
+          <td>Números positivos, precio alto > precio base</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Módulo BI/Reportes</h2>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">🔍</div>
+      <div class="card-label">Filtros</div>
+      <div class="card-title">Filtrado Avanzado</div>
+      <div class="card-desc">Por rango de fechas, cliente, proyecto, tarea, usuario. Filtros combinables. URL params para bookmarking.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <div class="card-label">Visualizaciones</div>
+      <div class="card-title">Recharts</div>
+      <div class="card-desc">BarChart de horas/ingresos por mes. LineChart de tendencia. PieChart de distribución por tarea.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📄</div>
+      <div class="card-label">Exportación</div>
+      <div class="card-title">PDF + CSV</div>
+      <div class="card-desc">@react-pdf/renderer para reportes formateados con logo. Exportación CSV via blob para Excel.</div>
+    </div>
+  </div>
+
+  <h3>KPIs del Dashboard Principal</h3>
+  <ul>
+    <li><strong>Total horas del período</strong> filtrado</li>
+    <li><strong>Ingresos totales</strong> calculados (con precio aplicado real)</li>
+    <li><strong>Promedio de horas por día</strong></li>
+    <li><strong>Proyectos activos</strong> con % de horas consumidas vs presupuesto</li>
+    <li><strong>Top 3 proyectos</strong> por ingreso generado</li>
+    <li><strong>Alerta</strong> de proyectos que superaron el umbral de 20h</li>
+  </ul>
+</div>
+
+<!-- ── SECTION 7 ── -->
+<div class="page break" id="s7">
+  <div class="section-header">
+    <div class="section-num">07 / 09</div>
+    <div>
+      <div class="section-title">UX / UI · Diseño<br>y Sistema Visual</div>
+      <div class="section-desc">Paleta de colores, tipografía, principios Mobile First y animaciones</div>
+    </div>
+  </div>
+
+  <h2>Filosofía de Diseño</h2>
+  <p>Ptime apunta a un equilibrio entre <strong>profesionalismo corporativo y calidez humana</strong>. El diseño debe transmitir confianza y precisión (servicios profesionales) sin resultar frío o intimidante. Se usa una estética "warm professional" con un azul confiable como acento primario y un ámbar cálido para énfasis.</p>
+
+  <h2>Paleta de Colores</h2>
+  <div class="swatch-row">
+    <div class="swatch"><div class="swatch-color" style="background:#1A56DB"></div><div class="swatch-name">Azul Primario</div><div class="swatch-hex">#1A56DB</div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#3B82F6"></div><div class="swatch-name">Azul Claro</div><div class="swatch-hex">#3B82F6</div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#F59E0B"></div><div class="swatch-name">Ámbar Cálido</div><div class="swatch-hex">#F59E0B</div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#10B981"></div><div class="swatch-name">Éxito Verde</div><div class="swatch-hex">#10B981</div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#0D1117"></div><div class="swatch-name">Ink Dark</div><div class="swatch-hex">#0D1117</div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#F8FAFC"></div><div class="swatch-name">Surface</div><div class="swatch-hex">#F8FAFC</div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#EF4444"></div><div class="swatch-name">Error</div><div class="swatch-hex">#EF4444</div></div>
+  </div>
+
+  <h2>Sistema Tipográfico</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Rol</th><th>Fuente</th><th>Peso</th><th>Uso</th></tr></thead>
+      <tbody>
+        <tr><td>Display / Títulos</td><td>DM Serif Display</td><td>400 (Regular + Italic)</td><td>Encabezados de sección, logo</td></tr>
+        <tr><td>Cuerpo / UI</td><td>Outfit</td><td>300, 400, 500, 600, 700</td><td>Todo el texto de interfaz</td></tr>
+        <tr><td>Monospace / Datos</td><td>DM Mono</td><td>400, 500</td><td>Códigos, IDs, valores numéricos, badges</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Principios Mobile First</h2>
+  <div class="num-list">
+    <div class="num-item">
+      <div class="num-badge">1</div>
+      <div class="num-content"><strong>Breakpoints Tailwind</strong>: diseño base para 375px, expand en <code>sm:</code>, <code>md:</code>, <code>lg:</code>. El formulario de horas debe ser usable con una sola mano en móvil.</div>
+    </div>
+    <div class="num-item">
+      <div class="num-badge">2</div>
+      <div class="num-content"><strong>Sidebar colapsable</strong>: en mobile se convierte en drawer inferior con Framer Motion <code>AnimatePresence</code>.</div>
+    </div>
+    <div class="num-item">
+      <div class="num-badge">3</div>
+      <div class="num-content"><strong>Tablas responsivas</strong>: en mobile se convierten a card-list con el componente <code>DataTable</code> adaptativo.</div>
+    </div>
+    <div class="num-item">
+      <div class="num-badge">4</div>
+      <div class="num-content"><strong>Touch targets</strong>: mínimo 44×44px para todos los elementos interactivos (WCAG 2.5.5).</div>
+    </div>
+  </div>
+
+  <h2>Animaciones con Framer Motion</h2>
+  <pre>
+// Transición de página recomendada (layout.tsx)
+const pageVariants = {
+  initial:  { opacity: 0, y: 12 },
+  animate:  { opacity: 1, y: 0, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } },
+  exit:     { opacity: 0, y: -8, transition: { duration: 0.15 } },
+};
+
+// Stagger para listas de registros
+const listVariants = {
+  animate: { transition: { staggerChildren: 0.04 } }
+};
+const itemVariants = {
+  initial: { opacity: 0, x: -8 },
+  animate: { opacity: 1, x: 0 }
+};
+
+// Feedback visual en submit del formulario
+const submitVariant = {
+  idle:    { scale: 1 },
+  loading: { scale: 0.97, opacity: 0.8 },
+  success: { scale: [1, 1.04, 1], transition: { duration: 0.4 } }
+};</pre>
+
+  <div class="callout success">
+    <div class="callout-icon">🎨</div>
+    <div class="callout-content">
+      <strong>Dark Mode</strong>
+      Implementar con <code>next-themes</code> y clase <code>dark:</code> de Tailwind. Definir tokens CSS variables en <code>:root</code> y <code>.dark</code> para cambio instantáneo sin flash.
+    </div>
+  </div>
+</div>
+
+<!-- ── SECTION 8 ── -->
+<div class="page break" id="s8">
+  <div class="section-header">
+    <div class="section-num">08 / 09</div>
+    <div>
+      <div class="section-title">Seguridad · Guía<br>de 5 Puntos Clave</div>
+      <div class="section-desc">Implementación rigurosa de seguridad a pesar de usar Google Sheets como backend</div>
+    </div>
+  </div>
+
+  <div class="security-grid">
+    <div class="security-card">
+      <div class="security-num">01</div>
+      <div class="security-title">Credenciales nunca en el cliente</div>
+      <div class="security-desc">Las API Keys de Google Service Account y NEXTAUTH_SECRET viven exclusivamente en variables de entorno sin prefijo <code>NEXT_PUBLIC_</code>. El cliente de Google Sheets es un singleton server-side. Ninguna credencial cruza al bundle de cliente.</div>
+      <div class="security-code">
+// lib/sheets/client.ts — Solo ejecuta en servidor<br>
+import { google } from 'googleapis';<br>
+const auth = new google.auth.GoogleAuth({<br>
+&nbsp;&nbsp;credentials: {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g,'\n'),<br>
+&nbsp;&nbsp;},<br>
+&nbsp;&nbsp;scopes: ['https://www.googleapis.com/auth/spreadsheets'],<br>
+});
+      </div>
+    </div>
+
+    <div class="security-card warn">
+      <div class="security-num">02</div>
+      <div class="security-title">Validación en dos capas (Zod)</div>
+      <div class="security-desc">Toda entrada de datos es validada dos veces: en el cliente para UX y en el servidor (Server Action) como fuente de verdad. No confiar en validaciones de cliente. Zod rechaza tipos inesperados, strings maliciosos y rangos fuera de límite.</div>
+      <div class="security-code">
+// app/actions/hours.ts<br>
+'use server'<br>
+export async function createHour(rawData: unknown) {<br>
+&nbsp;&nbsp;const session = await auth(); // Verificar auth PRIMERO<br>
+&nbsp;&nbsp;if (!session) throw new Error('UNAUTHORIZED');<br>
+<br>
+&nbsp;&nbsp;const parsed = hourFormSchema.safeParse(rawData);<br>
+&nbsp;&nbsp;if (!parsed.success) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return { error: parsed.error.flatten() };<br>
+&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;// Solo aquí se accede a Sheets<br>
+}
+      </div>
+    </div>
+
+    <div class="security-card danger">
+      <div class="security-num">03</div>
+      <div class="security-title">Sanitización Anti-XSS</div>
+      <div class="security-desc">Todos los campos de texto libre (descripción, nombres) pasan por DOMPurify antes de ser almacenados y al ser renderizados. Se usa la función <code>sanitize()</code> centralizada. Nunca usar <code>dangerouslySetInnerHTML</code> con datos de usuario.</div>
+      <div class="security-code">
+// lib/utils/sanitize.ts<br>
+import createDOMPurify from 'isomorphic-dompurify';<br>
+const DOMPurify = createDOMPurify();<br>
+<br>
+export function sanitize(dirty: string): string {<br>
+&nbsp;&nbsp;return DOMPurify.sanitize(dirty, {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ALLOWED_TAGS: [], // Sin HTML permitido<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ALLOWED_ATTR: [],<br>
+&nbsp;&nbsp;}).trim();<br>
+}
+      </div>
+    </div>
+
+    <div class="security-card green">
+      <div class="security-num">04</div>
+      <div class="security-title">Sesiones HttpOnly + CSRF</div>
+      <div class="security-desc">NextAuth configura cookies <code>HttpOnly</code>, <code>Secure</code> y <code>SameSite=Lax</code> automáticamente. Los Server Actions de Next.js incluyen protección CSRF nativa mediante el mecanismo de Same-Origin verification. Configurar <code>NEXTAUTH_SECRET</code> con al menos 32 bytes aleatorios.</div>
+      <div class="security-code">
+// auth.ts (NextAuth v5)<br>
+export const { handlers, auth, signIn, signOut } = NextAuth({<br>
+&nbsp;&nbsp;secret: process.env.NEXTAUTH_SECRET,<br>
+&nbsp;&nbsp;session: { strategy: "jwt", maxAge: 8 * 60 * 60 }, // 8h<br>
+&nbsp;&nbsp;cookies: {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sessionToken: {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;options: { httpOnly: true, sameSite: 'lax', secure: true }<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;}<br>
+});
+      </div>
+    </div>
+
+    <div class="security-card" style="grid-column: 1 / -1;">
+      <div class="security-num">05</div>
+      <div class="security-title">Autorización por Roles (RBAC) en Middleware</div>
+      <div class="security-desc">El archivo <code>middleware.ts</code> protege rutas según el rol del token JWT. Las rutas <code>/admin/*</code> requieren rol <code>ADMIN</code>. Las rutas <code>/horas/*</code> requieren al menos <code>USER</code>. Cualquier intento de acceso sin el rol adecuado retorna redirect o 403 antes de que el componente se ejecute. Los Server Actions repiten esta verificación internamente.</div>
+      <div class="security-code">
+// middleware.ts<br>
+import { auth } from '@/auth';<br>
+export default auth((req) => {<br>
+&nbsp;&nbsp;const isAdminRoute  = req.nextUrl.pathname.startsWith('/admin');<br>
+&nbsp;&nbsp;const role = req.auth?.user?.role;<br>
+&nbsp;&nbsp;if (!req.auth) return Response.redirect(new URL('/login', req.url));<br>
+&nbsp;&nbsp;if (isAdminRoute && role !== 'ADMIN') return new Response(null, { status: 403 });<br>
+});<br>
+export const config = { matcher: ['/(dashboard)/:path*', '/admin/:path*'] };
+      </div>
+    </div>
+  </div>
+
+  <div class="callout danger">
+    <div class="callout-icon">🔴</div>
+    <div class="callout-content">
+      <strong>Principios SOLID aplicados</strong>
+      S: Cada módulo tiene una única responsabilidad. O: Los precios son extensibles vía configuración sin tocar código. L: Los schemas Zod son componibles. I: Las interfaces de repositorio están separadas de la implementación Sheets. D: Los Server Actions dependen de abstracciones (<code>getSheetData</code>) no de googleapis directamente.
+    </div>
+  </div>
+</div>
+
+<!-- ── SECTION 9 ── -->
+<div class="page break" id="s9">
+  <div class="section-header">
+    <div class="section-num">09 / 09</div>
+    <div>
+      <div class="section-title">Fases de<br>Desarrollo</div>
+      <div class="section-desc">Roadmap recomendado en sprints de 2 semanas</div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Fase</th><th>Sprint</th><th>Entregables</th><th>Estado</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Fase 0</strong><br>Fundaciones</td>
+          <td>Sprint 1<br>2 semanas</td>
+          <td>Setup Next.js 14 + TypeScript + Tailwind. Configurar Shadcn/UI. Configurar NextAuth. Service Account Google + permisos Spreadsheet. Variables de entorno. Skeleton de rutas y middleware.</td>
+          <td><span class="tag blue">Pendiente</span></td>
+        </tr>
+        <tr>
+          <td><strong>Fase 1</strong><br>Core Data Layer</td>
+          <td>Sprint 2<br>2 semanas</td>
+          <td>Crear las 5 hojas en Sheets con estructura. Implementar <code>lib/sheets/client.ts</code>. Schemas Zod completos. Server Actions CRUD para Clientes, Proyectos, Tareas.</td>
+          <td><span class="tag blue">Pendiente</span></td>
+        </tr>
+        <tr>
+          <td><strong>Fase 2</strong><br>Módulo Horas</td>
+          <td>Sprint 3<br>2 semanas</td>
+          <td>Algoritmo de precios + tests. Formulario de carga con validación RT. Lista de registros con paginación. Preview de monto en vivo. Estados optimistas.</td>
+          <td><span class="tag blue">Pendiente</span></td>
+        </tr>
+        <tr>
+          <td><strong>Fase 3</strong><br>Módulo Admin</td>
+          <td>Sprint 4<br>2 semanas</td>
+          <td>CRUD completo de maestros. Configuración de precios globales. Inyección de configuración con cache. RBAC completo.</td>
+          <td><span class="tag blue">Pendiente</span></td>
+        </tr>
+        <tr>
+          <td><strong>Fase 4</strong><br>BI/Reportes</td>
+          <td>Sprint 5<br>2 semanas</td>
+          <td>Dashboard con KPIs. Filtros avanzados. Gráficas Recharts. Exportación PDF con @react-pdf. Exportación CSV.</td>
+          <td><span class="tag blue">Pendiente</span></td>
+        </tr>
+        <tr>
+          <td><strong>Fase 5</strong><br>UX & Polish</td>
+          <td>Sprint 6<br>2 semanas</td>
+          <td>Animaciones Framer Motion. Dark Mode con next-themes. Mobile First audit. Accesibilidad (WCAG AA). Performance (Lighthouse ≥ 90).</td>
+          <td><span class="tag blue">Pendiente</span></td>
+        </tr>
+        <tr>
+          <td><strong>Fase 6</strong><br>Deploy & Hardening</td>
+          <td>Sprint 7<br>1 semana</td>
+          <td>Deploy en Vercel. Variables de entorno en producción. Monitoreo con Sentry. Rate limiting básico en API routes. Documentación técnica final.</td>
+          <td><span class="tag blue">Pendiente</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Comandos de Inicio Rápido</h2>
+  <pre>
+# 1. Crear proyecto
+npx create-next-app@latest ptime --typescript --tailwind --app --src-dir=false
+
+# 2. Instalar dependencias críticas
+npm install next-auth@beta googleapis zod uuid framer-motion
+npm install recharts @react-pdf/renderer date-fns @tanstack/react-query
+npm install isomorphic-dompurify @types/dompurify
+npm install react-hook-form @hookform/resolvers
+
+# 3. Instalar Shadcn/UI
+npx shadcn@latest init
+npx shadcn@latest add button input form select table badge card dialog
+
+# 4. Configurar Service Account Google
+#    → IAM → Service Accounts → Crear → Descargar JSON
+#    → Compartir Spreadsheet con el email de la Service Account
+
+# 5. Variables de entorno
+cp .env.example .env.local
+# Completar GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY, GOOGLE_SPREADSHEET_ID
+
+# 6. Dev server
+npm run dev</pre>
+
+  <hr>
+
+  <div class="callout success">
+    <div class="callout-icon">🚀</div>
+    <div class="callout-content">
+      <strong>Documento generado · Ptime v1.0.0</strong>
+      Este plan de implementación cubre la arquitectura completa. Se recomienda revisar las dependencias con <code>npm audit</code> antes de cada fase de deploy y mantener un <code>CHANGELOG.md</code> actualizado. Para cualquier evolución de la arquitectura (migración de Sheets a DB), la capa de abstracción en <code>lib/sheets/</code> facilita el reemplazo sin tocar Server Actions.
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,33 @@
+{
+    "version": 2,
+    "name": "ptime",
+    "regions": [
+        "iad1"
+    ],
+    "buildCommand": "npm run build",
+    "framework": "nextjs",
+    "env": [
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+        "NEXTAUTH_SECRET",
+        "NEXTAUTH_URL",
+        "ADMIN_EMAIL"
+    ],
+    "headers": [
+        {
+            "source": "/api/(.*)",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "no-store, max-age=0"
+                }
+            ]
+        }
+    ],
+    "rewrites": [
+        {
+            "source": "/health",
+            "destination": "/api/health"
+        }
+    ]
+}
