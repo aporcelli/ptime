@@ -4,16 +4,11 @@ const isDev = process.env.NODE_ENV === "development";
 
 const nextConfig = {
   reactStrictMode: true,
+  transpilePackages: ["lucide-react"],
 
   experimental: {
     serverActions: {
-      // En producción se usa el dominio real de Vercel
-      allowedOrigins: isDev
-        ? ["localhost:3000"]
-        : [
-          process.env.NEXTAUTH_URL?.replace(/^https?:\/\//, "") ?? "",
-          "*.vercel.app",
-        ].filter(Boolean),
+      allowedOrigins: ["localhost:3000"],
     },
   },
 
