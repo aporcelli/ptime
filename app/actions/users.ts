@@ -3,6 +3,7 @@ import { auth }        from "@/auth";
 import { getSheetCtx } from "@/lib/sheets/context";
 import { getSheetRows, appendSheetRow, updateSheetRow } from "@/lib/sheets/client";
 import { revalidatePath } from "next/cache";
+import { userUpsertSchema } from "@/lib/schemas/user";
 
 export interface PtimeUser {
   id:          string;   // email usado como ID único
@@ -29,21 +30,22 @@ export async function upsertUserRecord(user: {
   id: string; nombre: string; email: string; sheetId: string;
 }): Promise<void> {
   try {
+    const validated = userUpsertSchema.parse(user);
     const session = await auth();
     if (!session?.user) return;
     const ctx  = await getSheetCtx();
     const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, RANGE);
 
-    const idx = rows.findIndex((r) => r[1] === user.email); // buscar por email
+    const idx = rows.findIndex((r) => r[2] === validated.email); // buscar por email
     const isAdmin = session.user.role === "ADMIN";
     const now = new Date().toISOString();
 
     if (idx === -1) {
       // Nuevo usuario
       await appendSheetRow(ctx.sheetId, ctx.accessToken, RANGE, [
-        user.id, user.nombre, user.email,
+        validated.id, validated.nombre, validated.email,
         isAdmin ? "ADMIN" : "USER",
-        "true", now, user.sheetId,
+        "true", now, validated.sheetId,
       ]);
     } else {
       // Actualizar último acceso y sheetId
@@ -53,7 +55,7 @@ export async function upsertUserRecord(user: {
         current[3], // mantener rol existente
         current[4], // mantener activo
         now,
-        user.sheetId,
+        validated.sheetId,
       ]);
     }
   } catch {

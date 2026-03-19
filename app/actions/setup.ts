@@ -9,16 +9,16 @@ import { validateSpreadsheet, initializeSpreadsheet } from "@/lib/sheets/client"
 import { encode } from "next-auth/jwt";
 import { cookies } from "next/headers";
 
+import { z } from "zod";
+
 export async function validateAndSaveSheetId(
   sheetId: string
 ): Promise<{ success: boolean; title?: string; error?: string }> {
+  const parsed = z.string().min(1).safeParse(sheetId);
+  if (!parsed.success) return { success: false, error: "El Sheet ID es inválido" };
+  const trimmed = parsed.data.trim();
+  
   const session = await auth();
-  if (!session?.user?.accessToken) {
-    return { success: false, error: "No autenticado o token expirado" };
-  }
-
-  const trimmed = sheetId.trim();
-  if (!trimmed) return { success: false, error: "El Sheet ID no puede estar vacío" };
 
   // Validar que el sheet existe y es accesible
   const validation = await validateSpreadsheet(trimmed, session.user.accessToken);
