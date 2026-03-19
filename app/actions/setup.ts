@@ -19,6 +19,9 @@ export async function validateAndSaveSheetId(
   const trimmed = parsed.data.trim();
   
   const session = await auth();
+  if (!session?.user?.accessToken) {
+    return { success: false, error: "No autenticado o token expirado. Por favor, inicia sesión nuevamente." };
+  }
 
   // Validar que el sheet existe y es accesible
   const validation = await validateSpreadsheet(trimmed, session.user.accessToken);
