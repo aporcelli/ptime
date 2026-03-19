@@ -334,6 +334,7 @@
     <li><a href="#s7" class="toc-section"><span class="toc-num">07</span>UX / UI · Diseño y Sistema Visual</a></li>
     <li><a href="#s8" class="toc-section"><span class="toc-num">08</span>Seguridad · Guía de 5 Puntos Clave</a></li>
     <li><a href="#s9" class="toc-section"><span class="toc-num">09</span>Fases de Desarrollo</a></li>
+    <li><a href="#s10" class="toc-section"><span class="toc-num">10</span>Funcionalidades Adicionales</a></li>
   </ul>
 </div>
 
@@ -856,6 +857,12 @@ export async function getPricingConfig(): Promise&lt;PricingConfig&gt; {
     <div class="callout-content">El formulario utiliza <strong>react-hook-form</strong> con resolución Zod para validación en tiempo real. Cada campo se valida on-blur y on-change. Un componente <code>PricingPreview</code> calcula el monto estimado al vuelo sin llamadas al servidor.</div>
   </div>
 
+  <h2>Módulo Setup — Inicialización</h2>
+  <div class="callout info">
+    <div class="callout-icon">🚀</div>
+    <div class="callout-content">El flujo de <code>/setup</code> permite conectar un Google Sheet existente o nuevo, inicializando automáticamente la estructura de las 5 hojas requeridas mediante Server Actions seguras, usando cookies HttpOnly para persistir el ID.</div>
+  </div>
+
   <pre>
 // Esquema Zod del formulario de horas
 export const hourFormSchema = z.object({
@@ -881,11 +888,16 @@ export const hourFormSchema = z.object({
     <li><strong>Detección de solapamiento</strong>: advertencia si hay registros en la misma fecha para el mismo proyecto.</li>
   </ul>
 
-  <h2>Módulo Admin — Gestión de Maestros</h2>
+  <h2>Módulo Admin — Gestión de Maestros y Usuarios</h2>
   <div class="table-wrap">
     <table>
       <thead><tr><th>Sección</th><th>Operaciones CRUD</th><th>Validaciones</th></tr></thead>
       <tbody>
+        <tr>
+          <td><strong>Usuarios</strong></td>
+          <td>Listar, Cambiar Rol (ADMIN/USER), Activar/Desactivar</td>
+          <td>RBAC (solo admins pueden gestionar)</td>
+        </tr>
         <tr>
           <td><strong>Clientes</strong></td>
           <td>Crear, Listar, Editar, Desactivar (soft delete)</td>
@@ -965,6 +977,12 @@ export const hourFormSchema = z.object({
     <div class="swatch"><div class="swatch-color" style="background:#0D1117"></div><div class="swatch-name">Ink Dark</div><div class="swatch-hex">#0D1117</div></div>
     <div class="swatch"><div class="swatch-color" style="background:#F8FAFC"></div><div class="swatch-name">Surface</div><div class="swatch-hex">#F8FAFC</div></div>
     <div class="swatch"><div class="swatch-color" style="background:#EF4444"></div><div class="swatch-name">Error</div><div class="swatch-hex">#EF4444</div></div>
+  </div>
+
+  <h2>Dark Mode y Temas</h2>
+  <div class="callout info">
+    <div class="callout-icon">🌙</div>
+    <div class="callout-content">Ptime soporta modo claro/oscuro de manera nativa utilizando <code>next-themes</code>, permitiendo al usuario cambiar entre esquemas con persistencia en el almacenamiento local.</div>
   </div>
 
   <h2>Sistema Tipográfico</h2>
@@ -1131,6 +1149,17 @@ export default auth((req) => {<br>
 &nbsp;&nbsp;if (isAdminRoute && role !== 'ADMIN') return new Response(null, { status: 403 });<br>
 });<br>
 export const config = { matcher: ['/(dashboard)/:path*', '/admin/:path*'] };
+      </div>
+    </div>
+    
+    <div class="security-card warn">
+      <div class="security-num">06</div>
+      <div class="security-title">Rate Limiting</div>
+      <div class="security-desc">Para evitar abusos y ataques de fuerza bruta en los endpoints críticos (Auth, Server Actions), se implementa un rate-limiter de ventana deslizante simple.</div>
+      <div class="security-code">
+// lib/ratelimit.ts<br>
+export const authLimiter = (key: string) => rateLimit(key, 5, 60_000);<br>
+export const actionLimiter = (key: string) => rateLimit(key, 100, 60_000);
       </div>
     </div>
   </div>
