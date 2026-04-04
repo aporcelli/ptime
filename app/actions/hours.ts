@@ -44,7 +44,7 @@ export async function createHour(rawData: unknown): Promise<ActionResult<Registr
 
   const id = generateUUID();
   const registro: Omit<RegistroHoras, "created_at"|"updated_at"> = {
-    id, proyecto_id: data.proyecto_id, tarea_id: data.tarea_id,
+    id, cliente_id: data.cliente_id, proyecto_id: data.proyecto_id, tarea_id: data.tarea_id,
     usuario_id: usuarioId,
     fecha: data.fecha, horas: data.horas,
     descripcion: sanitize(data.descripcion),
