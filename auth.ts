@@ -78,7 +78,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
 
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger, session: sessionUpdate }) {
       // 1️⃣ Login inicial — guardar tokens + expiración
       if (account && user) {
         token.accessToken          = account.access_token;
@@ -91,6 +91,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           .split(",").map((e) => e.trim().toLowerCase());
         token.role  = adminEmails.includes((user.email ?? "").toLowerCase()) ? "ADMIN" : "USER";
         token.error = undefined;
+        return token;
+      }
+
+      // 1b️⃣ Actualización manual del JWT (ej. después del Setup del Sheet)
+      if (trigger === "update" && sessionUpdate?.sheetId) {
+        token.sheetId = sessionUpdate.sheetId;
         return token;
       }
 
@@ -125,6 +131,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.user.role        = token.role;
       session.user.id          = token.sub ?? session.user.email;
       session.user.accessToken = token.accessToken as string | undefined;
+      session.user.sheetId     = token.sheetId as string | undefined;
       // Propagar el error para que el cliente pueda re-login si es necesario
       if (token.error) session.error = token.error;
       return session;

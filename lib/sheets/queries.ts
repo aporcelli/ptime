@@ -1,7 +1,7 @@
 // lib/sheets/queries.ts
 import { getSheetRows } from "./client";
 import { SHEET_RANGES } from "@/lib/constants";
-import type { Cliente, Proyecto, Tarea, RegistroHoras, AppConfig, ReporteFilters } from "@/types/entities";
+import type { Cliente, Proyecto, Tarea, RegistroHoras, AppConfig, ReporteFilters, WorkspaceMember, WorkspaceMemberRol } from "@/types/entities";
 import { PRICING_DEFAULTS } from "@/lib/constants";
 
 interface SheetCtx { sheetId: string; accessToken: string; }
@@ -95,4 +95,30 @@ export async function getAppConfig(ctx: SheetCtx): Promise<AppConfig> {
     logoUrl:       map.logo_url       || undefined,
     updated_at:    map.updated_at     ?? new Date().toISOString(),
   };
+}
+
+// ── Workspace Members ─────────────────────────────────────────────────────────
+
+export async function getWorkspaceMembers(ctx: SheetCtx): Promise<WorkspaceMember[]> {
+  const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, SHEET_RANGES.WORKSPACE_MEMBERS);
+  return rows.filter((r) => r[0]).map((r) => ({
+    email:      r[0].trim().toLowerCase(),
+    sheet_id:   r[1],
+    rol:        (r[2] ?? "COLABORADOR") as WorkspaceMemberRol,
+    invited_by: r[3],
+    created_at: r[4],
+    updated_at: r[5],
+  } satisfies WorkspaceMember));
+}
+
+/**
+ * Dado un email, busca en el Sheet si ese usuario fue invitado como miembro.
+ * Retorna el miembro o null si no existe.
+ */
+export async function getWorkspaceMemberByEmail(
+  ctx: SheetCtx,
+  email: string
+): Promise<WorkspaceMember | null> {
+  const members = await getWorkspaceMembers(ctx);
+  return members.find((m) => m.email === email.toLowerCase()) ?? null;
 }

@@ -216,8 +216,8 @@ const s = StyleSheet.create({
   footerAccent: { color: C.teal, fontFamily: "Helvetica-Bold" },
   
   // ── TuCloud Logos
-  headerLogo: { height: 16, width: "auto", marginLeft: 12 },
-  footerLogo: { height: 10, width: "auto", marginLeft: 6 },
+  headerLogo: { height: 22, width: "auto", marginLeft: 14 },
+  footerLogo: { height: 14, width: "auto", marginLeft: 8 },
 });
 
 // ── Helpers de formato ────────────────────────────────────────────────────────
