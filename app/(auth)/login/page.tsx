@@ -1,5 +1,6 @@
 // app/(auth)/login/page.tsx
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth, signIn } from "@/auth";
 
@@ -68,8 +69,12 @@ export default async function LoginPage({
           </form>
         </div>
 
-        <p className="text-center text-slate-600 text-xs mt-6">
-          © {new Date().getFullYear()} Ptime · Acceso restringido
+        <p className="text-center text-slate-600 text-xs mt-6 flex flex-col gap-2">
+          <span>© {new Date().getFullYear()} Ptime · Acceso restringido</span>
+          <span className="flex justify-center gap-4">
+            <Link href="/privacy" className="hover:text-slate-400 underline transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-slate-400 underline transition-colors">Terms of Service</Link>
+          </span>
         </p>
       </div>
     </main>
