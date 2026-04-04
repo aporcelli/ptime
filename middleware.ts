@@ -7,7 +7,7 @@ export default auth((req) => {
   const session      = req.auth;
 
   // Rutas siempre públicas
-  const isPublic = ["/login", "/api/auth", "/setup"].some((p) => pathname.startsWith(p));
+  const isPublic = ["/login", "/api/auth", "/setup", "/privacy", "/terms"].some((p) => pathname.startsWith(p));
   if (isPublic) return NextResponse.next();
 
   // Sin sesión → login
