@@ -3,7 +3,6 @@
 
 import { useState }      from "react";
 import { useRouter }     from "next/navigation";
-import { useSession }    from "next-auth/react";
 import { motion }     from "framer-motion";
 import { validateAndSaveSheetId } from "@/app/actions/setup";
 
@@ -51,8 +50,7 @@ function isGoogleSheetsUrl(input: string): boolean {
 }
 
 export default function SetupForm() {
-  const router     = useRouter();
-  const { update } = useSession();
+  const router = useRouter();
   const [rawInput, setRawInput] = useState("");
   const [status, setStatus]     = useState<"idle"|"loading"|"success"|"error">("idle");
   const [message, setMessage]   = useState("");
@@ -83,9 +81,6 @@ export default function SetupForm() {
 
     setStatus("success");
     setMessage(`Sheet "${result.title}" conectado. Entrando…`);
-
-    // Persistir el sheetId en el JWT para que sea cross-device
-    await update({ sheetId });
 
     setTimeout(() => {
       router.push("/dashboard");
