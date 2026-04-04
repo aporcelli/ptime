@@ -4,20 +4,22 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const SHEET_NAMES = {
-  REGISTROS_HORAS:  "Registros_Horas",
-  PROYECTOS:        "Proyectos",
-  CLIENTES:         "Clientes",
-  TAREAS:           "Tareas",
-  CONFIGURACIONES:  "Configuraciones",
+  REGISTROS_HORAS:    "Registros_Horas",
+  PROYECTOS:          "Proyectos",
+  CLIENTES:           "Clientes",
+  TAREAS:             "Tareas",
+  CONFIGURACIONES:    "Configuraciones",
+  WORKSPACE_MEMBERS:  "Workspace_Members",
 } as const;
 
 // Rangos de columnas por hoja (A:L = todas las columnas relevantes)
 export const SHEET_RANGES = {
-  REGISTROS_HORAS:  "Registros_Horas!A:M",
-  PROYECTOS:        "Proyectos!A:K",
-  CLIENTES:         "Clientes!A:G",
-  TAREAS:           "Tareas!A:F",
-  CONFIGURACIONES:  "Configuraciones!A:C",
+  REGISTROS_HORAS:    "Registros_Horas!A:M",
+  PROYECTOS:          "Proyectos!A:K",
+  CLIENTES:           "Clientes!A:G",
+  TAREAS:             "Tareas!A:F",
+  CONFIGURACIONES:    "Configuraciones!A:C",
+  WORKSPACE_MEMBERS:  "Workspace_Members!A:F",
 } as const;
 
 // Encabezados de cada hoja (fila 1) — deben coincidir exactamente con el Spreadsheet

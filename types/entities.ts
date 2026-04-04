@@ -6,6 +6,18 @@
 
 export type UserRole = "USER" | "ADMIN";
 
+// ── Workspace Members ─────────────────────────────────────────────────────────
+export type WorkspaceMemberRol = "OWNER" | "COLABORADOR" | "VIEWER";
+
+export interface WorkspaceMember {
+  email:       string;
+  sheet_id:    string;
+  rol:         WorkspaceMemberRol;
+  invited_by:  string;
+  created_at:  string;
+  updated_at:  string;
+}
+
 export type HoraEstado = "borrador" | "confirmado" | "facturado";
 export type ProyectoEstado = "activo" | "pausado" | "cerrado";
 

@@ -13,10 +13,10 @@ export async function getPageCtx(): Promise<SheetCtx> {
   const session     = await auth();
   const cookieStore = cookies();
 
-  // 1. Intentar leer el sheetId desde la cookie del usuario (setup manual)
-  // 2. Fallback: variable de entorno global (todos los usuarios usan el mismo Sheet)
+  // Cada usuario tiene su propio Sheet — se lee desde la cookie (guardada en Setup)
+  // o desde el JWT si ya lo había configurado previamente (cross-device)
   const sheetId     = cookieStore.get("ptime-sheet-id")?.value
-                   ?? process.env.SHEET_ID
+                   ?? (session?.user as { sheetId?: string })?.sheetId
                    ?? undefined;
 
   const accessToken = session?.user?.accessToken;

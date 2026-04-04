@@ -12,11 +12,12 @@ const navItems = [
 ];
 
 const adminItems = [
-  { href: "/admin/clientes",      label: "Clientes",    icon: <Users size={18} />,        adminOnly: false },
-  { href: "/admin/proyectos",     label: "Proyectos",   icon: <FolderKanban size={18} />, adminOnly: false },
-  { href: "/admin/tareas",        label: "Tareas",      icon: <CheckSquare size={18} />,  adminOnly: false },
-  { href: "/admin/usuarios",      label: "Usuarios",    icon: <UserCog size={18} />,      adminOnly: true  },
-  { href: "/admin/configuracion", label: "Configuración", icon: <Settings size={18} />,  adminOnly: false },
+  { href: "/admin/clientes",      label: "Clientes",      icon: <Users size={18} />,        adminOnly: false },
+  { href: "/admin/proyectos",     label: "Proyectos",     icon: <FolderKanban size={18} />, adminOnly: false },
+  { href: "/admin/tareas",        label: "Tareas",        icon: <CheckSquare size={18} />,  adminOnly: false },
+  { href: "/admin/workspace",     label: "Workspace",     icon: <UserCog size={18} />,      adminOnly: false },
+  { href: "/admin/usuarios",      label: "Usuarios",      icon: <UserCog size={18} />,      adminOnly: true  },
+  { href: "/admin/configuracion", label: "Configuración", icon: <Settings size={18} />,     adminOnly: false },
 ];
 
 interface SidebarProps {
@@ -64,19 +65,19 @@ export default function Sidebar({ role, onNavClick }: SidebarProps) {
           title="Visitar TuCloud.pro"
         >
           <span className="text-[9px] text-on-surface-variant uppercase tracking-wider font-semibold">Powered by</span>
-          <div className="bg-[#050505] px-2.5 py-1.5 rounded-lg border border-white/5 shadow-sm">
+          <div className="bg-[#050505] px-3 py-2 rounded-lg border border-white/5 shadow-sm">
             <img 
               src="/logo_tucloud_white.png" 
               alt="TU CLOUD PRO" 
-              className="h-4 w-auto object-contain" 
+              className="h-6 w-auto object-contain" 
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
-                e.currentTarget.parentElement!.innerHTML = '<span style="color:white; font-size:10px; font-weight:bold; letter-spacing:1px;">TU CLOUD PRO</span>';
+                e.currentTarget.parentElement!.innerHTML = '<span style="color:white; font-size:11px; font-weight:bold; letter-spacing:1px;">TU CLOUD PRO</span>';
               }}
             />
           </div>
         </a>
-        <p className="text-on-surface-variant opacity-40 text-[10px] text-center">Ptime v1.1.0</p>
+        <p className="text-on-surface-variant opacity-40 text-[10px] text-center">Ptime v1.2.0</p>
       </div>
     </aside>
   );
