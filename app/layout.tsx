@@ -1,26 +1,19 @@
 import type { Metadata } from "next";
-import { Outfit, DM_Serif_Display, DM_Mono } from "next/font/google";
+import { Manrope, Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 
-const outfit = Outfit({
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-display",
+  weight: ["400", "600", "700", "800"],
+  display: "swap",
+});
+
+const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
-  display: "swap",
-});
-
-const dmSerif = DM_Serif_Display({
-  subsets: ["latin"],
-  weight: "400",
-  style: ["normal", "italic"],
-  variable: "--font-serif",
-  display: "swap",
-});
-
-const dmMono = DM_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-mono",
+  weight: ["400", "500", "600"],
   display: "swap",
 });
 
@@ -39,7 +32,7 @@ export default function RootLayout({
     <html
       lang="es"
       suppressHydrationWarning
-      className={`${outfit.variable} ${dmSerif.variable} ${dmMono.variable}`}
+      className={`${manrope.variable} ${inter.variable}`}
     >
       <body className="min-h-screen bg-surface font-sans antialiased">
         <ThemeProvider

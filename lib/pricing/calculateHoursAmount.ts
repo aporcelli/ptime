@@ -2,13 +2,25 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Algoritmo de cálculo de precios escalonado.
 // Función pura — sin efectos secundarios, 100% testeable.
+//
+// REGLA DE NEGOCIO:
+//   - El umbral (ej. 20h) se resetea el 1° de cada mes.
+//   - El acumulado es GLOBAL: suma todas las horas del mes del usuario,
+//     independientemente del proyecto.
+//   - La hora NO se fracciona en precio: si la entrada cruza el umbral
+//     (aunque sea en el medio), TODA la entrada va a precio_alto.
+//   - Ejemplos con umbral=20, precioBase=35, precioAlto=45:
+//       acum=0,  horas=5  → 5×35 = $175  (no cruza)
+//       acum=18, horas=4  → 4×45 = $180  (cruza → todo precio alto)
+//       acum=20, horas=2  → 2×45 = $90   (ya superó → todo precio alto)
+//       acum=15, horas=5  → 5×35 = $175  (15+5=20, no supera → precio base)
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { PricingConfig } from "@/types/entities";
 
 export interface CalculationResult {
   montoTotal:      number;
-  precioAplicado:  number; // precio predominante del tramo
+  precioAplicado:  number;
   desglose: {
     horasEnTramo1: number;
     horasEnTramo2: number;
@@ -18,43 +30,35 @@ export interface CalculationResult {
 }
 
 /**
- * Calcula el monto total de un nuevo registro de horas considerando
- * las horas ya acumuladas en el proyecto y la configuración de precios.
+ * Calcula el monto total de un nuevo registro de horas.
  *
- * @param horasNuevas           - Horas del nuevo registro (ej. 1.5)
- * @param horasAcumuladasAntes  - Horas del proyecto ANTES de este registro
- * @param config                - Configuración de precios (base, alto, umbral)
+ * @param horasNuevas              - Horas del nuevo registro (ej. 1.5)
+ * @param horasAcumuladasMes       - Total de horas del mes del usuario ANTES
+ *                                   de este registro (todos los proyectos)
+ * @param config                   - Configuración de precios
  */
 export function calculateHoursAmount(
   horasNuevas: number,
-  horasAcumuladasAntes: number,
+  horasAcumuladasMes: number,
   config: PricingConfig
 ): CalculationResult {
   const { precioBase, precioAlto, umbralHoras } = config;
 
-  // Redondear a 4 decimales para eliminar errores de punto flotante IEEE 754
   const horas = round4(horasNuevas);
-  const acum  = round4(horasAcumuladasAntes);
+  const acum  = round4(horasAcumuladasMes);
 
-  // Horas ya consumidas en cada tramo antes del nuevo registro
-  const horasEnTramo2Antes   = Math.max(0, acum - umbralHoras);
-  const horasEnTramo1Antes   = acum - horasEnTramo2Antes;
+  // Si ya superó el umbral, o si esta entrada lo cruza → todo a precio alto.
+  // La hora no se fracciona: no hay precios mixtos dentro de un registro.
+  const usaPrecioAlto = acum >= umbralHoras || (acum + horas) > umbralHoras;
 
-  // Capacidad restante en el tramo 1 (precio base)
-  const capacidadRestanteT1  = Math.max(0, umbralHoras - horasEnTramo1Antes);
+  const precioAplicado = usaPrecioAlto ? precioAlto : precioBase;
+  const montoTotal     = round2(horas * precioAplicado);
 
-  // Distribución de las horas nuevas entre tramos
-  const horasEnTramo1 = round4(Math.min(horas, capacidadRestanteT1));
-  const horasEnTramo2 = round4(Math.max(0, horas - horasEnTramo1));
-
-  // Montos por tramo (redondeados a 2 decimales = centavos)
-  const montoTramo1 = round2(horasEnTramo1 * precioBase);
-  const montoTramo2 = round2(horasEnTramo2 * precioAlto);
-  const montoTotal  = round2(montoTramo1 + montoTramo2);
-
-  // El precio "aplicado" refleja el tramo donde cayó la mayoría de horas
-  const precioAplicado =
-    horasEnTramo2 > horasEnTramo1 ? precioAlto : precioBase;
+  // Desglose: sin mezcla — todo cae en un solo tramo
+  const horasEnTramo1 = usaPrecioAlto ? 0 : horas;
+  const horasEnTramo2 = usaPrecioAlto ? horas : 0;
+  const montoTramo1   = round2(horasEnTramo1 * precioBase);
+  const montoTramo2   = round2(horasEnTramo2 * precioAlto);
 
   return {
     montoTotal,
@@ -65,16 +69,19 @@ export function calculateHoursAmount(
 
 // ── Preview instantáneo para el formulario ────────────────────────────────────
 /**
- * Retorna solo el monto total estimado. Usado en el hook usePricingPreview
- * para actualizar el preview del formulario sin latencia de red.
+ * Retorna solo el monto total estimado. Usado en el hook usePricingPreview.
+ *
+ * @param horasNuevas        - Horas a ingresar
+ * @param horasAcumuladasMes - Total horas del mes del usuario hasta ahora
+ * @param config             - Configuración de precios
  */
 export function previewMonto(
   horasNuevas: number,
-  horasAcumuladas: number,
+  horasAcumuladasMes: number,
   config: PricingConfig
 ): number {
   if (!horasNuevas || horasNuevas <= 0) return 0;
-  return calculateHoursAmount(horasNuevas, horasAcumuladas, config).montoTotal;
+  return calculateHoursAmount(horasNuevas, horasAcumuladasMes, config).montoTotal;
 }
 
 // ── Helpers privados ──────────────────────────────────────────────────────────
@@ -85,42 +92,76 @@ function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
-// ── Tests en el mismo archivo (ejecutar con: vitest) ─────────────────────────
+// ── Tests (vitest) ────────────────────────────────────────────────────────────
 if (import.meta.vitest) {
   const { describe, it, expect } = import.meta.vitest;
   const cfg: PricingConfig = { precioBase: 35, precioAlto: 45, umbralHoras: 20 };
 
-  describe("calculateHoursAmount", () => {
-    it("todo en tramo 1 (acum=0, horas=5)", () => {
+  describe("calculateHoursAmount — regla: hora indivisible, umbral mensual global", () => {
+    it("todo en tramo base (acum=0, horas=5) → 5×35=175", () => {
       const r = calculateHoursAmount(5, 0, cfg);
+      expect(r.precioAplicado).toBe(35);
       expect(r.montoTotal).toBe(175);
       expect(r.desglose.horasEnTramo2).toBe(0);
     });
 
-    it("cruza el umbral (acum=18, horas=4)", () => {
-      const r = calculateHoursAmount(4, 18, cfg);
-      expect(r.desglose.horasEnTramo1).toBe(2);
-      expect(r.desglose.horasEnTramo2).toBe(2);
-      expect(r.montoTotal).toBe(70 + 90); // 160
+    it("exactamente en el umbral (acum=15, horas=5) → no cruza → 5×35=175", () => {
+      const r = calculateHoursAmount(5, 15, cfg);
+      expect(r.precioAplicado).toBe(35);
+      expect(r.montoTotal).toBe(175);
     });
 
-    it("todo en tramo 2 (acum=25, horas=3)", () => {
-      const r = calculateHoursAmount(3, 25, cfg);
+    it("cruza el umbral (acum=18, horas=4) → todo precio alto → 4×45=180", () => {
+      const r = calculateHoursAmount(4, 18, cfg);
+      expect(r.precioAplicado).toBe(45);
+      expect(r.montoTotal).toBe(180);
       expect(r.desglose.horasEnTramo1).toBe(0);
+      expect(r.desglose.horasEnTramo2).toBe(4);
+    });
+
+    it("exactamente en el umbral (acum=20, horas=2) → ya superó → 2×45=90", () => {
+      const r = calculateHoursAmount(2, 20, cfg);
+      expect(r.precioAplicado).toBe(45);
+      expect(r.montoTotal).toBe(90);
+    });
+
+    it("todo en tramo alto (acum=25, horas=3) → 3×45=135", () => {
+      const r = calculateHoursAmount(3, 25, cfg);
+      expect(r.precioAplicado).toBe(45);
       expect(r.montoTotal).toBe(135);
     });
 
-    it("horas decimales (acum=19.75, horas=1.5)", () => {
-      const r = calculateHoursAmount(1.5, 19.75, cfg);
-      expect(r.desglose.horasEnTramo1).toBe(0.25);  // 0.25 * 35 = 8.75
-      expect(r.desglose.horasEnTramo2).toBe(1.25);  // 1.25 * 45 = 56.25
-      expect(r.montoTotal).toBe(65);
+    it("horas decimales sin cruce (acum=19, horas=0.5) → no cruza → 0.5×35=17.5", () => {
+      const r = calculateHoursAmount(0.5, 19, cfg);
+      expect(r.precioAplicado).toBe(35);
+      expect(r.montoTotal).toBe(17.5);
     });
 
-    it("exactamente en el umbral (acum=20, horas=2)", () => {
-      const r = calculateHoursAmount(2, 20, cfg);
-      expect(r.desglose.horasEnTramo1).toBe(0);
-      expect(r.montoTotal).toBe(90);
+    it("horas decimales con cruce (acum=19.5, horas=1) → cruza → 1×45=45", () => {
+      const r = calculateHoursAmount(1, 19.5, cfg);
+      expect(r.precioAplicado).toBe(45);
+      expect(r.montoTotal).toBe(45);
+    });
+
+    it("caso real marzo: 20h×35 + 35h×45 = 2275", () => {
+      // Simular 55h en el mes con umbral=20
+      const UMBRAL = 20;
+      let acum = 0;
+      let total = 0;
+      // 20 entradas de 1h
+      for (let i = 0; i < 20; i++) {
+        const r = calculateHoursAmount(1, acum, cfg);
+        total += r.montoTotal;
+        acum += 1;
+      }
+      // 35 entradas de 1h
+      for (let i = 0; i < 35; i++) {
+        const r = calculateHoursAmount(1, acum, cfg);
+        total += r.montoTotal;
+        acum += 1;
+      }
+      expect(acum).toBe(55);
+      expect(total).toBe(20 * 35 + 35 * 45); // 2275
     });
   });
 }

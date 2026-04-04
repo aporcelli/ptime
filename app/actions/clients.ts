@@ -1,12 +1,12 @@
 'use server';
-import { revalidatePath }  from "next/cache";
-import { auth }            from "@/auth";
+import { revalidatePath } from "next/cache";
+import { auth } from "@/auth";
 import { clientFormSchema } from "@/lib/schemas/client";
-import { getClientes }     from "@/lib/sheets/queries";
-import { createCliente, updateCliente } from "@/lib/sheets/mutations";
-import { sanitizeObject }  from "@/lib/utils/sanitize";
-import { generateUUID }    from "@/lib/utils/index";
-import { getSheetCtx }     from "@/lib/sheets/context";
+import { getClientes } from "@/lib/sheets/queries";
+import { createCliente, updateCliente, deleteCliente } from "@/lib/sheets/mutations";
+import { sanitizeObject } from "@/lib/utils/sanitize";
+import { generateUUID } from "@/lib/utils/index";
+import { getSheetCtx } from "@/lib/sheets/context";
 import type { ActionResult, Cliente } from "@/types/entities";
 
 async function requireAuth() {
@@ -30,8 +30,8 @@ export async function createClienteAction(rawData: unknown): Promise<ActionResul
     return { success: false, error: "Ya existe un cliente con ese email" };
   }
 
-  const clean  = sanitizeObject(parsed.data) as typeof parsed.data;
-  const ts     = new Date().toISOString();
+  const clean = sanitizeObject(parsed.data) as typeof parsed.data;
+  const ts = new Date().toISOString();
   const cliente: Cliente = {
     id: generateUUID(), ...clean,
     telefono: clean.telefono ?? undefined,
@@ -54,4 +54,18 @@ export async function updateClienteAction(id: string, rawData: unknown): Promise
   await updateCliente(ctx, id, sanitizeObject(parsed.data) as Parameters<typeof updateCliente>[2]);
   revalidatePath("/admin/clientes");
   return { success: true, data: undefined };
+}
+
+export async function deleteClienteAction(id: string): Promise<ActionResult> {
+  const session = await requireAuth();
+  if (!session) return { success: false, error: "No autenticado" };
+
+  try {
+    const ctx = await getSheetCtx();
+    await deleteCliente(ctx, id);
+    revalidatePath("/admin/clientes");
+    return { success: true, data: undefined };
+  } catch (e: unknown) {
+    return { success: false, error: e instanceof Error ? e.message : "Error al eliminar" };
+  }
 }

@@ -22,7 +22,7 @@ export default function PageHeader({ title, description, actions, badge }: Props
         <div className="flex items-start justify-between gap-4 mb-6">
             <div>
                 <div className="flex items-center gap-3">
-                    <h1 className="font-serif text-3xl text-ink">{title}</h1>
+                    <h1 className="font-display text-3xl font-extrabold text-on-surface tracking-tight">{title}</h1>
                     {badge && (
                         <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${badgeColors[badge.color ?? "gray"]}`}>
                             {badge.text}
@@ -30,7 +30,7 @@ export default function PageHeader({ title, description, actions, badge }: Props
                     )}
                 </div>
                 {description && (
-                    <p className="text-slate-500 mt-1 text-sm">{description}</p>
+                    <p className="text-on-surface-variant mt-1 text-sm">{description}</p>
                 )}
             </div>
             {actions && (

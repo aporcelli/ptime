@@ -8,10 +8,14 @@ interface SheetCtx { sheetId: string; accessToken: string; }
 
 export async function getClientes(ctx: SheetCtx, soloActivos = false): Promise<Cliente[]> {
   const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, SHEET_RANGES.CLIENTES);
-  const clientes = rows.filter((r) => r[0]).map((r) => ({
-    id: r[0], nombre: r[1], email: r[2], telefono: r[3] || undefined,
-    activo: r[4] === "true" || r[4] === "TRUE", created_at: r[5], updated_at: r[6],
-  } satisfies Cliente));
+  const clientes = rows.filter((r) => r[0]).map((r) => {
+    const act = String(r[4]).trim().toLowerCase();
+    const isActivo = act === "true" || act === "1" || act === "si" || act === "yes";
+    return {
+      id: r[0], nombre: r[1], email: r[2], telefono: r[3] || undefined,
+      activo: isActivo, created_at: r[5], updated_at: r[6],
+    } satisfies Cliente;
+  });
   return soloActivos ? clientes.filter((c) => c.activo) : clientes;
 }
 
@@ -45,10 +49,14 @@ export async function getProyectoById(ctx: SheetCtx, id: string): Promise<Proyec
 
 export async function getTareas(ctx: SheetCtx, soloActivas = false): Promise<Tarea[]> {
   const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, SHEET_RANGES.TAREAS);
-  const list = rows.filter((r) => r[0]).map((r) => ({
-    id: r[0], nombre: r[1], categoria: r[2] || undefined,
-    activa: r[3] === "true" || r[3] === "TRUE", created_at: r[4],
-  } satisfies Tarea));
+  const list = rows.filter((r) => r[0]).map((r) => {
+    const act = String(r[3]).trim().toLowerCase();
+    const isActiva = act === "true" || act === "1" || act === "si" || act === "yes";
+    return {
+      id: r[0], nombre: r[1], categoria: r[2] || undefined,
+      activa: isActiva, created_at: r[4],
+    } satisfies Tarea;
+  });
   return soloActivas ? list.filter((t) => t.activa) : list;
 }
 

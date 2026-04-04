@@ -55,26 +55,27 @@ export default function DataTable<T extends { id: string }>({
 
     if (data.length === 0) {
         return (
-            <div className="bg-white rounded-xl border border-slate-200 p-10 text-center">
-                <p className="text-slate-400 text-sm">{emptyMessage}</p>
+            <div className="bg-surface-lowest rounded-xl p-10 text-center shadow-ambient">
+                <p className="text-on-surface-variant text-sm">{emptyMessage}</p>
             </div>
         );
     }
 
     return (
         <>
-            {/* Desktop table */}
-            <div className="hidden md:block bg-white rounded-xl border border-slate-200 overflow-hidden">
+            {/* Desktop table — Meridian No-Line Rule */}
+            <div className="hidden md:block bg-surface-lowest rounded-xl overflow-hidden shadow-ambient">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead>
-                            <tr className="border-b border-slate-100 bg-slate-50">
+                            {/* Header: surface-high, sin border-bottom */}
+                            <tr className="bg-surface-high">
                                 {columns.map((col) => (
                                     <th
                                         key={String(col.key)}
-                                        className={`p-3 text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap
+                                        className={`p-3 text-xs font-semibold text-on-surface-variant uppercase tracking-wide whitespace-nowrap
                       ${col.align === "right" ? "text-right" : col.align === "center" ? "text-center" : "text-left"}
-                      ${col.sortable ? "cursor-pointer select-none hover:text-ink" : ""}
+                      ${col.sortable ? "cursor-pointer select-none hover:text-on-surface" : ""}
                       ${col.className ?? ""}`}
                                         onClick={() => col.sortable && handleSort(String(col.key))}
                                     >
@@ -91,17 +92,17 @@ export default function DataTable<T extends { id: string }>({
                             </tr>
                         </thead>
                         <tbody>
-                            {sorted.map((row) => (
+                            {/* Rows: alternado tonal, SIN border-bottom */}
+                            {sorted.map((row, i) => (
                                 <tr
                                     key={row.id}
-                                    className={`border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors
-                    ${onRowClick ? "cursor-pointer" : ""}`}
+                                                                          className={`bg-surface-lowest hover:bg-surface-low transition-colors ${onRowClick ? "cursor-pointer" : ""}`}
                                     onClick={() => onRowClick?.(row)}
                                 >
                                     {columns.map((col) => (
                                         <td
                                             key={String(col.key)}
-                                            className={`p-3 text-ink
+                                            className={`p-3 text-on-surface
                         ${col.align === "right" ? "text-right" : col.align === "center" ? "text-center" : ""}
                         ${col.className ?? ""}`}
                                         >
@@ -115,21 +116,21 @@ export default function DataTable<T extends { id: string }>({
                 </div>
             </div>
 
-            {/* Mobile cards */}
-            <div className="md:hidden flex flex-col gap-3">
+            {/* Mobile cards — Meridian surface tokens */}
+            <div className="md:hidden flex flex-col gap-2">
                 {sorted.map((row) => (
                     <div
                         key={row.id}
-                        className={`bg-white rounded-xl border border-slate-200 p-4 flex flex-col gap-2
-              ${onRowClick ? "cursor-pointer active:bg-slate-50" : ""}`}
+                        className={`bg-surface-lowest rounded-xl p-4 flex flex-col gap-2 shadow-ambient
+              ${onRowClick ? "cursor-pointer active:bg-surface-low" : ""}`}
                         onClick={() => onRowClick?.(row)}
                     >
                         {columns.map((col) => (
                             <div key={String(col.key)} className="flex items-start justify-between gap-2">
-                                <span className="text-xs text-slate-400 font-medium uppercase tracking-wide shrink-0">
+                                <span className="text-xs text-on-surface-variant font-medium uppercase tracking-wide shrink-0">
                                     {col.mobileLabel ?? col.header}
                                 </span>
-                                <span className={`text-sm text-right ${col.className ?? ""}`}>
+                                <span className={`text-sm text-right text-on-surface ${col.className ?? ""}`}>
                                     {getCellValue(row, col)}
                                 </span>
                             </div>

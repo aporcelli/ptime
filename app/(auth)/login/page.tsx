@@ -16,6 +16,7 @@ export default async function LoginPage({
   const errorMessages: Record<string, string> = {
     OAuthAccountNotLinked: "Esta cuenta ya está vinculada con otro método de login.",
     AccessDenied:          "Acceso denegado.",
+    TokenExpired:          "Tu sesión con Google expiró. Volvé a iniciar sesión para renovar el acceso.",
     Default:               "Ocurrió un error al iniciar sesión.",
   };
   const errorMsg = searchParams.error ? (errorMessages[searchParams.error] ?? errorMessages.Default) : null;

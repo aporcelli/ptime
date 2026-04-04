@@ -16,9 +16,15 @@ import type { Tarea, Proyecto, AppConfig } from "@/types/entities";
 const NEW_PROYECTO = "__new_proyecto__";
 const NEW_TAREA    = "__new_tarea__";
 
-interface Props { tareas: Tarea[]; proyectos: Proyecto[]; defaultConfig: AppConfig; }
+interface Props {
+  tareas:               Tarea[];
+  proyectos:            Proyecto[];
+  defaultConfig:        AppConfig;
+  /** Total horas del usuario en el mes actual (todos los proyectos) */
+  horasAcumuladasMes:   number;
+}
 
-export default function HorasForm({ tareas: initTareas, proyectos: initProyectos, defaultConfig }: Props) {
+export default function HorasForm({ tareas: initTareas, proyectos: initProyectos, defaultConfig, horasAcumuladasMes }: Props) {
   const router = useRouter();
   const [status, setStatus]     = useState<"idle"|"loading"|"success"|"error">("idle");
   const [serverError, setServerError] = useState<string|null>(null);
@@ -65,17 +71,17 @@ export default function HorasForm({ tareas: initTareas, proyectos: initProyectos
     }
   }, [watchedTareaId, setValue]);
 
-  // Price preview
+  // Price preview — usa acumulado mensual global (reset cada mes, todos los proyectos)
   useEffect(() => {
     if (!watchedProyectoId || !watchedHoras) { setPreviewAmount(0); return; }
     const p = proyectos.find((p) => p.id === watchedProyectoId);
     if (!p) return;
-    setPreviewAmount(previewMonto(Number(watchedHoras), p.horas_acumuladas, {
-      precioBase:  p.precio_base  || defaultConfig.precioBase,
-      precioAlto:  p.precio_alto  || defaultConfig.precioAlto,
+    setPreviewAmount(previewMonto(Number(watchedHoras), horasAcumuladasMes, {
+      precioBase:  p.precio_base        || defaultConfig.precioBase,
+      precioAlto:  p.precio_alto        || defaultConfig.precioAlto,
       umbralHoras: p.umbral_precio_alto || defaultConfig.umbralHoras,
     }));
-  }, [watchedProyectoId, watchedHoras, proyectos, defaultConfig]);
+  }, [watchedProyectoId, watchedHoras, proyectos, defaultConfig, horasAcumuladasMes]);
 
   async function handleCreateProyecto() {
     if (!newNombreP.trim()) return;

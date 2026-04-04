@@ -5,6 +5,30 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.1.0] — 2026-04-03
+
+### 🚀 Mejoras Estructurales y de Interfaz
+
+#### Modificado
+- **Estructura del Proyecto**: Se eliminó la anidación redundante del directorio (`ptime/ptime/` a `ptime/`) para un manejo más limpio del repositorio.
+- **Git y Rendimiento**: Se optimizó el `.gitignore` y se eliminaron binarios pesados (`bin/`) del seguimiento de versiones que afectaban el rendimiento del repositorio.
+- **Lógica de Precios**: Se corrigió el algoritmo de cálculo de horas (`calculateHoursAmount.ts`). Ahora el umbral de precios se calcula globalmente por mes para todos los proyectos, y la tarifa de una hora no se divide si cruza el umbral.
+- **Filtros en Reportes**: Se incorporaron botones rápidos ("Este mes", "Mes pasado") y un selector nativo por mes para mejorar la experiencia de usuario. Las fechas ahora tienen como valor por defecto el inicio del mes actual.
+- **Visuales**: Integración del avatar de Google del usuario en el header (`Topbar.tsx`). Agregado branding "Powered by TuCloud.pro" interactivo tanto en el menú de navegación como en la exportación PDF.
+- **Listados Reactivos**: Robustez mejorada al leer valores booleanos desde Google Sheets (`queries.ts`), arreglando un bug donde clientes y tareas activas no se listaban en los selectores.
+
+---
+
+## [1.0.1] — 2026-03-30
+
+### 🐛 Correcciones menores
+
+#### Modificado
+- **Deploy**: Ajustes en archivos de configuración para Vercel y manejo de variables de entorno.
+- **Seguridad**: Refuerzo de cabeceras de seguridad y ajustes en middleware.
+
+---
+
 ## [1.0.0] — 2026-03-16
 
 ### 🚀 Primera versión de producción

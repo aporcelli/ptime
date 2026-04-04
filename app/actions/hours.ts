@@ -5,7 +5,7 @@ import { getSheetCtx }       from "@/lib/sheets/context";
 import { hourFormSchema }    from "@/lib/schemas/hour";
 import { calculateHoursAmount } from "@/lib/pricing/calculateHoursAmount";
 import { getPricingConfigForProject } from "@/app/actions/config";
-import { getProyectoById }   from "@/lib/sheets/queries";
+import { getProyectoById, getRegistrosHoras } from "@/lib/sheets/queries";
 import { createRegistroHoras, updateRegistroEstado, updateProyectoHorasAcumuladas } from "@/lib/sheets/mutations";
 import { sanitize }          from "@/lib/utils/sanitize";
 import { generateUUID }      from "@/lib/utils/index";
@@ -18,19 +18,34 @@ export async function createHour(rawData: unknown): Promise<ActionResult<Registr
   const parsed = hourFormSchema.safeParse(rawData);
   if (!parsed.success) return { success: false, error: "Datos inválidos", fieldErrors: parsed.error.flatten().fieldErrors as Record<string,string[]> };
 
-  const ctx     = await getSheetCtx();
-  const data    = parsed.data;
+  const ctx      = await getSheetCtx();
+  const data     = parsed.data;
   const proyecto = await getProyectoById(ctx, data.proyecto_id);
   if (!proyecto) return { success: false, error: "Proyecto no encontrado" };
   if (proyecto.estado !== "activo") return { success: false, error: "El proyecto no está activo" };
 
-  const pricingConfig  = await getPricingConfigForProject(data.proyecto_id);
-  const { montoTotal, precioAplicado } = calculateHoursAmount(data.horas, proyecto.horas_acumuladas, pricingConfig);
+  const usuarioId = session.user.email ?? session.user.id;
+
+  // ── Acumulado mensual global del usuario ────────────────────────────────────
+  // El umbral se resetea cada mes y aplica sobre el TOTAL de horas del usuario
+  // en ese mes, sin importar el proyecto.
+  const mes = data.fecha.slice(0, 7); // "YYYY-MM"
+  const registrosMes = await getRegistrosHoras(ctx, { usuarioId });
+  const horasAcumuladasMes = registrosMes
+    .filter((r) => r.fecha.startsWith(mes))
+    .reduce((sum, r) => sum + r.horas, 0);
+
+  const pricingConfig = await getPricingConfigForProject(data.proyecto_id);
+  const { montoTotal, precioAplicado } = calculateHoursAmount(
+    data.horas,
+    horasAcumuladasMes,
+    pricingConfig
+  );
 
   const id = generateUUID();
   const registro: Omit<RegistroHoras, "created_at"|"updated_at"> = {
     id, proyecto_id: data.proyecto_id, tarea_id: data.tarea_id,
-    usuario_id: session.user.email ?? session.user.id,
+    usuario_id: usuarioId,
     fecha: data.fecha, horas: data.horas,
     descripcion: sanitize(data.descripcion),
     precio_hora_aplicado: precioAplicado,
