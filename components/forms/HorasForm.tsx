@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, CheckCircle, AlertCircle, DollarSign, Clock, X } from "lucide-react";
 import { hourFormSchema, type HourFormData } from "@/lib/schemas/hour";
 import { previewMonto } from "@/lib/pricing/calculateHoursAmount";
-import { createHour } from "@/app/actions/hours";
+import { createHour, updateHourAction } from "@/app/actions/hours";
 import { createProyectoAction } from "@/app/actions/projects";
 import { createTareaAction } from "@/app/actions/tasks";
 import { createClienteAction } from "@/app/actions/clients";
@@ -25,9 +25,10 @@ interface Props {
   defaultConfig:        AppConfig;
   /** Total horas del usuario en el mes actual (todos los proyectos) */
   horasAcumuladasMes:   number;
+  initialData?:         HourFormData & { id: string };
 }
 
-export default function HorasForm({ clientes: initClientes, tareas: initTareas, proyectos: initProyectos, defaultConfig, horasAcumuladasMes }: Props) {
+export default function HorasForm({ clientes: initClientes, tareas: initTareas, proyectos: initProyectos, defaultConfig, horasAcumuladasMes, initialData }: Props) {
   const router = useRouter();
   const [status, setStatus]     = useState<"idle"|"loading"|"success"|"error">("idle");
   const [serverError, setServerError] = useState<string|null>(null);
@@ -54,7 +55,15 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<HourFormData>({
     resolver: zodResolver(hourFormSchema),
     mode: "onTouched",
-    defaultValues: {
+    defaultValues: initialData ? {
+      cliente_id: initialData.cliente_id,
+      proyecto_id: initialData.proyecto_id,
+      tarea_id: initialData.tarea_id,
+      fecha: initialData.fecha,
+      horas: initialData.horas,
+      descripcion: initialData.descripcion,
+      estado: initialData.estado,
+    } : {
       fecha: new Date().toISOString().split("T")[0],
       horas: 1, estado: "confirmado",
       cliente_id: "", proyecto_id: "", tarea_id: "",
@@ -154,7 +163,10 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
 
   async function onSubmit(data: HourFormData) {
     setStatus("loading"); setServerError(null);
-    const result = await createHour(data);
+    const result = initialData 
+      ? await updateHourAction(initialData.id, data)
+      : await createHour(data);
+      
     if (!result.success) { setStatus("error"); setServerError(result.error); return; }
     setStatus("success");
     setTimeout(() => router.push("/horas"), 1200);
