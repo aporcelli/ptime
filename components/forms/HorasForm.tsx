@@ -10,13 +10,16 @@ import { previewMonto } from "@/lib/pricing/calculateHoursAmount";
 import { createHour } from "@/app/actions/hours";
 import { createProyectoAction } from "@/app/actions/projects";
 import { createTareaAction } from "@/app/actions/tasks";
+import { createClienteAction } from "@/app/actions/clients";
 import { formatCurrency } from "@/lib/utils/index";
-import type { Tarea, Proyecto, AppConfig } from "@/types/entities";
+import type { Tarea, Proyecto, Cliente, AppConfig } from "@/types/entities";
 
 const NEW_PROYECTO = "__new_proyecto__";
 const NEW_TAREA    = "__new_tarea__";
+const NEW_CLIENTE  = "__new_cliente__";
 
 interface Props {
+  clientes:             Cliente[];
   tareas:               Tarea[];
   proyectos:            Proyecto[];
   defaultConfig:        AppConfig;
@@ -24,21 +27,27 @@ interface Props {
   horasAcumuladasMes:   number;
 }
 
-export default function HorasForm({ tareas: initTareas, proyectos: initProyectos, defaultConfig, horasAcumuladasMes }: Props) {
+export default function HorasForm({ clientes: initClientes, tareas: initTareas, proyectos: initProyectos, defaultConfig, horasAcumuladasMes }: Props) {
   const router = useRouter();
   const [status, setStatus]     = useState<"idle"|"loading"|"success"|"error">("idle");
   const [serverError, setServerError] = useState<string|null>(null);
   const [previewAmount, setPreviewAmount] = useState(0);
+  const [clientes, setClientes]   = useState(initClientes);
   const [proyectos, setProyectos] = useState(initProyectos);
   const [tareas, setTareas]       = useState(initTareas);
 
   // Inline modal states
+  const [modalCliente, setModalCliente]   = useState(false);
   const [modalProyecto, setModalProyecto] = useState(false);
   const [modalTarea, setModalTarea]       = useState(false);
+  const [newNombreC, setNewNombreC]       = useState("");
+  const [newEmailC, setNewEmailC]         = useState("");
   const [newNombreP, setNewNombreP]       = useState("");
   const [newNombreT, setNewNombreT]       = useState("");
+  const [savingC, setSavingC]             = useState(false);
   const [savingP, setSavingP]             = useState(false);
   const [savingT, setSavingT]             = useState(false);
+  const [errC, setErrC]                   = useState("");
   const [errP, setErrP]                   = useState("");
   const [errT, setErrT]                   = useState("");
 
@@ -48,15 +57,28 @@ export default function HorasForm({ tareas: initTareas, proyectos: initProyectos
     defaultValues: {
       fecha: new Date().toISOString().split("T")[0],
       horas: 1, estado: "confirmado",
-      proyecto_id: "", tarea_id: "",
+      cliente_id: "", proyecto_id: "", tarea_id: "",
     },
   });
 
+  const watchedClienteId  = watch("cliente_id");
   const watchedProyectoId = watch("proyecto_id");
   const watchedTareaId    = watch("tarea_id");
   const watchedHoras      = watch("horas");
 
+  // Filtramos proyectos según cliente seleccionado
+  const proyectosFiltrados = watchedClienteId
+    ? proyectos.filter(p => p.cliente_id === watchedClienteId)
+    : proyectos;
+
   // Intercept "Crear nuevo" selection
+  useEffect(() => {
+    if (watchedClienteId === NEW_CLIENTE) {
+      setValue("cliente_id", "");
+      setModalCliente(true);
+    }
+  }, [watchedClienteId, setValue]);
+
   useEffect(() => {
     if (watchedProyectoId === NEW_PROYECTO) {
       setValue("proyecto_id", "");
@@ -83,11 +105,29 @@ export default function HorasForm({ tareas: initTareas, proyectos: initProyectos
     }));
   }, [watchedProyectoId, watchedHoras, proyectos, defaultConfig, horasAcumuladasMes]);
 
+  async function handleCreateCliente() {
+    if (!newNombreC.trim() || !newEmailC.trim()) return;
+    setSavingC(true); setErrC("");
+    const res = await createClienteAction({
+      nombre: newNombreC, email: newEmailC, activo: true,
+    });
+    setSavingC(false);
+    if (!res.success) { setErrC(res.error); return; }
+    setClientes((prev) => [...prev, res.data]);
+    setValue("cliente_id", res.data.id);
+    setNewNombreC(""); setNewEmailC("");
+    setModalCliente(false);
+  }
+
   async function handleCreateProyecto() {
-    if (!newNombreP.trim()) return;
+    if (!newNombreP.trim() || !watchedClienteId) {
+      setErrP("Por favor seleccioná un cliente primero.");
+      return;
+    }
     setSavingP(true); setErrP("");
     const res = await createProyectoAction({
       nombre: newNombreP, estado: "activo",
+      cliente_id: watchedClienteId,
       precio_base: defaultConfig.precioBase,
       precio_alto: defaultConfig.precioAlto,
       umbral_precio_alto: defaultConfig.umbralHoras,
@@ -130,20 +170,35 @@ export default function HorasForm({ tareas: initTareas, proyectos: initProyectos
     <>
       <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 flex flex-col gap-6" noValidate>
 
+        {/* Cliente */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-ink">Cliente</label>
+          <select {...register("cliente_id")} className={fc(!!errors.cliente_id)}>
+            <option value="">— Seleccioná un cliente —</option>
+            <option value={NEW_CLIENTE}>✚ Crear nuevo cliente…</option>
+            {clientes.length > 0 && <option disabled>──────────────</option>}
+            {clientes.map((c) => (
+              <option key={c.id} value={c.id}>{c.nombre}</option>
+            ))}
+          </select>
+          {errors.cliente_id && <Err msg={errors.cliente_id.message} />}
+        </div>
+
         {/* Proyecto */}
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-ink">Proyecto</label>
-          <select {...register("proyecto_id")} className={fc(!!errors.proyecto_id)}>
+          <select {...register("proyecto_id")} className={fc(!!errors.proyecto_id)} disabled={!watchedClienteId}>
             <option value="">— Seleccioná un proyecto —</option>
-            <option value={NEW_PROYECTO}>✚ Crear nuevo proyecto…</option>
-            {proyectos.length > 0 && <option disabled>──────────────</option>}
-            {proyectos.map((p) => (
+            {watchedClienteId && <option value={NEW_PROYECTO}>✚ Crear nuevo proyecto…</option>}
+            {proyectosFiltrados.length > 0 && <option disabled>──────────────</option>}
+            {proyectosFiltrados.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.nombre} · {p.horas_acumuladas}h acum.
               </option>
             ))}
           </select>
           {errors.proyecto_id && <Err msg={errors.proyecto_id.message} />}
+          {!watchedClienteId && <p className="text-xs text-slate-400">Seleccioná un cliente primero para ver sus proyectos.</p>}
         </div>
 
         {/* Tarea */}
@@ -233,6 +288,35 @@ export default function HorasForm({ tareas: initTareas, proyectos: initProyectos
           </button>
         </div>
       </form>
+
+      {/* Modal: Nuevo Cliente */}
+      <AnimatePresence>
+        {modalCliente && (
+          <Modal title="Nuevo cliente" onClose={() => setModalCliente(false)}>
+            <div className="flex flex-col gap-3">
+              <div>
+                <label className="text-xs font-medium text-slate-600">Nombre *</label>
+                <input autoFocus value={newNombreC} onChange={(e) => setNewNombreC(e.target.value)}
+                  placeholder="Ej: Acumen Corp"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600/30 focus:border-brand-600 mt-1" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600">Email de facturación *</label>
+                <input value={newEmailC} onChange={(e) => setNewEmailC(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleCreateCliente()}
+                  placeholder="admin@ejemplo.com"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600/30 focus:border-brand-600 mt-1" />
+              </div>
+            </div>
+            {errC && <p className="text-red-500 text-sm mt-2">{errC}</p>}
+            <button onClick={handleCreateCliente} disabled={savingC || !newNombreC.trim() || !newEmailC.trim()}
+              className="mt-4 w-full bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-semibold rounded-lg py-2.5 text-sm flex items-center justify-center gap-2 transition-colors">
+              {savingC ? <Loader2 size={14} className="animate-spin" /> : null}
+              {savingC ? "Creando…" : "Crear y seleccionar"}
+            </button>
+          </Modal>
+        )}
+      </AnimatePresence>
 
       {/* Modal: Nuevo Proyecto */}
       <AnimatePresence>

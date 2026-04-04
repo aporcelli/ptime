@@ -2,6 +2,7 @@ import { z } from "zod";
 import { HORA_MIN, HORA_MAX, DESCRIPCION_MIN, DESCRIPCION_MAX } from "@/lib/constants";
 
 export const hourFormSchema = z.object({
+  cliente_id: z.string().min(1, "El cliente es obligatorio"),
   proyecto_id: z
     .string()
     .min(1, "Selecciona un proyecto")

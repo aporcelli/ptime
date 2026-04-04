@@ -68,6 +68,7 @@ export async function getRegistrosHoras(ctx: SheetCtx, filters: ReporteFilters =
     precio_hora_aplicado: Number(r[7]), monto_total: Number(r[8]),
     estado: (r[9] ?? "confirmado") as RegistroHoras["estado"],
     created_at: r[10], updated_at: r[11],
+    cliente_id: r[12] || undefined, // Columna M
   } satisfies RegistroHoras));
   if (filters.fechaDesde) list = list.filter((r) => r.fecha >= filters.fechaDesde!);
   if (filters.fechaHasta) list = list.filter((r) => r.fecha <= filters.fechaHasta!);

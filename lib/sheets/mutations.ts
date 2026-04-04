@@ -55,7 +55,7 @@ export async function createRegistroHoras(ctx: SheetCtx, data: Omit<RegistroHora
   const ts = now();
   await appendSheetRow(ctx.sheetId, ctx.accessToken, SHEET_RANGES.REGISTROS_HORAS,
     [data.id, data.proyecto_id, data.tarea_id, data.usuario_id, data.fecha, data.horas,
-    data.descripcion, data.precio_hora_aplicado, data.monto_total, data.estado, ts, ts]);
+    data.descripcion, data.precio_hora_aplicado, data.monto_total, data.estado, ts, ts, data.cliente_id || ""]);
 }
 
 export async function updateRegistroEstado(ctx: SheetCtx, id: string, estado: RegistroHoras["estado"]): Promise<void> {

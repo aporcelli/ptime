@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getTareas, getProyectos, getRegistrosHoras, getAppConfig } from "@/lib/sheets/queries";
+import { getTareas, getProyectos, getClientes, getRegistrosHoras, getAppConfig } from "@/lib/sheets/queries";
 import { getPageCtx }    from "@/lib/sheets/getPageCtx";
 import { auth }          from "@/auth";
 import HorasForm         from "@/components/forms/HorasForm";
@@ -14,7 +14,8 @@ export default async function NuevaHoraPage() {
   // Mes actual para calcular el acumulado mensual global del usuario
   const mesActual = new Date().toISOString().slice(0, 7); // "YYYY-MM"
 
-  const [tareas, proyectos, config, registrosMes] = await Promise.all([
+  const [clientes, tareas, proyectos, config, registrosMes] = await Promise.all([
+    getClientes(ctx, true),
     getTareas(ctx, true),
     getProyectos(ctx, { soloActivos: true }),
     getAppConfig(ctx),
@@ -33,6 +34,7 @@ export default async function NuevaHoraPage() {
         <p className="text-slate-500 mt-1">Registrá el tiempo trabajado en un proyecto</p>
       </div>
       <HorasForm
+        clientes={clientes}
         tareas={tareas}
         proyectos={proyectos}
         defaultConfig={config}

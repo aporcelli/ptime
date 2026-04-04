@@ -48,6 +48,7 @@ export interface Tarea {
 // ── Registro de Horas ─────────────────────────────────────────────────────────
 export interface RegistroHoras {
   id: string;
+  cliente_id?: string;   // Opcional para registros viejos (migraciones), requerido nuevos
   proyecto_id: string;
   proyecto?: Proyecto;   // join opcional
   tarea_id: string;
