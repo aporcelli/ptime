@@ -66,7 +66,7 @@ export default function Sidebar({ role, onNavClick }: SidebarProps) {
           <span className="text-[9px] text-on-surface-variant uppercase tracking-wider font-semibold">Powered by</span>
           <div className="bg-[#050505] px-2.5 py-1.5 rounded-lg border border-white/5 shadow-sm">
             <img 
-              src="/tucloud-logo.png" 
+              src="/logo_tucloud_white.png" 
               alt="TU CLOUD PRO" 
               className="h-4 w-auto object-contain" 
               onError={(e) => {
@@ -76,7 +76,7 @@ export default function Sidebar({ role, onNavClick }: SidebarProps) {
             />
           </div>
         </a>
-        <p className="text-on-surface-variant opacity-40 text-[10px] text-center">Ptime v0.1</p>
+        <p className="text-on-surface-variant opacity-40 text-[10px] text-center">Ptime v1.1.0</p>
       </div>
     </aside>
   );

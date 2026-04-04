@@ -86,9 +86,9 @@ export function HorasClientList({ registros, proyectosMap, tareasMap }: Props) {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-surface-high">
-                {["Fecha", "Proyecto", "Tarea", "Descripción", "Horas", "$/h", "Total", "Estado"].map((h) => (
+                {["Fecha", "Proyecto", "Tarea", "Descripción", "Horas", "$/h", "Total", "Estado", ""].map((h, idx) => (
                   <th
-                    key={h}
+                    key={idx}
                     className="p-3 text-xs font-semibold uppercase tracking-wide whitespace-nowrap text-left text-on-surface-variant"
                   >
                     {h}
@@ -117,6 +117,14 @@ export function HorasClientList({ registros, proyectosMap, tareasMap }: Props) {
                     <td className="p-3 text-right font-mono text-primary-fixed font-semibold whitespace-nowrap">{formatCurrency(r.monto_total)}</td>
                     <td className="p-3">
                       <span className={ESTADO_BADGE[r.estado] ?? "badge badge-slate"}>{r.estado}</span>
+                    </td>
+                    <td className="p-3 text-right">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); router.push(`/horas/${r.id}/editar`); }}
+                        className="text-xs text-on-surface-variant hover:text-primary-fixed transition-colors font-medium px-3 py-1.5 rounded-lg hover:bg-surface-high border border-outline-variant/30"
+                      >
+                        Editar
+                      </button>
                     </td>
                   </tr>
                 );

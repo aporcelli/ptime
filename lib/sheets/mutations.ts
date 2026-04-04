@@ -64,7 +64,30 @@ export async function updateRegistroEstado(ctx: SheetCtx, id: string, estado: Re
   const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, SHEET_RANGES.REGISTROS_HORAS);
   const current = rows.find((r) => r[0] === id)!;
   await updateSheetRow(ctx.sheetId, ctx.accessToken, SHEET_NAMES.REGISTROS_HORAS, rowNum,
-    [...current.slice(0, 9), estado, current[10], now()]);
+    [...current.slice(0, 9), estado, current[10], now(), current[12] || ""]);
+}
+
+export async function updateRegistroHoras(ctx: SheetCtx, id: string, data: Partial<Omit<RegistroHoras, "id" | "created_at" | "updated_at">>): Promise<void> {
+  const rowNum = await findRowNumber(ctx, SHEET_RANGES.REGISTROS_HORAS, id);
+  if (!rowNum) throw new Error(`Registro ${id} no encontrado`);
+  const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, SHEET_RANGES.REGISTROS_HORAS);
+  const c = rows.find((r) => r[0] === id)!;
+  
+  await updateSheetRow(ctx.sheetId, ctx.accessToken, SHEET_NAMES.REGISTROS_HORAS, rowNum, [
+    c[0], 
+    data.proyecto_id ?? c[1], 
+    data.tarea_id ?? c[2], 
+    data.usuario_id ?? c[3], 
+    data.fecha ?? c[4], 
+    data.horas !== undefined ? data.horas : c[5],
+    data.descripcion !== undefined ? data.descripcion : c[6], 
+    data.precio_hora_aplicado !== undefined ? data.precio_hora_aplicado : c[7], 
+    data.monto_total !== undefined ? data.monto_total : c[8], 
+    data.estado ?? c[9], 
+    c[10], 
+    now(),
+    data.cliente_id !== undefined ? data.cliente_id : (c[12] || "")
+  ]);
 }
 
 export async function upsertConfig(ctx: SheetCtx, clave: string, valor: string): Promise<void> {
