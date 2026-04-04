@@ -1,129 +1,67 @@
-# Ptime — Gestión de Horas Profesionales
+# Ptime - TuCloud.pro
 
-Aplicación SaaS para la gestión y carga de horas en servicios profesionales, construida con Next.js 14, TypeScript y Google Sheets como backend.
+**Ptime** es una aplicación para el registro y gestión de horas trabajadas y facturación, con Google Sheets como base de datos en tiempo real (BaaS). Optimizado para despliegues rápidos y sin fricción usando el ecosistema de Vercel y Google Workspace.
 
-## Stack
+## 🚀 Características
 
-- **Frontend**: Next.js 14 (App Router) · TypeScript · Tailwind CSS · Framer Motion
-- **UI**: Shadcn/UI (Radix UI)
-- **Backend**: Next.js Server Actions
-- **Datos**: Google Sheets API v4
-- **Auth**: NextAuth.js v5
-- **Validación**: Zod
-- **Tests**: Vitest
+- **Google Sheets como DB:** Usa una hoja de cálculo como backend, permitiendo a los administradores editar datos directamente o visualizar reportes crudos sin salir de Google.
+- **Autenticación Segura:** NextAuth.js integrado con Google OAuth 2.0 y control de acceso basado en roles (RBAC) para proteger zonas administrativas.
+- **Tarifas y Facturación Escalonada:** Algoritmo dinámico que calcula los precios de las horas basado en un umbral global mensual.
+- **Módulo BI / Reportes:** Dashboard completo y exportación en formato PDF con el branding y gráficos interactivos (`react-pdf` y Recharts).
+- **Gestión Administrativa Completa:** CRUD de Clientes, Proyectos, Tareas, Configuraciones y Usuarios.
+- **Diseño Tonal:** Creado bajo el lenguaje visual "Meridian", un Dark/Light Mode estricto.
 
-## Setup Rápido
+## 📦 Tecnologías
 
-### 1. Instalar dependencias
+- [Next.js 14](https://nextjs.org/) (App Router)
+- [React 18](https://react.dev/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Shadcn/UI](https://ui.shadcn.com/) (Radix Primitives)
+- [NextAuth.js v5 (beta)](https://nextjs.authjs.dev/)
+- [Google APIs Node.js Client](https://github.com/googleapis/google-api-nodejs-client)
 
-```bash
-npm install
-```
+## 💻 Desarrollo Local
 
-### 2. Configurar Google Sheets
+### Prerrequisitos
+- Node.js >= 20
+- npm o yarn
+- Una cuenta en Google Cloud Console para habilitar la API de Sheets y obtener las credenciales de OAuth.
 
-1. Crear un proyecto en [Google Cloud Console](https://console.cloud.google.com)
-2. Habilitar la **Google Sheets API**
-3. Crear una **Service Account** con rol Editor
-4. Descargar las credenciales JSON
-5. Crear un nuevo Google Spreadsheet con estas 5 hojas:
-   - `Registros_Horas`
-   - `Proyectos`
-   - `Clientes`
-   - `Tareas`
-   - `Configuraciones`
-6. Compartir el Spreadsheet con el email de la Service Account
+### Configuración inicial
 
-### 3. Variables de entorno
+1. Clona este repositorio.
+2. Instala las dependencias:
+   ```bash
+   npm install
+   ```
+3. Crea un archivo `.env` basado en `.env.example`:
+   ```bash
+   cp .env.example .env
+   ```
+4. Configura las variables en `.env`:
+   - `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET`: Obtenidos de tu proyecto en GCP.
+   - `NEXTAUTH_SECRET`: Genera uno con `openssl rand -base64 32`.
+   - `NEXTAUTH_URL`: `http://localhost:3000`.
 
-```bash
-cp .env.example .env.local
-```
-
-Completar `.env.local` con:
-- `GOOGLE_SERVICE_ACCOUNT_EMAIL`
-- `GOOGLE_PRIVATE_KEY`
-- `GOOGLE_SPREADSHEET_ID`
-- `NEXTAUTH_SECRET` (generar con `openssl rand -base64 32`)
-- `ADMIN_EMAIL`
-
-### 4. Inicializar Shadcn/UI
-
-```bash
-npx shadcn@latest init
-npx shadcn@latest add button input form select table badge card dialog toast
-```
-
-### 5. Iniciar en desarrollo
+### Arrancar la aplicación
 
 ```bash
 npm run dev
 ```
 
-Abre [http://localhost:3000](http://localhost:3000)
+La aplicación estará corriendo en `http://localhost:3000`.
 
-## Estructura de Google Sheets
+## 🚢 Despliegue (Deploy)
 
-### Encabezados requeridos (fila 1 de cada hoja)
+El proyecto está preparado para desplegarse fácilmente en **Vercel**. 
 
-**Registros_Horas**: `id | proyecto_id | tarea_id | usuario_id | fecha | horas | descripcion | precio_hora_aplicado | monto_total | estado | created_at | updated_at`
+Asegúrate de:
+1. Importar el repositorio en Vercel.
+2. Configurar las variables de entorno de producción.
+3. Actualizar la URI de redirección autorizada en Google Cloud Console con el dominio de tu Vercel (ej: `https://tu-proyecto.vercel.app/api/auth/callback/google`).
 
-**Proyectos**: `id | nombre | cliente_id | presupuesto_horas | horas_acumuladas | umbral_precio_alto | precio_base | precio_alto | estado | created_at | updated_at`
+Para más detalles, revisa el [CHANGELOG.md](./CHANGELOG.md).
 
-**Clientes**: `id | nombre | email | telefono | activo | created_at | updated_at`
+## 📄 Licencia y Autores
 
-**Tareas**: `id | nombre | categoria | activa | created_at`
-
-**Configuraciones**: `clave | valor | updated_at`
-
-### Datos iniciales de Configuraciones
-
-| clave | valor |
-|-------|-------|
-| precio_base_global | 35 |
-| precio_alto_global | 45 |
-| umbral_horas_global | 20 |
-| moneda | USD |
-| nombre_empresa | Ptime |
-
-## Lógica de Precios
-
-- Tramo 1: **$35/h** hasta las primeras 20 horas acumuladas por proyecto
-- Tramo 2: **$45/h** a partir de la hora 20.01 en adelante
-- Los precios son configurables globalmente y por proyecto desde el Admin
-- Se admiten decimales (ej. 1.5h, 0.25h)
-
-## Scripts
-
-```bash
-npm run dev      # Desarrollo
-npm run build    # Build producción
-npm run test     # Tests unitarios (Vitest)
-npm run lint     # ESLint
-```
-
-## Endpoints
-
-| Ruta | Descripción |
-|------|-------------|
-| `GET /api/health` | Health check — verifica env vars y retorna estado |
-| `GET/POST /api/auth/[...nextauth]` | Autenticación NextAuth |
-
-## Seguridad
-
-- Las credenciales de Google NUNCA se exponen al cliente
-- Toda comunicación con Sheets ocurre en Server Actions (server-side)
-- Validación doble con Zod (cliente + servidor)
-- Sanitización XSS con DOMPurify
-- Sesiones HttpOnly + JWT con NextAuth v5
-- RBAC: rutas `/admin/*` requieren rol `ADMIN`
-- **Rate Limiting** en endpoints de autenticación (5 req/60s por IP)
-- **Security Headers**: `X-Frame-Options`, `HSTS`, `X-Content-Type-Options`, `Permissions-Policy`, `X-XSS-Protection`
-
-## Changelog
-
-Ver [CHANGELOG.md](./CHANGELOG.md) para el historial completo de versiones y la guía de deploy en Vercel.
-
-## Créditos
-
-Arquitectura diseñada siguiendo principios SOLID. Código limpio y mantenible.
+Propiedad intelectual y desarrollo bajo [TuCloud.pro](https://tucloud.pro).

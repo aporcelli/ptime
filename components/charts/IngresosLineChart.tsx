@@ -5,6 +5,7 @@
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine
 } from "recharts";
+import { CHART_COLORS } from "@/lib/utils/chart-colors";
 
 interface DataPoint {
     mes: string;    // "2026-03"
@@ -21,8 +22,8 @@ interface Props {
 const CustomTooltip = ({ active, payload, label, moneda }: any) => {
     if (!active || !payload?.length) return null;
     return (
-        <div className="bg-white border border-slate-200 rounded-xl shadow-lg p-3 text-sm">
-            <p className="font-mono text-xs text-slate-500 mb-1">{label}</p>
+        <div className="chart-tooltip">
+            <p className="font-mono text-xs text-sub mb-1">{label}</p>
             {payload.map((entry: any) => (
                 <p key={entry.dataKey} style={{ color: entry.stroke }} className="font-mono font-medium">
                     {entry.dataKey === "horas"
@@ -37,7 +38,7 @@ const CustomTooltip = ({ active, payload, label, moneda }: any) => {
 export default function IngresosLineChart({ data, moneda = "USD", showHoras = false }: Props) {
     if (!data?.length) {
         return (
-            <div className="flex items-center justify-center h-48 text-slate-400 text-sm">
+            <div className="flex items-center justify-center h-48 text-sub text-sm">
                 Sin datos para el período
             </div>
         );
@@ -50,9 +51,9 @@ export default function IngresosLineChart({ data, moneda = "USD", showHoras = fa
     return (
         <ResponsiveContainer width="100%" height={240}>
             <LineChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 4 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="mes" tick={{ fontSize: 11, fill: "#64748b" }} />
-                <YAxis tick={{ fontSize: 11, fill: "#64748b" }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
+                <XAxis dataKey="mes" tick={{ fontSize: 11, fill: "var(--text-muted)" }} />
+                <YAxis tick={{ fontSize: 11, fill: "var(--text-muted)" }} />
                 <Tooltip content={<CustomTooltip moneda={moneda} />} />
                 {avg > 0 && (
                     <ReferenceLine y={avg} stroke="#F59E0B" strokeDasharray="5 5"
@@ -60,13 +61,13 @@ export default function IngresosLineChart({ data, moneda = "USD", showHoras = fa
                 )}
                 <Line
                     type="monotone" dataKey="ingresos" name="Ingresos"
-                    stroke="#1A56DB" strokeWidth={2.5} dot={{ r: 4, fill: "#1A56DB" }}
+                    stroke={CHART_COLORS[0]} strokeWidth={2.5} dot={{ r: 4, fill: CHART_COLORS[0] }}
                     activeDot={{ r: 6 }}
                 />
                 {showHoras && (
                     <Line
                         type="monotone" dataKey="horas" name="Horas"
-                        stroke="#94A3B8" strokeWidth={1.5} strokeDasharray="4 4" dot={false}
+                        stroke={CHART_COLORS[2]} strokeWidth={1.5} strokeDasharray="4 4" dot={false}
                     />
                 )}
             </LineChart>

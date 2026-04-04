@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { getSheetCtx } from "@/lib/sheets/context";
 import { getProyectos } from "@/lib/sheets/queries";
-import { createProyecto, updateProyecto } from "@/lib/sheets/mutations";
+import { createProyecto, updateProyecto, deleteProyecto } from "@/lib/sheets/mutations";
 import { projectFormSchema } from "@/lib/schemas/project";
 import { sanitizeObject } from "@/lib/utils/sanitize";
 import { generateUUID } from "@/lib/utils/index";
@@ -63,6 +63,19 @@ export async function updateProyectoAction(id: string, rawData: unknown): Promis
     return { success: true, data: undefined };
   } catch (e: unknown) {
     return { success: false, error: e instanceof Error ? e.message : "Error" };
+  }
+}
+
+export async function deleteProyectoAction(id: string): Promise<ActionResult> {
+  try {
+    await requireAuth();
+    const ctx = await getSheetCtx();
+    await deleteProyecto(ctx, id);
+    revalidatePath("/admin/proyectos");
+    revalidatePath("/horas/nuevo");
+    return { success: true, data: undefined };
+  } catch (e: unknown) {
+    return { success: false, error: e instanceof Error ? e.message : "Error al eliminar" };
   }
 }
 

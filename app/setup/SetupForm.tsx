@@ -28,16 +28,48 @@ const ExternalLink = ({ size = 11, className = "" }: { size?: number; className?
   </svg>
 );
 
+/**
+ * Extrae el Sheet ID de una URL de Google Sheets o lo devuelve directo si ya es un ID.
+ * Soporta formatos:
+ *   - https://docs.google.com/spreadsheets/d/SHEET_ID/edit#gid=0
+ *   - https://docs.google.com/spreadsheets/d/SHEET_ID/
+ *   - SHEET_ID (directo)
+ */
+function extractSheetId(input: string): string {
+  const trimmed = input.trim();
+  // Regex: captura el ID entre /d/ y el siguiente / o fin de string
+  const match = trimmed.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  if (match) return match[1];
+  // Si no matchea, asumir que es un ID directo
+  return trimmed;
+}
+
+/** Detecta si el input parece una URL de Google Sheets */
+function isGoogleSheetsUrl(input: string): boolean {
+  return input.includes("docs.google.com/spreadsheets") || input.includes("sheets.google.com");
+}
+
 export default function SetupForm() {
   const router = useRouter();
-  const [sheetId, setSheetId] = useState("");
-  const [status, setStatus]   = useState<"idle"|"loading"|"success"|"error">("idle");
-  const [message, setMessage] = useState("");
+  const [rawInput, setRawInput] = useState("");
+  const [status, setStatus]     = useState<"idle"|"loading"|"success"|"error">("idle");
+  const [message, setMessage]   = useState("");
+
+  // ID extraído en tiempo real para mostrar preview
+  const extractedId = rawInput.trim() ? extractSheetId(rawInput) : "";
+  const isUrl = isGoogleSheetsUrl(rawInput);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setStatus("loading");
     setMessage("");
+
+    const sheetId = extractSheetId(rawInput);
+    if (!sheetId) {
+      setStatus("error");
+      setMessage("Pegá la URL completa de tu Google Sheet o el ID directamente.");
+      return;
+    }
 
     const result = await validateAndSaveSheetId(sheetId);
 
@@ -59,20 +91,30 @@ export default function SetupForm() {
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
         <label className="text-sm font-medium text-slate-300">
-          Google Sheet ID
+          URL de Google Sheets
         </label>
         <input
           type="text"
-          value={sheetId}
-          onChange={(e) => setSheetId(e.target.value)}
-          placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms"
+          value={rawInput}
+          onChange={(e) => { setRawInput(e.target.value); setStatus("idle"); setMessage(""); }}
+          placeholder="https://docs.google.com/spreadsheets/d/…"
           className="
             bg-slate-900 border border-slate-700 rounded-lg px-3.5 py-2.5
-            text-white text-sm font-mono placeholder-slate-600
+            text-white text-sm placeholder-slate-600
             focus:outline-none focus:ring-2 focus:ring-brand-600/50 focus:border-brand-600
           "
           required
         />
+        {/* Preview del ID extraído */}
+        {isUrl && extractedId && (
+          <div className="flex items-center gap-1.5 text-xs text-slate-400">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-400 shrink-0"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+            <span>ID detectado: <code className="text-slate-300 bg-slate-800 px-1 py-0.5 rounded text-[11px]">{extractedId}</code></span>
+          </div>
+        )}
+        <p className="text-xs text-slate-500">
+          También podés pegar solo el ID del Sheet directamente.
+        </p>
       </div>
 
       {status === "error" && (
@@ -96,7 +138,7 @@ export default function SetupForm() {
 
       <motion.button
         type="submit"
-        disabled={status === "loading" || status === "success" || !sheetId.trim()}
+        disabled={status === "loading" || status === "success" || !rawInput.trim()}
         whileTap={{ scale: 0.98 }}
         className="bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-semibold rounded-lg py-3 text-sm flex items-center justify-center gap-2 transition-colors"
       >

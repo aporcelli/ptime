@@ -53,13 +53,13 @@ export default function FilterBar({ filters, searchKey, searchPlaceholder = "Bus
             {/* Búsqueda de texto */}
             {searchKey && (
                 <div className="relative">
-                    <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" />
                     <input
                         type="text"
                         defaultValue={searchParams.get(searchKey) ?? ""}
                         onChange={(e) => updateParam(searchKey, e.target.value)}
                         placeholder={searchPlaceholder}
-                        className="pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-600/30 focus:border-brand-600 w-44"
+                        className="pl-8 pr-3 py-1.5 rounded-lg text-sm bg-surface-low text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-primary-fixed/30 focus:bg-surface-lowest w-44 transition-colors"
                     />
                 </div>
             )}
@@ -70,7 +70,7 @@ export default function FilterBar({ filters, searchKey, searchPlaceholder = "Bus
                     key={filter.key}
                     value={searchParams.get(filter.key) ?? ""}
                     onChange={(e) => updateParam(filter.key, e.target.value)}
-                    className="py-1.5 px-3 rounded-lg border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-600/30 focus:border-brand-600 cursor-pointer"
+                    className="py-1.5 px-3 rounded-lg text-sm bg-surface-low text-on-surface focus:outline-none focus:ring-2 focus:ring-primary-fixed/30 cursor-pointer transition-colors"
                 >
                     <option value="">{filter.placeholder ?? filter.label}</option>
                     {filter.options.map((opt) => (
@@ -83,7 +83,7 @@ export default function FilterBar({ filters, searchKey, searchPlaceholder = "Bus
             {hasFilters && (
                 <button
                     onClick={clearAll}
-                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-700 border border-slate-200 hover:border-slate-300 rounded-lg px-2.5 py-1.5 transition-colors"
+                    className="flex items-center gap-1 text-xs text-on-surface-variant hover:text-on-surface rounded-lg px-2.5 py-1.5 transition-colors hover:bg-surface-high"
                 >
                     <X size={12} /> Limpiar
                 </button>

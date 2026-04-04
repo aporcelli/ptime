@@ -10,26 +10,28 @@ import { previewMonto } from "@/lib/pricing/calculateHoursAmount";
 import type { PricingConfig } from "@/types/entities";
 
 interface Params {
-  horas:           number;
-  horasAcumuladas: number;
-  config:          PricingConfig;
+  horas:                number;
+  /** Total de horas del usuario en el mes actual (todos los proyectos) */
+  horasAcumuladasMes:   number;
+  config:               PricingConfig;
 }
 
-export function usePricingPreview({ horas, horasAcumuladas, config }: Params) {
+export function usePricingPreview({ horas, horasAcumuladasMes, config }: Params) {
   const monto = useMemo(() => {
     if (!horas || horas <= 0 || !config) return 0;
-    return previewMonto(horas, horasAcumuladas, config);
-  }, [horas, horasAcumuladas, config]);
+    return previewMonto(horas, horasAcumuladasMes, config);
+  }, [horas, horasAcumuladasMes, config]);
 
-  const enTramo2 = horasAcumuladas >= config.umbralHoras;
+  // Precio activo: si ya superó el umbral mensual, o si esta entrada lo cruza
+  const enTramo2 = horasAcumuladasMes >= config.umbralHoras;
   const cruzaUmbral =
-    horasAcumuladas < config.umbralHoras &&
-    horasAcumuladas + horas > config.umbralHoras;
+    horasAcumuladasMes < config.umbralHoras &&
+    horasAcumuladasMes + horas > config.umbralHoras;
 
   return {
     monto,
     enTramo2,
     cruzaUmbral,
-    precioActivo: enTramo2 ? config.precioAlto : config.precioBase,
+    precioActivo: (enTramo2 || cruzaUmbral) ? config.precioAlto : config.precioBase,
   };
 }
