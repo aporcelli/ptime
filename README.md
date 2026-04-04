@@ -65,3 +65,32 @@ Para más detalles, revisa el [CHANGELOG.md](./CHANGELOG.md).
 ## 📄 Licencia y Autores
 
 Propiedad intelectual y desarrollo bajo [TuCloud.pro](https://tucloud.pro).
+
+## 📁 Estructura del Proyecto
+
+Esta es la organización principal de los directorios de Ptime (Next.js 14 App Router):
+
+```text
+.
+├── app/                  # Rutas y páginas de Next.js (App Router)
+│   ├── (auth)/           # Rutas de autenticación (login)
+│   ├── (dashboard)/      # Vistas protegidas (panel, horas, reportes, admin)
+│   ├── actions/          # Server Actions para mutaciones (CRUD)
+│   └── api/              # Endpoints API (health, auth)
+├── components/           # Componentes de React
+│   ├── admin/            # Componentes específicos de administración
+│   ├── charts/           # Gráficos con Recharts
+│   ├── forms/            # Formularios con react-hook-form + Zod
+│   ├── layout/           # Sidebar, Topbar, Shell
+│   ├── pdf/              # Plantillas para exportación PDF (react-pdf)
+│   └── shared/           # Componentes reutilizables (DataTables, Botones)
+├── hooks/                # Custom hooks (e.g. usePricingPreview)
+├── lib/                  # Lógica de negocio y utilidades
+│   ├── pricing/          # Algoritmo de cálculo de precios y unit tests
+│   ├── schemas/          # Esquemas de validación Zod
+│   └── sheets/           # Cliente y queries hacia la API de Google Sheets
+├── public/               # Archivos estáticos y logos (e.g., logo_tucloud_white.png)
+├── types/                # Definiciones de TypeScript e interfaces
+├── auth.ts               # Configuración de NextAuth.js
+└── middleware.ts         # Middleware para protección de rutas y control de RBAC
+```
