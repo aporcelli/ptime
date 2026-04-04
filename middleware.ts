@@ -22,7 +22,8 @@ export default auth((req) => {
   // Mantener para futuras implementaciones multi-tenant.
 
   // Sin sheet configurado → setup
-  const sheetId = req.cookies.get("ptime-sheet-id")?.value;
+  // Primero busca en la cookie del usuario, luego en la variable de entorno global
+  const sheetId = req.cookies.get("ptime-sheet-id")?.value ?? process.env.SHEET_ID;
   if (!sheetId) {
     return NextResponse.redirect(new URL("/setup", req.url));
   }
