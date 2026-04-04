@@ -6,13 +6,6 @@
     ],
     "buildCommand": "npm run build",
     "framework": "nextjs",
-    "env": [
-        "GOOGLE_CLIENT_ID",
-        "GOOGLE_CLIENT_SECRET",
-        "NEXTAUTH_SECRET",
-        "NEXTAUTH_URL",
-        "ADMIN_EMAIL"
-    ],
     "headers": [
         {
             "source": "/api/(.*)",
