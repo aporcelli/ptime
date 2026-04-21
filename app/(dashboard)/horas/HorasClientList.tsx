@@ -4,21 +4,19 @@ import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/utils/index";
 import Link from "next/link";
 import type { RegistroHoras, Proyecto, Tarea } from "@/types/entities";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import DataTable, { type Column } from "@/components/shared/DataTable";
+import { Edit2, Eye } from "lucide-react";
 
-const ESTADO_BADGE: Record<string, string> = {
-  borrador:   "badge badge-slate",
-  confirmado: "badge badge-green",
-  facturado:  "badge badge-blue",
+const ESTADO_VARIANT: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
+  borrador: "secondary",
+  confirmado: "default",
+  facturado: "outline",
 };
 
 const ESTADOS = ["borrador", "confirmado", "facturado"] as const;
-type Estado = typeof ESTADOS[number];
-
-const PILL_ACTIVE: Record<Estado, string> = {
-  borrador:   "bg-slate-600 text-white",
-  confirmado: "bg-primary-fixed text-white",
-  facturado:  "bg-primary text-white",
-};
+type Estado = (typeof ESTADOS)[number];
 
 interface Props {
   registros: RegistroHoras[];
@@ -35,110 +33,126 @@ export function HorasClientList({ registros, proyectosMap, tareasMap }: Props) {
     return registros.filter((r) => r.estado === filtroEstado);
   }, [registros, filtroEstado]);
 
+  const columns: Column<RegistroHoras>[] = [
+    {
+      key: "fecha",
+      header: "Fecha",
+      sortable: true,
+      className: "font-mono text-xs",
+    },
+    {
+      key: "proyecto_id",
+      header: "Proyecto",
+      sortable: true,
+      render: (r) => proyectosMap[r.proyecto_id]?.nombre ?? "—",
+      className: "font-medium",
+    },
+    {
+      key: "tarea_id",
+      header: "Tarea",
+      render: (r) => tareasMap[r.tarea_id]?.nombre ?? "—",
+    },
+    {
+      key: "descripcion",
+      header: "Descripción",
+      className: "max-w-[200px] truncate text-slate-500",
+    },
+    {
+      key: "horas",
+      header: "Horas",
+      sortable: true,
+      align: "right",
+      render: (r) => `${r.horas}h`,
+      className: "font-mono",
+    },
+    {
+      key: "monto_total",
+      header: "Total",
+      sortable: true,
+      align: "right",
+      render: (r) => (
+        <span className="font-semibold text-brand-600">
+          {formatCurrency(r.monto_total)}
+        </span>
+      ),
+      className: "font-mono",
+    },
+    {
+      key: "estado",
+      header: "Estado",
+      render: (r) => (
+        <Badge variant={ESTADO_VARIANT[r.estado] ?? "secondary"} className="capitalize">
+          {r.estado}
+        </Badge>
+      ),
+    },
+  ];
+
   if (registros.length === 0) {
     return (
-      <div className="bg-surface-lowest rounded-xl p-12 text-center shadow-ambient">
-        <p className="text-on-surface-variant text-sm">No hay registros aún.</p>
-        <Link href="/horas/nuevo" className="text-primary-fixed text-sm font-medium mt-2 inline-block hover:underline">
-          Cargá tu primer registro →
-        </Link>
+      <div className="bg-slate-50 border border-dashed border-slate-200 rounded-xl p-12 text-center">
+        <p className="text-slate-500 text-sm">No hay registros aún.</p>
+        <Button variant="link" asChild className="mt-2">
+          <Link href="/horas/nuevo">Cargá tu primer registro →</Link>
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Filter pills — Meridian */}
+    <div className="flex flex-col gap-6">
+      {/* Filter pills */}
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-xs text-on-surface-variant font-medium mr-1">Estado:</span>
-        <button
+        <Button
+          variant={filtroEstado === null ? "default" : "outline"}
+          size="sm"
           onClick={() => setFiltroEstado(null)}
-          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-            filtroEstado === null
-              ? "bg-primary text-white"
-              : "bg-surface-low text-on-surface-variant hover:bg-surface-high"
-          }`}
+          className="rounded-full"
         >
           Todos ({registros.length})
-        </button>
+        </Button>
         {ESTADOS.map((estado) => {
           const count = registros.filter((r) => r.estado === estado).length;
           if (count === 0) return null;
           return (
-            <button
+            <Button
               key={estado}
+              variant={filtroEstado === estado ? "default" : "outline"}
+              size="sm"
               onClick={() => setFiltroEstado(filtroEstado === estado ? null : estado)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors capitalize ${
-                filtroEstado === estado
-                  ? PILL_ACTIVE[estado]
-                  : "bg-surface-low text-on-surface-variant hover:bg-surface-high"
-              }`}
+              className="rounded-full capitalize"
             >
               {estado} ({count})
-            </button>
+            </Button>
           );
         })}
       </div>
 
-      {/* Tabla — Meridian No-Line Rule */}
-      <div className="bg-surface-lowest rounded-xl overflow-hidden shadow-ambient">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-surface-high">
-                {["Fecha", "Proyecto", "Tarea", "Descripción", "Horas", "$/h", "Total", "Estado", ""].map((h, idx) => (
-                  <th
-                    key={idx}
-                    className="p-3 text-xs font-semibold uppercase tracking-wide whitespace-nowrap text-left text-on-surface-variant"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtrados.map((r, i) => {
-                const proyecto = proyectosMap[r.proyecto_id];
-                const tarea = tareasMap[r.tarea_id];
-                return (
-                  <tr
-                    key={r.id}
-                    className={`transition-colors hover:bg-surface-low cursor-pointer ${
-                      i % 2 === 0 ? "bg-surface-lowest" : "bg-surface-low"
-                    }`}
-                    onClick={() => router.push(`/horas/${r.id}`)}
-                  >
-                    <td className="p-3 font-mono text-xs text-on-surface-variant whitespace-nowrap">{r.fecha}</td>
-                    <td className="p-3 font-medium text-on-surface whitespace-nowrap">{proyecto?.nombre ?? "—"}</td>
-                    <td className="p-3 text-on-surface-variant whitespace-nowrap">{tarea?.nombre ?? "—"}</td>
-                    <td className="p-3 text-on-surface max-w-[200px] truncate">{r.descripcion}</td>
-                    <td className="p-3 text-right font-mono text-on-surface whitespace-nowrap">{r.horas}h</td>
-                    <td className="p-3 text-right font-mono text-on-surface-variant whitespace-nowrap">${r.precio_hora_aplicado}</td>
-                    <td className="p-3 text-right font-mono text-primary-fixed font-semibold whitespace-nowrap">{formatCurrency(r.monto_total)}</td>
-                    <td className="p-3">
-                      <span className={ESTADO_BADGE[r.estado] ?? "badge badge-slate"}>{r.estado}</span>
-                    </td>
-                    <td className="p-3 text-right">
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); router.push(`/horas/${r.id}/editar`); }}
-                        className="text-xs text-on-surface-variant hover:text-primary-fixed transition-colors font-medium px-3 py-1.5 rounded-lg hover:bg-surface-high border border-outline-variant/30"
-                      >
-                        Editar
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        {filtrados.length === 0 && (
-          <div className="p-8 text-center">
-            <p className="text-on-surface-variant text-sm">No hay registros con estado "{filtroEstado}".</p>
+      <DataTable
+        columns={columns}
+        data={filtrados}
+        onRowClick={(r) => router.push(`/horas/${r.id}`)}
+        actions={(r) => (
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.push(`/horas/${r.id}`)}
+              title="Ver detalle"
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.push(`/horas/${r.id}/editar`)}
+              title="Editar"
+            >
+              <Edit2 className="h-4 w-4" />
+            </Button>
           </div>
         )}
-      </div>
+      />
     </div>
   );
 }
