@@ -125,12 +125,13 @@ export async function initializeSpreadsheet(
 ): Promise<void> {
   const sheets  = createSheetsClient(accessToken);
   const headers = {
-    Registros_Horas: ["id","proyecto_id","tarea_id","usuario_id","fecha","horas","descripcion","precio_hora_aplicado","monto_total","estado","created_at","updated_at"],
+    Registros_Horas: ["id","proyecto_id","tarea_id","usuario_id","fecha","horas","descripcion","precio_hora_aplicado","monto_total","estado","created_at","updated_at","cliente_id"],
     Proyectos:       ["id","nombre","cliente_id","presupuesto_horas","horas_acumuladas","umbral_precio_alto","precio_base","precio_alto","estado","created_at","updated_at"],
     Clientes:        ["id","nombre","email","telefono","activo","created_at","updated_at"],
     Tareas:          ["id","nombre","categoria","activa","created_at"],
     Configuraciones: ["clave","valor","updated_at"],
     Usuarios:        ["id","nombre","email","rol","activo","ultimo_acceso","sheet_id"],
+    Workspace_Members: ["email","sheet_id","rol","invited_by","created_at","updated_at"],
   };
 
   // Obtener hojas existentes
