@@ -139,6 +139,7 @@ export function HorasClientList({ registros, proyectosMap, tareasMap }: Props) {
               size="icon"
               onClick={() => router.push(`/horas/${r.id}`)}
               title="Ver detalle"
+              aria-label="Ver detalle"
             >
               <Eye className="h-4 w-4" />
             </Button>
@@ -147,6 +148,7 @@ export function HorasClientList({ registros, proyectosMap, tareasMap }: Props) {
               size="icon"
               onClick={() => router.push(`/horas/${r.id}/editar`)}
               title="Editar"
+              aria-label="Editar registro"
             >
               <Edit2 className="h-4 w-4" />
             </Button>
