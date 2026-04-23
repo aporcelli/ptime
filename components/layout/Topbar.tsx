@@ -12,13 +12,10 @@ interface Props {
 
 export default function Topbar({ user, onMenuClick }: Props) {
   return (
-    <header
-      className="h-14 shrink-0 flex items-center px-4 md:px-6 gap-4 bg-surface-lowest"
-      style={{ borderBottom: "1px solid var(--color-outline-variant)" }}
-    >
+    <header className="h-14 shrink-0 flex items-center px-4 md:px-6 gap-4 bg-card border-b border-border">
       {/* Mobile menu button */}
       <button
-        className="md:hidden p-2 rounded-lg hover:bg-surface-high transition-colors text-on-surface-variant"
+        className="md:hidden p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground"
         onClick={onMenuClick}
         aria-label="Abrir menú"
       >
@@ -29,17 +26,18 @@ export default function Topbar({ user, onMenuClick }: Props) {
 
       <div className="flex items-center gap-3">
         <div className="text-right hidden sm:block">
-          <p className="text-sm font-medium leading-none text-on-surface">
+          <p className="text-sm font-medium leading-none text-foreground">
             {user.name ?? user.email}
           </p>
-          <p className="text-xs mt-0.5 text-on-surface-variant">
+          <p className="text-xs mt-0.5 text-muted-foreground">
             {user.role}
           </p>
         </div>
 
-        {/* Avatar con foto de Google o fallback tonal */}
-        <div className="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center ring-2 ring-primary-fixed/20 overflow-hidden shrink-0">
+        {/* Avatar */}
+        <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center ring-2 ring-emerald-500/20 overflow-hidden shrink-0">
           {user.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
             <img src={user.image} alt={user.name ?? "Avatar"} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
           ) : (
             <User size={14} className="text-white" />
@@ -50,7 +48,7 @@ export default function Topbar({ user, onMenuClick }: Props) {
 
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
-          className="p-1.5 rounded-lg transition-colors text-on-surface-variant hover:text-on-surface hover:bg-surface-high"
+          className="p-1.5 rounded-lg transition-colors text-muted-foreground hover:text-foreground hover:bg-accent"
           aria-label="Cerrar sesión"
           title="Cerrar sesión"
         >

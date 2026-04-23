@@ -17,8 +17,10 @@ export default async function DashboardLayout({
     redirect("/login?error=TokenExpired");
   }
 
+  // Preferimos sheetId del JWT (persistente cross-device), luego cookie
   const cookieStore = cookies();
-  const sheetId = cookieStore.get("ptime-sheet-id")?.value;
+  const sheetId = (session.user as { sheetId?: string }).sheetId
+               ?? cookieStore.get("ptime-sheet-id")?.value;
 
   if (!sheetId) {
     redirect("/setup");

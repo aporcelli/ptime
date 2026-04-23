@@ -22,11 +22,27 @@ export default auth((req) => {
   // Mantener para futuras implementaciones multi-tenant.
 
   // Sin sheet configurado → setup
-  // Cada usuario tiene su propio Sheet — busca en cookie o en el token JWT
-  const sheetId = req.cookies.get("ptime-sheet-id")?.value
-               ?? (session as { user?: { sheetId?: string } })?.user?.sheetId;
+  // Cada usuario tiene su propio Sheet — preferimos el JWT (persistente cross-device),
+  // luego cookie. Si el JWT lo tiene pero la cookie no, sincronizamos la cookie.
+  const jwtSheetId    = (session as { user?: { sheetId?: string } })?.user?.sheetId;
+  const cookieSheetId = req.cookies.get("ptime-sheet-id")?.value;
+  const sheetId       = jwtSheetId ?? cookieSheetId;
+
   if (!sheetId) {
     return NextResponse.redirect(new URL("/setup", req.url));
+  }
+
+  // Si el JWT tiene sheetId pero la cookie no, sincronizar para que las server actions y queries lo usen.
+  if (jwtSheetId && !cookieSheetId) {
+    const res = NextResponse.next();
+    res.cookies.set("ptime-sheet-id", jwtSheetId, {
+      httpOnly: true,
+      secure:   process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path:     "/",
+      maxAge:   365 * 24 * 60 * 60,
+    });
+    return res;
   }
 
   return NextResponse.next();
