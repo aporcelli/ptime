@@ -12,8 +12,8 @@ export async function getClientes(ctx: SheetCtx, soloActivos = false): Promise<C
     const act = String(r[4]).trim().toLowerCase();
     const isActivo = act === "true" || act === "1" || act === "si" || act === "yes";
     return {
-      id: r[0], nombre: r[1], email: r[2], telefono: r[3] || undefined,
-      activo: isActivo, created_at: r[5], updated_at: r[6],
+      id: String(r[0]).trim(), nombre: String(r[1] ?? ""), email: String(r[2] ?? ""), telefono: r[3] ? String(r[3]) : undefined,
+      activo: isActivo, created_at: String(r[5] ?? ""), updated_at: String(r[6] ?? ""),
     } satisfies Cliente;
   });
   return soloActivos ? clientes.filter((c) => c.activo) : clientes;
@@ -29,17 +29,17 @@ export async function getProyectos(
 ): Promise<Proyecto[]> {
   const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, SHEET_RANGES.PROYECTOS);
   let list = rows.filter((r) => r[0]).map((r) => ({
-    id: r[0], nombre: r[1], cliente_id: r[2],
+    id: String(r[0]).trim(), nombre: String(r[1] ?? ""), cliente_id: String(r[2] ?? "").trim(),
     presupuesto_horas:  r[3] ? Number(r[3]) : undefined,
     horas_acumuladas:   Number(r[4] ?? 0),
     umbral_precio_alto: Number(r[5] ?? PRICING_DEFAULTS.umbralHoras),
     precio_base:        Number(r[6] ?? PRICING_DEFAULTS.precioBase),
     precio_alto:        Number(r[7] ?? PRICING_DEFAULTS.precioAlto),
     estado:  (r[8] ?? "activo") as Proyecto["estado"],
-    created_at: r[9], updated_at: r[10],
+    created_at: String(r[9] ?? ""), updated_at: String(r[10] ?? ""),
   } satisfies Proyecto));
   if (options.soloActivos) list = list.filter((p) => p.estado === "activo");
-  if (options.clienteId)   list = list.filter((p) => p.cliente_id === options.clienteId);
+  if (options.clienteId) list = list.filter((p) => p.cliente_id === options.clienteId);
   return list;
 }
 

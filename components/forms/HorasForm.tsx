@@ -89,6 +89,16 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
     ? proyectos.filter(p => p.cliente_id === watchedClienteId)
     : proyectos;
 
+  // Resetear proyecto_id si cambia de cliente y el proyecto no le pertenece
+  useEffect(() => {
+    if (watchedClienteId && watchedProyectoId) {
+      const isValid = proyectosFiltrados.some(p => p.id === watchedProyectoId);
+      if (!isValid) {
+        setValue("proyecto_id", "", { shouldValidate: true });
+      }
+    }
+  }, [watchedClienteId, proyectosFiltrados, watchedProyectoId, setValue]);
+
   // Price preview
   useEffect(() => {
     if (!watchedProyectoId || !watchedHoras) { setPreviewAmount(0); return; }
