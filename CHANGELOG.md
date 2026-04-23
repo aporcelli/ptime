@@ -5,6 +5,26 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.2] — 2026-04-23
+
+### 🚀 Refactor Mayor: Persistencia, UI/UX y Componentes
+
+#### Agregado
+- **Persistencia Cross-Device del Sheet ID**: Ahora el `auth.ts` consulta el `MASTER_SHEET_ID` durante el callback `jwt` del login para recuperar el `sheetId` del usuario automáticamente. **Ya nunca más se pide el link en una nueva sesión / navegador / dispositivo**.
+- **Edge-compatible Service Account JWT**: Nuevo módulo `lib/sheets/master-edge.ts` que genera tokens RS256 vía Web Crypto API sin depender de `googleapis` (que rompía el build).
+- **Glass effect**: Nueva clase `.glass` para superficies con blur, usada en login y setup.
+- **Animación `slide-up`**: Nueva animación de entrada elegante.
+
+#### Modificado / Mejorado
+- **Combobox reescrito desde cero**: Reemplazo total del componente roto basado en `cmdk` por uno nativo + Radix Popover. Los dropdowns de cliente, proyecto y tarea ahora **funcionan correctamente, son clickables, soportan búsqueda y se ven bien en dark/light**.
+- **Tokens Shadcn unificados** (`globals.css`): Todos los `--background`, `--card`, `--popover`, `--muted`, `--accent`, `--border`, etc. ahora se definen consistentemente en `:root` (light) y `.dark`. Removida cualquier dependencia de hardcoded `bg-ink`, `text-white`, `bg-slate-900`.
+- **Sidebar**, **Topbar**, **DashboardShell**, **Login**, **Setup**: Todos migrados a tokens semánticos (`bg-card`, `bg-background`, `text-foreground`, `text-muted-foreground`). El cambio de tema dark↔light ahora es **instantáneo y consistente** en toda la app.
+- **Middleware**: Prefiere el `sheetId` del JWT (persistente cross-device) y sincroniza la cookie automáticamente si está vacía.
+- **`getPageCtx`** y **dashboard layout**: Igual — JWT primero, cookie como fallback.
+- Versión bumpeada a **v1.2.2**.
+
+---
+
 ## [1.2.1] — 2026-04-23
 
 ### 🚀 Correcciones Críticas y Auto-Configuración de Workspace

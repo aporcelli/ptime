@@ -35,7 +35,7 @@ export function DashboardShell({ role, user, children }: DashboardShellProps) {
   }, [sidebarOpen]);
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ backgroundColor: "var(--color-surface)" }}>
+    <div className="flex h-screen overflow-hidden bg-background text-foreground">
       {/* Desktop: sidebar permanente */}
       <div className="hidden md:flex">
         <Sidebar role={role} />
@@ -63,7 +63,7 @@ export function DashboardShell({ role, user, children }: DashboardShellProps) {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", stiffness: 400, damping: 40 }}
-              className="md:hidden fixed left-0 top-0 bottom-0 z-50 w-[220px] bg-surface-low shadow-2xl"
+              className="md:hidden fixed left-0 top-0 bottom-0 z-50 w-[220px] bg-card border-r border-border shadow-2xl"
               role="dialog"
               aria-modal="true"
               aria-label="Navegación"
@@ -79,7 +79,7 @@ export function DashboardShell({ role, user, children }: DashboardShellProps) {
           user={user}
           onMenuClick={() => setSidebarOpen(true)}
         />
-        <main className="flex-1 overflow-y-auto p-6 md:p-8 bg-surface">
+        <main className="flex-1 overflow-y-auto p-6 md:p-8 bg-background">
           {children}
         </main>
       </div>

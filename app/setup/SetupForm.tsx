@@ -118,16 +118,16 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
           onClick={handleSharedSubmit}
           disabled={status === "loading" || status === "success"}
           whileTap={{ scale: 0.98 }}
-          className="bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-semibold rounded-lg py-3 text-sm flex items-center justify-center gap-2 transition-colors"
+          className="bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-semibold rounded-lg py-3 text-sm flex items-center justify-center gap-2 transition-colors"
         >
           {status === "loading" && <Loader2 size={16} className="animate-spin mr-2" />}
           {status === "loading" ? "Conectando al Workspace…" : "Unirse al Workspace Compartido"}
         </motion.button>
-        
+
         {status === "error" && (
           <motion.div
             initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-            className="flex items-start gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm"
+            className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm"
           >
             <AlertCircle size={16} className="shrink-0 mt-0.5" />
             {message}
@@ -137,17 +137,17 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
         {status === "success" && (
           <motion.div
             initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 text-sm"
+            className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-sm"
           >
             <CheckCircle size={16} /> {message}
           </motion.div>
         )}
 
         <div className="text-center mt-2">
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={() => setShowManual(true)}
-            className="text-xs text-slate-500 hover:text-brand-500 transition-colors"
+            className="text-xs text-muted-foreground hover:text-primary transition-colors"
           >
             Usar otro Sheet distinto / Crear de cero
           </button>
@@ -159,13 +159,13 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
   return (
     <>
       {/* Instrucciones */}
-      <div className="mb-6 p-4 bg-slate-800/50 rounded-xl text-sm text-slate-400 space-y-2">
-        <p className="font-semibold text-slate-300 text-xs uppercase tracking-wide">¿Cómo obtener el Sheet ID?</p>
+      <div className="mb-6 p-4 bg-muted/50 border border-border rounded-xl text-sm text-muted-foreground space-y-2">
+        <p className="font-semibold text-foreground text-xs uppercase tracking-wide">¿Cómo obtener el Sheet ID?</p>
         <ol className="list-decimal list-inside space-y-1 text-xs">
-          <li>Andá a <a href="https://sheets.new" target="_blank" rel="noopener noreferrer" className="text-brand-500 hover:underline">sheets.new</a> y creá una hoja vacía</li>
+          <li>Andá a <a href="https://sheets.new" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">sheets.new</a> y creá una hoja vacía</li>
           <li>Copiá el ID de la URL:<br/>
-            <code className="bg-slate-900 text-slate-300 px-1.5 py-0.5 rounded text-[11px] break-all">
-              sheets.google.com/d/<span className="text-warm-400 font-bold">ID_AQUI</span>/edit
+            <code className="bg-background border border-border px-1.5 py-0.5 rounded text-[11px] break-all">
+              sheets.google.com/d/<span className="text-emerald-500 font-bold">ID_AQUI</span>/edit
             </code>
           </li>
           <li>Pegalo abajo — Ptime crea las hojas automáticamente</li>
@@ -174,69 +174,68 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-slate-300">
-          URL de Google Sheets
-        </label>
-        <input
-          type="text"
-          value={rawInput}
-          onChange={(e) => { setRawInput(e.target.value); setStatus("idle"); setMessage(""); }}
-          placeholder="https://docs.google.com/spreadsheets/d/…"
-          className="
-            bg-slate-900 border border-slate-700 rounded-lg px-3.5 py-2.5
-            text-white text-sm placeholder-slate-600
-            focus:outline-none focus:ring-2 focus:ring-brand-600/50 focus:border-brand-600
-          "
-          required
-        />
-        {/* Preview del ID extraído */}
-        {isUrl && extractedId && (
-          <div className="flex items-center gap-1.5 text-xs text-slate-400">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-400 shrink-0"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
-            <span>ID detectado: <code className="text-slate-300 bg-slate-800 px-1 py-0.5 rounded text-[11px]">{extractedId}</code></span>
-          </div>
+          <label className="text-sm font-medium text-foreground">
+            URL de Google Sheets
+          </label>
+          <input
+            type="text"
+            value={rawInput}
+            onChange={(e) => { setRawInput(e.target.value); setStatus("idle"); setMessage(""); }}
+            placeholder="https://docs.google.com/spreadsheets/d/…"
+            className="
+              bg-background border border-input rounded-lg px-3.5 py-2.5
+              text-foreground text-sm placeholder:text-muted-foreground
+              focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-ring
+            "
+            required
+          />
+          {isUrl && extractedId && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500 shrink-0"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+              <span>ID detectado: <code className="text-foreground bg-muted px-1 py-0.5 rounded text-[11px]">{extractedId}</code></span>
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground">
+            También podés pegar solo el ID del Sheet directamente.
+          </p>
+        </div>
+
+        {status === "error" && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+            className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm"
+          >
+            <AlertCircle size={16} className="shrink-0 mt-0.5" />
+            {message}
+          </motion.div>
         )}
-        <p className="text-xs text-slate-500">
-          También podés pegar solo el ID del Sheet directamente.
-        </p>
-      </div>
 
-      {status === "error" && (
-        <motion.div
-          initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-          className="flex items-start gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm"
+        {status === "success" && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-sm"
+          >
+            <CheckCircle size={16} /> {message}
+          </motion.div>
+        )}
+
+        <motion.button
+          type="submit"
+          disabled={status === "loading" || status === "success" || !rawInput.trim()}
+          whileTap={{ scale: 0.98 }}
+          className="bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-semibold rounded-lg py-3 text-sm flex items-center justify-center gap-2 transition-colors"
         >
-          <AlertCircle size={16} className="shrink-0 mt-0.5" />
-          {message}
-        </motion.div>
-      )}
+          {status === "loading" && <Loader2 size={16} className="animate-spin" />}
+          {status === "loading" ? "Verificando y configurando…" : "Conectar Sheet"}
+        </motion.button>
 
-      {status === "success" && (
-        <motion.div
-          initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 text-sm"
-        >
-          <CheckCircle size={16} /> {message}
-        </motion.div>
-      )}
-
-      <motion.button
-        type="submit"
-        disabled={status === "loading" || status === "success" || !rawInput.trim()}
-        whileTap={{ scale: 0.98 }}
-        className="bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-semibold rounded-lg py-3 text-sm flex items-center justify-center gap-2 transition-colors"
-      >
-        {status === "loading" && <Loader2 size={16} className="animate-spin" />}
-        {status === "loading" ? "Verificando y configurando…" : "Conectar Sheet"}
-      </motion.button>
-
-      <div className="text-center">
-        <a href="https://sheets.new" target="_blank" rel="noopener noreferrer"
-          className="text-xs text-slate-500 hover:text-brand-500 inline-flex items-center gap-1 transition-colors">
-          Crear nuevo Google Sheet <ExternalLink size={11} />
-        </a>
-      </div>
-    </form>
+        <div className="text-center">
+          <a href="https://sheets.new" target="_blank" rel="noopener noreferrer"
+            className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1 transition-colors">
+            Crear nuevo Google Sheet <ExternalLink size={11} />
+          </a>
+        </div>
+      </form>
     </>
   );
 }

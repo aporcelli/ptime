@@ -30,11 +30,11 @@ export default function Sidebar({ role, onNavClick }: SidebarProps) {
   const isAdmin  = role === "ADMIN";
 
   return (
-    <aside className="flex flex-col w-[220px] shrink-0 h-full bg-surface-low" aria-label="Navegación">
-      {/* Logo — Meridian: navy sobre superficie clara */}
+    <aside className="flex flex-col w-[220px] shrink-0 h-full bg-card border-r border-border" aria-label="Navegación">
+      {/* Logo */}
       <div className="px-6 py-5">
-        <span className="font-display text-2xl font-extrabold text-on-surface">
-          P<span className="text-primary-fixed">time</span>
+        <span className="font-display text-2xl font-extrabold tracking-tight">
+          P<span className="text-emerald-500">time</span>
         </span>
       </div>
 
@@ -44,7 +44,7 @@ export default function Sidebar({ role, onNavClick }: SidebarProps) {
         ))}
 
         <div className="px-3 pt-5 pb-1">
-          <span className="text-on-surface-variant text-[10px] font-semibold uppercase tracking-widest">
+          <span className="text-muted-foreground text-[10px] font-semibold uppercase tracking-widest">
             Administración
           </span>
         </div>
@@ -56,20 +56,20 @@ export default function Sidebar({ role, onNavClick }: SidebarProps) {
           ))}
       </nav>
 
-      <div className="px-4 py-4 flex flex-col items-center gap-3 border-t border-outline-variant/10 mt-auto">
-        <a 
-          href="https://tucloud.pro" 
-          target="_blank" 
-          rel="noopener noreferrer" 
+      <div className="px-4 py-4 flex flex-col items-center gap-3 border-t border-border mt-auto">
+        <a
+          href="https://tucloud.pro"
+          target="_blank"
+          rel="noopener noreferrer"
           className="flex flex-col items-center gap-1.5 opacity-70 hover:opacity-100 transition-opacity"
           title="Visitar TuCloud.pro"
         >
-          <span className="text-[9px] text-on-surface-variant uppercase tracking-wider font-semibold">Powered by</span>
-          <div className="bg-[#050505] px-3 py-2 rounded-lg border border-white/5 shadow-sm">
-            <img 
-              src="/logo_tucloud_white.png" 
-              alt="TU CLOUD PRO" 
-              className="h-6 w-auto object-contain" 
+          <span className="text-[9px] text-muted-foreground uppercase tracking-wider font-semibold">Powered by</span>
+          <div className="bg-black px-3 py-2 rounded-lg border border-border shadow-sm">
+            <img
+              src="/logo_tucloud_white.png"
+              alt="TU CLOUD PRO"
+              className="h-6 w-auto object-contain"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
                 e.currentTarget.parentElement!.innerHTML = '<span style="color:white; font-size:11px; font-weight:bold; letter-spacing:1px;">TU CLOUD PRO</span>';
@@ -77,7 +77,7 @@ export default function Sidebar({ role, onNavClick }: SidebarProps) {
             />
           </div>
         </a>
-        <p className="text-on-surface-variant opacity-40 text-[10px] text-center">Ptime v1.2.1</p>
+        <p className="text-muted-foreground opacity-50 text-[10px] text-center">Ptime v1.2.2</p>
       </div>
     </aside>
   );
@@ -101,20 +101,20 @@ function NavItem({ item, pathname, onNavClick }: NavItemProps) {
       className={cn(
         "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all relative group",
         isActive
-          ? "text-primary font-semibold"
-          : "text-on-surface-variant hover:text-on-surface hover:bg-surface-high"
+          ? "text-foreground font-semibold"
+          : "text-muted-foreground hover:text-foreground hover:bg-accent"
       )}
     >
       {isActive && (
         <motion.div
           layoutId="activeNav"
-          className="absolute inset-0 bg-surface-highest rounded-lg -z-10"
+          className="absolute inset-0 bg-accent rounded-lg -z-10"
           transition={{ type: "spring", bounce: 0.2, duration: 0.35 }}
         />
       )}
       <span className={cn(
         "shrink-0 transition-colors",
-        isActive ? "text-primary-fixed" : "text-on-surface-variant group-hover:text-primary-fixed"
+        isActive ? "text-emerald-500" : "text-muted-foreground group-hover:text-emerald-500"
       )}>
         {item.icon}
       </span>

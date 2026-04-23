@@ -23,7 +23,7 @@ export default async function LoginPage({
   const errorMsg = searchParams.error ? (errorMessages[searchParams.error] ?? errorMessages.Default) : null;
 
   return (
-    <main className="min-h-screen bg-ink flex items-center justify-center p-4">
+    <main className="min-h-screen bg-background text-foreground flex items-center justify-center p-4 relative overflow-hidden">
       {/* Blobs decorativos */}
       <div aria-hidden className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-brand-600/20 blur-[120px] pointer-events-none" />
       <div aria-hidden className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-warm-500/10 blur-[100px] pointer-events-none" />
@@ -31,15 +31,15 @@ export default async function LoginPage({
       <div className="relative w-full max-w-sm z-10">
         {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="font-serif text-6xl text-white">
-            P<span className="text-warm-500 italic">time</span>
+          <h1 className="font-serif text-6xl font-extrabold tracking-tight">
+            P<span className="text-emerald-500 italic">time</span>
           </h1>
-          <p className="text-slate-400 mt-2 text-sm">Gestión de horas profesionales</p>
+          <p className="text-muted-foreground mt-2 text-sm">Gestión de horas profesionales</p>
         </div>
 
-        <div className="bg-ink-2 border border-slate-700 rounded-2xl p-8 shadow-2xl">
-          <h2 className="text-white font-semibold text-lg mb-2">Iniciar sesión</h2>
-          <p className="text-slate-400 text-sm mb-6">
+        <div className="glass rounded-2xl p-8 shadow-2xl animate-slide-up">
+          <h2 className="font-semibold text-lg mb-2">Iniciar sesión</h2>
+          <p className="text-muted-foreground text-sm mb-6">
             Usá tu cuenta de Google para acceder. Se solicitará permiso para leer y escribir en tus Google Sheets.
           </p>
 
@@ -69,11 +69,11 @@ export default async function LoginPage({
           </form>
         </div>
 
-        <p className="text-center text-slate-600 text-xs mt-6 flex flex-col gap-2">
+        <p className="text-center text-muted-foreground text-xs mt-6 flex flex-col gap-2">
           <span>© {new Date().getFullYear()} Ptime · Acceso restringido</span>
           <span className="flex justify-center gap-4">
-            <Link href="/privacy" className="hover:text-slate-400 underline transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-slate-400 underline transition-colors">Terms of Service</Link>
+            <Link href="/privacy" className="hover:text-foreground underline transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-foreground underline transition-colors">Terms of Service</Link>
           </span>
         </p>
       </div>

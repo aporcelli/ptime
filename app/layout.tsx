@@ -35,7 +35,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${manrope.variable} ${inter.variable}`}
     >
-      <body className="min-h-screen bg-surface font-sans antialiased">
+      <body className="min-h-screen bg-background text-foreground font-sans antialiased">
         <SessionProvider>
           <ThemeProvider
             attribute="class"

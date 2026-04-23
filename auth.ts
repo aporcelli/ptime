@@ -91,6 +91,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           .split(",").map((e) => e.trim().toLowerCase());
         token.role  = adminEmails.includes((user.email ?? "").toLowerCase()) ? "ADMIN" : "USER";
         token.error = undefined;
+
+        // 🔑 PERSISTENCIA CROSS-DEVICE: buscar el sheetId del usuario en el MASTER_SHEET
+        // así no necesita volver a poner el link en otra sesión / navegador.
+        // Usamos la versión Edge-compatible (sin googleapis pesado).
+        if (user.email) {
+          try {
+            const { findSharedSheetForEmailEdge } = await import("@/lib/sheets/master-edge");
+            const persisted = await findSharedSheetForEmailEdge(user.email);
+            if (persisted) {
+              token.sheetId = persisted;
+            }
+          } catch (e) {
+            console.error("[auth] No se pudo recuperar sheetId persistido:", e);
+          }
+        }
         return token;
       }
 
