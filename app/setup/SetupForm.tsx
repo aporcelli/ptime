@@ -49,15 +49,38 @@ function isGoogleSheetsUrl(input: string): boolean {
   return input.includes("docs.google.com/spreadsheets") || input.includes("sheets.google.com");
 }
 
-export default function SetupForm() {
+export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string }) {
   const router = useRouter();
   const [rawInput, setRawInput] = useState("");
   const [status, setStatus]     = useState<"idle"|"loading"|"success"|"error">("idle");
   const [message, setMessage]   = useState("");
+  const [showManual, setShowManual] = useState(!sharedSheetId);
 
   // ID extraído en tiempo real para mostrar preview
   const extractedId = rawInput.trim() ? extractSheetId(rawInput) : "";
   const isUrl = isGoogleSheetsUrl(rawInput);
+
+  async function handleSharedSubmit() {
+    if (!sharedSheetId) return;
+    setStatus("loading");
+    setMessage("");
+
+    const result = await validateAndSaveSheetId(sharedSheetId);
+
+    if (!result.success) {
+      setStatus("error");
+      setMessage(result.error ?? "Error desconocido al unirse al workspace.");
+      return;
+    }
+
+    setStatus("success");
+    setMessage(`Workspace "${result.title}" conectado. Entrando…`);
+
+    setTimeout(() => {
+      router.push("/dashboard");
+      router.refresh();
+    }, 1200);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -88,9 +111,69 @@ export default function SetupForm() {
     }, 1200);
   }
 
+  if (!showManual && sharedSheetId) {
+    return (
+      <div className="flex flex-col gap-4">
+        <motion.button
+          onClick={handleSharedSubmit}
+          disabled={status === "loading" || status === "success"}
+          whileTap={{ scale: 0.98 }}
+          className="bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-semibold rounded-lg py-3 text-sm flex items-center justify-center gap-2 transition-colors"
+        >
+          {status === "loading" && <Loader2 size={16} className="animate-spin mr-2" />}
+          {status === "loading" ? "Conectando al Workspace…" : "Unirse al Workspace Compartido"}
+        </motion.button>
+        
+        {status === "error" && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+            className="flex items-start gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm"
+          >
+            <AlertCircle size={16} className="shrink-0 mt-0.5" />
+            {message}
+          </motion.div>
+        )}
+
+        {status === "success" && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 text-sm"
+          >
+            <CheckCircle size={16} /> {message}
+          </motion.div>
+        )}
+
+        <div className="text-center mt-2">
+          <button 
+            type="button" 
+            onClick={() => setShowManual(true)}
+            className="text-xs text-slate-500 hover:text-brand-500 transition-colors"
+          >
+            Usar otro Sheet distinto / Crear de cero
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1.5">
+    <>
+      {/* Instrucciones */}
+      <div className="mb-6 p-4 bg-slate-800/50 rounded-xl text-sm text-slate-400 space-y-2">
+        <p className="font-semibold text-slate-300 text-xs uppercase tracking-wide">¿Cómo obtener el Sheet ID?</p>
+        <ol className="list-decimal list-inside space-y-1 text-xs">
+          <li>Andá a <a href="https://sheets.new" target="_blank" rel="noopener noreferrer" className="text-brand-500 hover:underline">sheets.new</a> y creá una hoja vacía</li>
+          <li>Copiá el ID de la URL:<br/>
+            <code className="bg-slate-900 text-slate-300 px-1.5 py-0.5 rounded text-[11px] break-all">
+              sheets.google.com/d/<span className="text-warm-400 font-bold">ID_AQUI</span>/edit
+            </code>
+          </li>
+          <li>Pegalo abajo — Ptime crea las hojas automáticamente</li>
+        </ol>
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div className="flex flex-col gap-1.5">
         <label className="text-sm font-medium text-slate-300">
           URL de Google Sheets
         </label>
@@ -154,5 +237,6 @@ export default function SetupForm() {
         </a>
       </div>
     </form>
+    </>
   );
 }
