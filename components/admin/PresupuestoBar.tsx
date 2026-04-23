@@ -27,7 +27,7 @@ export function PresupuestoBar({
                  "bg-primary-fixed";
 
   return (
-    <div className="space-y-1 w-full">
+    <div className="space-y-1 w-full" title={`Presupuesto: ${pct}% (${horasRegistradas}h de ${presupuestoHoras}h)`}>
       {showLabel && (
         <div className="flex justify-between text-xs text-on-surface-variant">
           <span className="tabular-nums">
@@ -36,7 +36,13 @@ export function PresupuestoBar({
           <span className="tabular-nums font-medium">{pct}%</span>
         </div>
       )}
-      <div className="h-1.5 w-full rounded-full bg-surface-highest overflow-hidden">
+      <div
+        className="h-1.5 w-full rounded-full bg-surface-highest overflow-hidden"
+        role="progressbar"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      >
         <div
           className={`h-full rounded-full transition-all duration-500 ${barColor}`}
           style={{ width: `${pct}%` }}
