@@ -8,7 +8,7 @@ const nextConfig = {
 
   experimental: {
     serverActions: {
-      allowedOrigins: ["localhost:3000"],
+      allowedOrigins: ["localhost:3000", "ptime.tucloud.pro", "*.ptime.tucloud.pro", "*.vercel.app", "*.ptime.app", "ptime.vercel.app"],
     },
   },
 
