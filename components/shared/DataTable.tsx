@@ -71,7 +71,7 @@ export default function DataTable<T extends { id: string }>({
       <div className="hidden md:block bg-card rounded-xl border border-border overflow-hidden shadow-sm">
         <Table>
           <TableHeader>
-            <TableRow className="bg-muted/50 hover:bg-muted/50">
+            <TableRow className="bg-muted/30 hover:bg-muted/30">
               {columns.map((col) => (
                 <TableHead
                   key={String(col.key)}
