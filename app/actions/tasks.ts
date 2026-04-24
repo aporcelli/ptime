@@ -51,7 +51,7 @@ export async function toggleTareaAction(id: string, activa: boolean): Promise<Ac
     const ctx = await getSheetCtx();
     await toggleTareaActiva(ctx, id, activa);
     revalidatePath("/admin/tareas");
-    return { success: true, data: undefined };
+    return { success: true };
   } catch (e: unknown) {
     return { success: false, error: e instanceof Error ? e.message : "Error" };
   }
@@ -66,7 +66,7 @@ export async function updateTareaAction(id: string, rawData: unknown): Promise<A
     const ctx = await getSheetCtx();
     await updateTarea(ctx, id, parsed.data);
     revalidatePath("/admin/tareas");
-    return { success: true, data: undefined };
+    return { success: true };
   } catch (e: unknown) {
     return { success: false, error: e instanceof Error ? e.message : "Error al actualizar" };
   }
@@ -80,7 +80,7 @@ export async function deleteTareaAction(id: string): Promise<ActionResult> {
     await deleteTarea(ctx, id);
     revalidatePath("/admin/tareas");
     revalidatePath("/horas/nuevo");
-    return { success: true, data: undefined };
+    return { success: true };
   } catch (e: unknown) {
     return { success: false, error: e instanceof Error ? e.message : "Error al eliminar" };
   }

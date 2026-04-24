@@ -124,5 +124,5 @@ export interface IngresosMensuales {
 
 // ── Server Action responses ───────────────────────────────────────────────────
 export type ActionResult<T = void> =
-  | { success: true;  data: T }
+  | (T extends void ? { success: true } : { success: true; data: T })
   | { success: false; error: string; fieldErrors?: Record<string, string[]> };
