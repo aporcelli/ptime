@@ -40,7 +40,7 @@ export async function createClienteAction(rawData: unknown): Promise<ActionResul
 
   await createCliente(ctx, cliente);
   revalidatePath("/admin/clientes");
-  return { success: true, data: cliente };
+  return { success: true, data: JSON.parse(JSON.stringify(cliente)) };
 }
 
 export async function updateClienteAction(id: string, rawData: unknown): Promise<ActionResult> {

@@ -34,18 +34,18 @@ export default async function HoraDetailPage({ params }: { params: { id: string 
     return (
         <div className="max-w-2xl mx-auto animate-fade-in">
             <div className="flex items-center gap-3 mb-6">
-                <Link href="/horas" className="text-slate-400 hover:text-ink transition-colors">
+                <Link href="/horas" className="text-muted-foreground hover:text-foreground transition-colors">
                     <ArrowLeft size={20} />
                 </Link>
-                <h1 className="font-serif text-3xl text-ink">Detalle del registro</h1>
+                <h1 className="font-serif text-3xl text-foreground font-semibold tracking-tight">Detalle del registro</h1>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 flex flex-col gap-6">
+            <div className="bg-card text-card-foreground rounded-2xl border border-border p-6 md:p-8 flex flex-col gap-6">
                 {/* Encabezado */}
                 <div className="flex items-start justify-between">
                     <div>
-                        <p className="font-semibold text-ink text-lg">{proyecto?.nombre ?? "—"}</p>
-                        <p className="text-slate-500 text-sm">{tarea?.nombre ?? "—"}</p>
+                        <p className="font-semibold text-foreground text-lg">{proyecto?.nombre ?? "—"}</p>
+                        <p className="text-muted-foreground text-sm">{tarea?.nombre ?? "—"}</p>
                     </div>
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${ESTADO_COLORS[registro.estado]}`}>
                         {registro.estado}
@@ -67,16 +67,16 @@ export default async function HoraDetailPage({ params }: { params: { id: string 
 
                 {/* Descripción */}
                 <div>
-                    <div className="flex items-center gap-1.5 text-slate-400 mb-1.5 text-xs font-semibold uppercase tracking-wide">
+                    <div className="flex items-center gap-1.5 text-muted-foreground mb-1.5 text-xs font-semibold uppercase tracking-wide">
                         <FileText size={13} /> Descripción
                     </div>
-                    <p className="text-ink text-sm bg-slate-50 rounded-lg p-3 leading-relaxed">
+                    <p className="text-foreground text-sm bg-muted/30 border border-dashed border-border rounded-lg p-4 leading-relaxed">
                         {registro.descripcion}
                     </p>
                 </div>
 
                 {/* Auditoría */}
-                <div className="text-xs text-slate-400 font-mono pt-2 border-t border-slate-100 flex flex-col gap-1">
+                <div className="text-xs text-muted-foreground font-mono pt-4 border-t border-border flex flex-col gap-1">
                     <p>ID: {registro.id}</p>
                     <p>Usuario: {registro.usuario_id}</p>
                     <p>Creado: {registro.created_at}</p>
@@ -101,11 +101,11 @@ function InfoItem({
     highlight?: boolean;
 }) {
     return (
-        <div className="bg-slate-50 rounded-xl p-3">
-            <div className="flex items-center gap-1.5 text-slate-400 mb-1 text-xs font-semibold uppercase tracking-wide">
+        <div className="bg-muted/50 rounded-xl p-4 border border-border/50">
+            <div className="flex items-center gap-1.5 text-muted-foreground mb-1.5 text-xs font-semibold uppercase tracking-wide">
                 {icon} {label}
             </div>
-            <p className={`font-mono font-semibold ${highlight ? "text-brand-600 text-lg" : "text-ink"}`}>
+            <p className={`font-mono font-semibold ${highlight ? "text-primary text-xl" : "text-foreground text-lg"}`}>
                 {value}
             </p>
         </div>
