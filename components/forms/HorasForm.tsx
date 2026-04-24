@@ -84,13 +84,12 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
   const watchedTareaId    = watch("tarea_id");
   const watchedHoras      = watch("horas");
 
-  // Filtramos proyectos según cliente seleccionado
-  // Usamos trim() y toLowerCase() para evitar discrepancias de espacios o casing
-  const proyectosFiltrados = watchedClienteId
-    ? proyectos.filter(p =>
-        p.cliente_id.trim().toLowerCase() === watchedClienteId.trim().toLowerCase()
-      )
-    : proyectos;
+  // Si el proyecto no tiene cliente_id asignado en el Sheet, lo mostramos igual
+  // (cliente_id vacío = proyecto "global" accesible desde cualquier cliente)
+  const proyectosFiltrados = proyectos.filter(p => {
+    const pid = p.cliente_id.trim();
+    return !watchedClienteId || pid === "" || pid.toLowerCase() === watchedClienteId.trim().toLowerCase();
+  });
 
   // Resetear proyecto_id si cambia de cliente y el proyecto no le pertenece
   useEffect(() => {
@@ -178,13 +177,7 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
     <>
       <form onSubmit={handleSubmit(onSubmit)} className="bg-card text-card-foreground rounded-2xl border border-border p-6 md:p-8 flex flex-col gap-6" noValidate>
 
-        {/* DEBUG: visible solo si no hay proyectos para el cliente — borrar luego */}
-        {watchedClienteId && proyectosFiltrados.length === 0 && proyectos.length > 0 && (
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg p-3 text-xs text-amber-800 dark:text-amber-300">
-            <strong>Info:</strong> Hay {proyectos.length} proyectos en total pero ninguno tiene cliente_id = &quot;{watchedClienteId}&quot;.<br/>
-            Proyectos: {proyectos.map(p => `"${p.nombre}" (cliente_id="${p.cliente_id}")`).join(", ")}
-          </div>
-        )}
+
 
         {/* Cliente */}
         <div className="flex flex-col gap-1.5">
@@ -286,13 +279,13 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
         <AnimatePresence>
           {watchedProyectoId && watchedHoras > 0 && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-brand-600">
+              <div className="bg-blue-500/10 border border-blue-100 rounded-xl p-4 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-primary">
                   <DollarSign size={15} />
                   <span className="text-sm font-medium">Monto estimado</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-xl font-semibold font-mono text-brand-700">
+                  <span className="text-xl font-semibold font-mono text-primary">
                     {formatCurrency(previewAmount, defaultConfig.moneda)}
                   </span>
                   {selectedP && (
@@ -361,7 +354,7 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
               <Label htmlFor="p-nombre">Nombre del proyecto *</Label>
               <Input id="p-nombre" value={newNombreP} onChange={(e) => setNewNombreP(e.target.value)} placeholder="Ej: Rediseño web 2026" />
             </div>
-            <p className="text-xs text-slate-500">Se creará con precios globales (${defaultConfig.precioBase}/${ defaultConfig.precioAlto}, umbral {defaultConfig.umbralHoras}h).</p>
+            <p className="text-xs text-muted-foreground">Se creará con precios globales (${defaultConfig.precioBase}/${ defaultConfig.precioAlto}, umbral {defaultConfig.umbralHoras}h).</p>
           </div>
           {errP && <p className="text-red-500 text-sm">{errP}</p>}
           <DialogFooter>
