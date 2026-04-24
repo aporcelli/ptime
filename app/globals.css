@@ -54,32 +54,32 @@
 
   .dark {
     /* ── Shadcn / Radix semantic tokens (DARK) ── */
-    --background:         224 20% 9%;       /* #0f1219 */
-    --foreground:         210 20% 92%;      /* #e3e8f0 */
+    --background:         220 10% 10%;      /* dark gray #17191c */
+    --foreground:         210 20% 92%;
 
-    --card:               224 20% 12%;      /* #151b26 */
+    --card:               220 10% 14%;      /* lighter gray #202226 */
     --card-foreground:    210 20% 92%;
 
-    --popover:            224 20% 12%;
+    --popover:            220 10% 14%;
     --popover-foreground: 210 20% 92%;
 
-    --primary:            217 91% 60%;      /* blue-400 #60a5fa — más brillante en dark */
-    --primary-foreground: 224 20% 9%;       /* near-black */
+    --primary:            217 91% 60%;      /* blue-400 */
+    --primary-foreground: 224 20% 9%;
 
-    --secondary:          224 20% 18%;
-    --secondary-foreground: 210 20% 80%;
+    --secondary:          220 10% 20%;
+    --secondary-foreground: 210 20% 92%;
 
-    --muted:              224 20% 18%;
-    --muted-foreground:   215 15% 55%;
+    --muted:              220 10% 20%;
+    --muted-foreground:   215 15% 65%;
 
-    --accent:             224 20% 20%;
+    --accent:             220 10% 24%;
     --accent-foreground:  210 20% 92%;
 
-    --destructive:        0 63% 55%;
+    --destructive:        0 63% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --border:             224 20% 20%;
-    --input:              224 20% 20%;
+    --border:             220 10% 22%;
+    --input:              220 10% 22%;
     --ring:               217 91% 60%;
 
     /* ── Surface scale (legacy) ── */
