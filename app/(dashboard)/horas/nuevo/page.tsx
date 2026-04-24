@@ -33,8 +33,8 @@ export default async function NuevaHoraPage() {
   return (
     <div className="max-w-2xl mx-auto animate-fade-in">
       <div className="mb-8">
-        <h1 className="font-serif text-3xl text-ink">Cargar horas</h1>
-        <p className="text-slate-500 mt-1">Registrá el tiempo trabajado en un proyecto</p>
+        <h1 className="font-serif text-3xl text-foreground font-semibold tracking-tight">Cargar horas</h1>
+        <p className="text-muted-foreground mt-1">Registrá el tiempo trabajado en un proyecto</p>
       </div>
       <HorasForm
         clientes={clientes}

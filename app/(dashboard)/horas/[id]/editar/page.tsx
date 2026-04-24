@@ -41,8 +41,8 @@ export default async function EditarHoraPage({ params }: { params: { id: string 
   return (
     <div className="max-w-2xl mx-auto animate-fade-in">
       <div className="mb-8">
-        <h1 className="font-serif text-3xl text-ink">Editar registro</h1>
-        <p className="text-slate-500 mt-1">Modificá los detalles de este registro.</p>
+        <h1 className="font-serif text-3xl font-semibold tracking-tight text-foreground">Editar registro</h1>
+        <p className="text-muted-foreground mt-1">Modificá los detalles de este registro.</p>
       </div>
       <HorasForm
         clientes={clientes}

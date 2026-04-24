@@ -37,7 +37,7 @@ export default async function HorasPage() {
     <div className="flex flex-col gap-8 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="font-serif text-3xl text-foreground tracking-tight">
+          <h1 className="font-serif text-3xl font-bold tracking-tight text-foreground">
             Mis registros de horas
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -52,43 +52,43 @@ export default async function HorasPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-card border-border">
+        <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-               <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600">
+              <div className="p-3 bg-blue-500/10 rounded-xl text-blue-600 dark:text-blue-400">
                 <Clock size={20} />
               </div>
               <div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Horas</p>
-                <p className="text-2xl font-serif text-foreground">{formatHours(totalHoras)}</p>
+                <p className="text-2xl font-serif font-semibold text-foreground">{formatHours(totalHoras)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-border">
+        <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-               <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-600">
+              <div className="p-3 bg-emerald-500/10 rounded-xl text-emerald-600 dark:text-emerald-400">
                 <TrendingUp size={20} />
               </div>
               <div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Ingresos</p>
-                <p className="text-2xl font-serif text-emerald-600 dark:text-emerald-400">{formatCurrency(totalIngresos)}</p>
+                <p className="text-2xl font-serif font-semibold text-emerald-600 dark:text-emerald-400">{formatCurrency(totalIngresos)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-border">
+        <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-               <div className="p-2 bg-amber-500/10 rounded-lg text-amber-600">
+              <div className="p-3 bg-amber-500/10 rounded-xl text-amber-600 dark:text-amber-400">
                 <Calendar size={20} />
               </div>
               <div>
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Este Mes</p>
-                <p className="text-2xl font-serif text-foreground">{formatHours(horasMes)}</p>
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Este mes</p>
+                <p className="text-2xl font-serif font-semibold text-foreground">{formatHours(horasMes)}</p>
               </div>
             </div>
           </CardContent>
@@ -96,14 +96,8 @@ export default async function HorasPage() {
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">Listado detallado</h2>
-        </div>
-        <HorasClientList
-            registros={ordenados}
-            proyectosMap={proyectosMap}
-            tareasMap={tareasMap}
-        />
+        <h2 className="text-lg font-semibold text-foreground">Listado detallado</h2>
+        <HorasClientList registros={ordenados} proyectosMap={proyectosMap} tareasMap={tareasMap} />
       </div>
     </div>
   );

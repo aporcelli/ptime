@@ -162,13 +162,22 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
 
   async function onSubmit(data: HourFormData) {
     setStatus("loading"); setServerError(null);
-    const result = initialData
-      ? await updateHourAction(initialData.id, data)
-      : await createHour(data);
+    try {
+      const result = initialData
+        ? await updateHourAction(initialData.id, data)
+        : await createHour(data);
 
-    if (!result.success) { setStatus("error"); setServerError(result.error); return; }
-    setStatus("success");
-    setTimeout(() => router.push("/horas"), 1200);
+      if (!result.success) {
+        setStatus("error");
+        setServerError(result.error ?? "Ocurrió un error inesperado al guardar.");
+        return;
+      }
+      setStatus("success");
+      setTimeout(() => router.push("/horas"), 1200);
+    } catch (err: any) {
+      setStatus("error");
+      setServerError(err?.message || "Error grave de conexión al guardar.");
+    }
   }
 
   const selectedP = proyectos.find((p) => p.id === watchedProyectoId);

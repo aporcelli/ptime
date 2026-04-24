@@ -71,62 +71,65 @@ export async function changeHourStatus(id: string, estado: HoraEstado): Promise<
 }
 
 export async function updateHourAction(id: string, rawData: unknown): Promise<ActionResult> {
-  const session = await auth();
-  if (!session?.user) return { success: false, error: "No autenticado" };
+  try {
+    const session = await auth();
+    if (!session?.user) return { success: false, error: "No autenticado" };
 
-  const parsed = hourFormSchema.safeParse(rawData);
-  if (!parsed.success) return { success: false, error: "Datos inválidos", fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]> };
+    const parsed = hourFormSchema.safeParse(rawData);
+    if (!parsed.success) return { success: false, error: "Datos inválidos", fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]> };
 
-  const ctx = await getSheetCtx();
-  const data = parsed.data;
-  const usuarioId = session.user.email ?? session.user.id;
+    const ctx = await getSheetCtx();
+    const data = parsed.data;
+    const usuarioId = session.user.email ?? session.user.id;
 
-  // Calculamos el precio nuevamente por si cambió horas o proyecto.
-  const mes = data.fecha.slice(0, 7);
-  const registrosMes = await getRegistrosHoras(ctx, { usuarioId });
-  
-  // Ojo: Restamos las horas actuales de *este* registro del acumulado para no contarlas doble
-  const currentRegistro = registrosMes.find(r => r.id === id);
-  if (!currentRegistro) return { success: false, error: "Registro no encontrado" };
+    // Calculamos el precio nuevamente por si cambió horas o proyecto.
+    const mes = data.fecha.slice(0, 7);
+    const registrosMes = await getRegistrosHoras(ctx, { usuarioId });
+    
+    // Ojo: Restamos las horas actuales de *este* registro del acumulado para no contarlas doble
+    const currentRegistro = registrosMes.find(r => r.id === id);
+    if (!currentRegistro) return { success: false, error: "Registro no encontrado" };
 
-  const horasAcumuladasMes = registrosMes
-    .filter((r) => r.fecha.startsWith(mes) && r.id !== id)
-    .reduce((sum, r) => sum + r.horas, 0);
+    const horasAcumuladasMes = registrosMes
+      .filter((r) => r.fecha.startsWith(mes) && r.id !== id)
+      .reduce((sum, r) => sum + r.horas, 0);
 
-  const pricingConfig = await getPricingConfigForProject(data.proyecto_id);
-  const { montoTotal, precioAplicado } = calculateHoursAmount(
-    data.horas,
-    horasAcumuladasMes,
-    pricingConfig
-  );
+    const pricingConfig = await getPricingConfigForProject(data.proyecto_id);
+    const { montoTotal, precioAplicado } = calculateHoursAmount(
+      data.horas,
+      horasAcumuladasMes,
+      pricingConfig
+    );
 
-  const cleanDesc = sanitize(data.descripcion);
+    const cleanDesc = sanitize(data.descripcion);
 
-  await updateRegistroHoras(ctx, id, {
-    cliente_id: data.cliente_id,
-    proyecto_id: data.proyecto_id,
-    tarea_id: data.tarea_id,
-    fecha: data.fecha,
-    horas: data.horas,
-    descripcion: cleanDesc,
-    precio_hora_aplicado: precioAplicado,
-    monto_total: montoTotal,
-    estado: data.estado,
-  });
+    await updateRegistroHoras(ctx, id, {
+      cliente_id: data.cliente_id,
+      proyecto_id: data.proyecto_id,
+      tarea_id: data.tarea_id,
+      fecha: data.fecha,
+      horas: data.horas,
+      descripcion: cleanDesc,
+      precio_hora_aplicado: precioAplicado,
+      monto_total: montoTotal,
+      estado: data.estado,
+    });
 
-  // Si cambiaron las horas, actualizaríamos el proyecto, pero en Google Sheets esto puede
-  // desincronizarse si no se recalcula todo. Como es un patch rápido, asumimos que recalcularlo
-  // en la DB principal es mejor, pero lo manejamos de forma segura.
-  const diffHoras = data.horas - currentRegistro.horas;
-  if (diffHoras !== 0) {
-    const proyecto = await getProyectoById(ctx, data.proyecto_id);
-    if (proyecto) {
-      await updateProyectoHorasAcumuladas(ctx, data.proyecto_id, Math.round((proyecto.horas_acumuladas + diffHoras) * 10000) / 10000);
+    const diffHoras = data.horas - currentRegistro.horas;
+    if (diffHoras !== 0) {
+      const proyecto = await getProyectoById(ctx, data.proyecto_id);
+      if (proyecto) {
+        await updateProyectoHorasAcumuladas(ctx, data.proyecto_id, Math.round((proyecto.horas_acumuladas + diffHoras) * 10000) / 10000);
+      }
     }
-  }
 
-  revalidatePath("/horas");
-  revalidatePath("/dashboard");
-  revalidatePath(`/horas/${id}`);
-  return { success: true, data: undefined };
+    revalidatePath("/horas");
+    revalidatePath("/dashboard");
+    revalidatePath(`/horas/${id}`);
+    return { success: true, data: undefined };
+  } catch (e: unknown) {
+    console.error("[updateHourAction] Error:", e);
+    const msg = e instanceof Error ? e.message : "Error desconocido al actualizar";
+    return { success: false, error: msg };
+  }
 }
