@@ -60,7 +60,7 @@ export async function updateProyectoAction(id: string, rawData: unknown): Promis
     const ctx = await getSheetCtx();
     await updateProyecto(ctx, id, parsed.data);
     revalidatePath("/admin/proyectos");
-    return { success: true, data: undefined };
+    return { success: true };
   } catch (e: unknown) {
     return { success: false, error: e instanceof Error ? e.message : "Error" };
   }
@@ -73,7 +73,7 @@ export async function deleteProyectoAction(id: string): Promise<ActionResult> {
     await deleteProyecto(ctx, id);
     revalidatePath("/admin/proyectos");
     revalidatePath("/horas/nuevo");
-    return { success: true, data: undefined };
+    return { success: true };
   } catch (e: unknown) {
     return { success: false, error: e instanceof Error ? e.message : "Error al eliminar" };
   }

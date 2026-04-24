@@ -54,5 +54,5 @@ export async function updateConfig(rawData: unknown): Promise<ActionResult> {
   ]);
   await invalidateConfigCache();
   revalidatePath("/admin/configuracion");
-  return { success: true, data: undefined };
+  return { success: true };
 }

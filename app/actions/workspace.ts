@@ -73,7 +73,7 @@ export async function updateMemberRolAction(
   await updateWorkspaceMemberRol(ctx, email, nuevoRol);
 
   revalidatePath("/admin/workspace");
-  return { success: true, data: undefined };
+  return { success: true };
 }
 
 // ── Remover miembro ───────────────────────────────────────────────────────────
@@ -86,7 +86,7 @@ export async function removeMemberAction(email: string): Promise<ActionResult> {
   await removeWorkspaceMember(ctx, email);
 
   revalidatePath("/admin/workspace");
-  return { success: true, data: undefined };
+  return { success: true };
 }
 
 // ── Buscar workspace al que fue invitado un email ─────────────────────────────

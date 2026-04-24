@@ -53,7 +53,7 @@ export async function updateClienteAction(id: string, rawData: unknown): Promise
   const ctx = await getSheetCtx();
   await updateCliente(ctx, id, sanitizeObject(parsed.data) as Parameters<typeof updateCliente>[2]);
   revalidatePath("/admin/clientes");
-  return { success: true, data: undefined };
+  return { success: true };
 }
 
 export async function deleteClienteAction(id: string): Promise<ActionResult> {
@@ -64,7 +64,7 @@ export async function deleteClienteAction(id: string): Promise<ActionResult> {
     const ctx = await getSheetCtx();
     await deleteCliente(ctx, id);
     revalidatePath("/admin/clientes");
-    return { success: true, data: undefined };
+    return { success: true };
   } catch (e: unknown) {
     return { success: false, error: e instanceof Error ? e.message : "Error al eliminar" };
   }

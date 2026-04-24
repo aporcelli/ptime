@@ -68,7 +68,7 @@ export async function changeHourStatus(id: string, estado: HoraEstado): Promise<
   const ctx = await getSheetCtx();
   await updateRegistroEstado(ctx, id, estado);
   revalidatePath("/horas");
-  return { success: true, data: undefined };
+  return { success: true };
 }
 
 export async function updateHourAction(id: string, rawData: unknown): Promise<ActionResult> {
@@ -127,7 +127,7 @@ export async function updateHourAction(id: string, rawData: unknown): Promise<Ac
     revalidatePath("/horas");
     revalidatePath("/dashboard");
     revalidatePath(`/horas/${id}`);
-    return { success: true, data: undefined };
+    return { success: true };
   } catch (e: unknown) {
     console.error("[updateHourAction] Error:", e);
     const msg = e instanceof Error ? e.message : "Error desconocido al actualizar";
