@@ -55,7 +55,7 @@ export async function createHour(rawData: unknown): Promise<ActionResult<Registr
 
     revalidatePath("/horas");
     revalidatePath("/dashboard");
-    return { success: true, data: { ...registro, created_at: "", updated_at: "" } as RegistroHoras };
+    return { success: true, data: JSON.parse(JSON.stringify({ ...registro, created_at: "", updated_at: "" })) };
   } catch (e: unknown) {
     console.error("[createHour] Error:", e);
     return { success: false, error: e instanceof Error ? e.message : "Error desconocido al crear" };

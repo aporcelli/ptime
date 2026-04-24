@@ -45,7 +45,7 @@ export async function createProyectoAction(rawData: unknown): Promise<ActionResu
     await createProyecto(ctx, proyecto);
     revalidatePath("/admin/proyectos");
     revalidatePath("/horas/nuevo");
-    return { success: true, data: proyecto };
+    return { success: true, data: JSON.parse(JSON.stringify(proyecto)) };
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Error desconocido";
     return { success: false, error: msg };

@@ -38,7 +38,7 @@ export async function createTareaAction(rawData: unknown): Promise<ActionResult<
     await createTarea(ctx, tarea);
     revalidatePath("/admin/tareas");
     revalidatePath("/horas/nuevo");
-    return { success: true, data: tarea };
+    return { success: true, data: JSON.parse(JSON.stringify(tarea)) };
   } catch (e: unknown) {
     return { success: false, error: e instanceof Error ? e.message : "Error al crear tarea" };
   }
