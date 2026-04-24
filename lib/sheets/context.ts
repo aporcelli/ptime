@@ -23,7 +23,9 @@ export async function getSheetCtx(): Promise<SheetCtx> {
   }
 
   const cookieStore = cookies();
-  const sheetId     = cookieStore.get("ptime-sheet-id")?.value;
+  // Primero JWT (persistente cross-device), luego cookie como fallback
+  const sheetId = (session.user as { sheetId?: string }).sheetId
+               ?? cookieStore.get("ptime-sheet-id")?.value;
 
   if (!sheetId) {
     throw new Error("NO_SHEET_CONFIGURED");
