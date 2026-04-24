@@ -37,10 +37,10 @@ export default async function HorasPage() {
     <div className="flex flex-col gap-8 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="font-serif text-3xl text-slate-900 tracking-tight">
+          <h1 className="font-serif text-3xl text-foreground tracking-tight">
             Mis registros de horas
           </h1>
-          <p className="text-slate-500 mt-1">
+          <p className="text-muted-foreground mt-1">
             Gestioná y visualizá tu tiempo trabajado
           </p>
         </div>
@@ -52,43 +52,43 @@ export default async function HorasPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-white border-slate-200">
+        <Card className="bg-card border-border">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+               <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600">
                 <Clock size={20} />
               </div>
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Horas</p>
-                <p className="text-2xl font-serif text-slate-900">{formatHours(totalHoras)}</p>
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Horas</p>
+                <p className="text-2xl font-serif text-foreground">{formatHours(totalHoras)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white border-slate-200">
+        <Card className="bg-card border-border">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
+               <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-600">
                 <TrendingUp size={20} />
               </div>
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Ingresos</p>
-                <p className="text-2xl font-serif text-emerald-700">{formatCurrency(totalIngresos)}</p>
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Ingresos</p>
+                <p className="text-2xl font-serif text-emerald-600 dark:text-emerald-400">{formatCurrency(totalIngresos)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white border-slate-200">
+        <Card className="bg-card border-border">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <div className="p-2 bg-amber-50 rounded-lg text-amber-600">
+               <div className="p-2 bg-amber-500/10 rounded-lg text-amber-600">
                 <Calendar size={20} />
               </div>
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Este Mes</p>
-                <p className="text-2xl font-serif text-slate-900">{formatHours(horasMes)}</p>
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Este Mes</p>
+                <p className="text-2xl font-serif text-foreground">{formatHours(horasMes)}</p>
               </div>
             </div>
           </CardContent>
@@ -97,7 +97,7 @@ export default async function HorasPage() {
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-900">Listado detallado</h2>
+            <h2 className="text-lg font-semibold text-foreground">Listado detallado</h2>
         </div>
         <HorasClientList
             registros={ordenados}
