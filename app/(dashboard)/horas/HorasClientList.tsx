@@ -55,7 +55,7 @@ export function HorasClientList({ registros, proyectosMap, tareasMap }: Props) {
     {
       key: "descripcion",
       header: "Descripción",
-      className: "max-w-[200px] truncate text-slate-500",
+      className: "max-w-[200px] truncate text-muted-foreground",
     },
     {
       key: "horas",
@@ -71,7 +71,7 @@ export function HorasClientList({ registros, proyectosMap, tareasMap }: Props) {
       sortable: true,
       align: "right",
       render: (r) => (
-        <span className="font-semibold text-brand-600">
+        <span className="font-semibold text-primary">
           {formatCurrency(r.monto_total)}
         </span>
       ),
@@ -90,8 +90,8 @@ export function HorasClientList({ registros, proyectosMap, tareasMap }: Props) {
 
   if (registros.length === 0) {
     return (
-      <div className="bg-slate-50 border border-dashed border-slate-200 rounded-xl p-12 text-center">
-        <p className="text-slate-500 text-sm">No hay registros aún.</p>
+      <div className="bg-muted/30 border border-dashed border-border rounded-xl p-12 text-center">
+        <p className="text-muted-foreground text-sm">No hay registros aún.</p>
         <Button variant="link" asChild className="mt-2">
           <Link href="/horas/nuevo">Cargá tu primer registro →</Link>
         </Button>
