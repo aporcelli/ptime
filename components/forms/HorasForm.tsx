@@ -176,7 +176,15 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 flex flex-col gap-6" noValidate>
+      <form onSubmit={handleSubmit(onSubmit)} className="bg-card text-card-foreground rounded-2xl border border-border p-6 md:p-8 flex flex-col gap-6" noValidate>
+
+        {/* DEBUG: visible solo si no hay proyectos para el cliente — borrar luego */}
+        {watchedClienteId && proyectosFiltrados.length === 0 && proyectos.length > 0 && (
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg p-3 text-xs text-amber-800 dark:text-amber-300">
+            <strong>Info:</strong> Hay {proyectos.length} proyectos en total pero ninguno tiene cliente_id = &quot;{watchedClienteId}&quot;.<br/>
+            Proyectos: {proyectos.map(p => `"${p.nombre}" (cliente_id="${p.cliente_id}")`).join(", ")}
+          </div>
+        )}
 
         {/* Cliente */}
         <div className="flex flex-col gap-1.5">
