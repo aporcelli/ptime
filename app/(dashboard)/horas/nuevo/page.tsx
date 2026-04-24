@@ -14,13 +14,16 @@ export default async function NuevaHoraPage() {
   // Mes actual para calcular el acumulado mensual global del usuario
   const mesActual = new Date().toISOString().slice(0, 7); // "YYYY-MM"
 
-  const [clientes, tareas, proyectos, config, registrosMes] = await Promise.all([
+  const [clientes, tareas, todosProyectos, config, registrosMes] = await Promise.all([
     getClientes(ctx, true),
     getTareas(ctx, true),
-    getProyectos(ctx, { soloActivos: true }),
+    getProyectos(ctx, {}),           // Traer TODOS para que el filtro en el form funcione
     getAppConfig(ctx),
     getRegistrosHoras(ctx, { usuarioId }),
   ]);
+
+  // Solo proyectos activos para cargar horas (pero sin filtrar por cliente aún)
+  const proyectos = todosProyectos.filter(p => p.estado === "activo");
 
   // Acumulado mensual global: todas las horas del usuario en el mes actual
   const horasAcumuladasMes = registrosMes

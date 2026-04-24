@@ -35,7 +35,10 @@ export async function getProyectos(
     umbral_precio_alto: Number(r[5] ?? PRICING_DEFAULTS.umbralHoras),
     precio_base:        Number(r[6] ?? PRICING_DEFAULTS.precioBase),
     precio_alto:        Number(r[7] ?? PRICING_DEFAULTS.precioAlto),
-    estado:  (r[8] ?? "activo") as Proyecto["estado"],
+    // Estado: si está vacío o no reconocido, asumir "activo" para no ocultar proyectos
+    estado: (["activo","pausado","cerrado"].includes(String(r[8] ?? "").trim().toLowerCase())
+      ? String(r[8]).trim().toLowerCase()
+      : "activo") as Proyecto["estado"],
     created_at: String(r[9] ?? ""), updated_at: String(r[10] ?? ""),
   } satisfies Proyecto));
   if (options.soloActivos) list = list.filter((p) => p.estado === "activo");

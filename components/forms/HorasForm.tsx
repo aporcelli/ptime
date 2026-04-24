@@ -85,8 +85,11 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
   const watchedHoras      = watch("horas");
 
   // Filtramos proyectos según cliente seleccionado
+  // Usamos trim() y toLowerCase() para evitar discrepancias de espacios o casing
   const proyectosFiltrados = watchedClienteId
-    ? proyectos.filter(p => p.cliente_id === watchedClienteId)
+    ? proyectos.filter(p =>
+        p.cliente_id.trim().toLowerCase() === watchedClienteId.trim().toLowerCase()
+      )
     : proyectos;
 
   // Resetear proyecto_id si cambia de cliente y el proyecto no le pertenece
@@ -211,6 +214,10 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
                 disabled={!watchedClienteId}
                 onCreateNew={() => setModalProyecto(true)}
                 createNewText="Crear nuevo proyecto..."
+                emptyText={watchedClienteId && proyectosFiltrados.length === 0
+                  ? "Este cliente no tiene proyectos aún. Creá uno nuevo."
+                  : "No se encontraron resultados."
+                }
                 className={errors.proyecto_id ? "border-red-400" : ""}
               />
             )}
