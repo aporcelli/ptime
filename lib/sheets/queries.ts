@@ -6,6 +6,21 @@ import { PRICING_DEFAULTS } from "@/lib/constants";
 
 interface SheetCtx { sheetId: string; accessToken: string; }
 
+export function parseSheetDate(value: any): string {
+  if (typeof value === "number") {
+    // Es un serial date de Google Sheets
+    const d = new Date(Math.round((value - 25569) * 86400 * 1000));
+    return d.toISOString().split("T")[0];
+  }
+  if (typeof value === "string") {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+    const parts = value.split("/");
+    if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    return value;
+  }
+  return "";
+}
+
 export async function getClientes(ctx: SheetCtx, soloActivos = false): Promise<Cliente[]> {
   const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, SHEET_RANGES.CLIENTES);
   const clientes = rows.filter((r) => r[0]).map((r) => {
@@ -56,8 +71,8 @@ export async function getTareas(ctx: SheetCtx, soloActivas = false): Promise<Tar
     const act = String(r[3]).trim().toLowerCase();
     const isActiva = act === "true" || act === "1" || act === "si" || act === "yes";
     return {
-      id: r[0], nombre: r[1], categoria: r[2] || undefined,
-      activa: isActiva, created_at: r[4],
+      id: String(r[0]), nombre: String(r[1]), categoria: r[2] ? String(r[2]) : undefined,
+      activa: isActiva, created_at: String(r[4]),
     } satisfies Tarea;
   });
   return soloActivas ? list.filter((t) => t.activa) : list;
@@ -66,12 +81,12 @@ export async function getTareas(ctx: SheetCtx, soloActivas = false): Promise<Tar
 export async function getRegistrosHoras(ctx: SheetCtx, filters: ReporteFilters = {}): Promise<RegistroHoras[]> {
   const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, SHEET_RANGES.REGISTROS_HORAS);
   let list = rows.filter((r) => r[0]).map((r) => ({
-    id: r[0], proyecto_id: r[1], tarea_id: r[2], usuario_id: r[3],
-    fecha: r[4], horas: Number(r[5]), descripcion: r[6],
+    id: String(r[0]), proyecto_id: String(r[1]), tarea_id: String(r[2]), usuario_id: String(r[3]),
+    fecha: parseSheetDate(r[4]), horas: Number(r[5]), descripcion: String(r[6] ?? ""),
     precio_hora_aplicado: Number(r[7]), monto_total: Number(r[8]),
     estado: (r[9] ?? "confirmado") as RegistroHoras["estado"],
-    created_at: r[10], updated_at: r[11],
-    cliente_id: r[12] || undefined, // Columna M
+    created_at: String(r[10]), updated_at: String(r[11]),
+    cliente_id: r[12] ? String(r[12]) : undefined, // Columna M
   } satisfies RegistroHoras));
   if (filters.fechaDesde) list = list.filter((r) => r.fecha >= filters.fechaDesde!);
   if (filters.fechaHasta) list = list.filter((r) => r.fecha <= filters.fechaHasta!);
