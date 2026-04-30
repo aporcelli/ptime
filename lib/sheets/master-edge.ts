@@ -101,14 +101,20 @@ async function getServiceAccountAccessToken(
 
 /**
  * Busca el sheetId asociado a un email en el MASTER_SHEET (Workspace_Members).
+ * Si el email es un admin/owner, retorna el MASTER_SHEET_ID directamente.
  * Edge-compatible.
  */
 export async function findSharedSheetForEmailEdge(email: string): Promise<string | null> {
-  const masterSheetId = process.env.MASTER_SHEET_ID;
+  const masterSheetId = process.env.MASTER_SHEET_ID?.replace(/"/g, "");
   const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
   const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+  const adminEmails = (process.env.ADMIN_EMAILS ?? process.env.ADMIN_EMAIL ?? "")
+    .split(",").map((e) => e.trim().toLowerCase());
 
   if (!masterSheetId || !serviceAccountEmail || !privateKey) return null;
+
+  // Owner/Admin: usar el MASTER_SHEET_ID directamente
+  if (adminEmails.includes(email.toLowerCase())) return masterSheetId;
 
   const accessToken = await getServiceAccountAccessToken(serviceAccountEmail, privateKey);
   if (!accessToken) return null;
