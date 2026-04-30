@@ -24,7 +24,7 @@ export const hourFormSchema = z.object({
     .max(DESCRIPCION_MAX, `Máximo ${DESCRIPCION_MAX} caracteres`)
     .transform((v) => v.trim()),
   estado: z
-    .enum(["borrador", "confirmado", "facturado"])
+    .enum(["borrador", "confirmado", "facturado", "rechazado"])
     .default("confirmado"),
 });
 

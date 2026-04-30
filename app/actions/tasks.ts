@@ -1,5 +1,6 @@
 'use server';
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { auth } from "@/auth";
 import { getSheetCtx } from "@/lib/sheets/context";
 import { getTareas } from "@/lib/sheets/queries";
@@ -8,6 +9,8 @@ import { sanitize } from "@/lib/utils/sanitize";
 import { generateUUID } from "@/lib/utils/index";
 import type { ActionResult, Tarea } from "@/types/entities";
 import { z } from "zod";
+import { actionDone, actionError, actionOk } from "@/lib/actions/result";
+import { getLocalDevUser, getRequestUrlFromHeaders } from "@/lib/env/dev-access";
 
 const tareaSchema = z.object({
   nombre: z.string().min(2, "Mínimo 2 caracteres").max(80),
@@ -15,10 +18,15 @@ const tareaSchema = z.object({
   activa: z.boolean().default(true),
 });
 
+async function getActionUser() {
+  const session = await auth();
+  return session?.user ?? getLocalDevUser(getRequestUrlFromHeaders(headers()));
+}
+
 export async function createTareaAction(rawData: unknown): Promise<ActionResult<Tarea>> {
   try {
-    const session = await auth();
-    if (!session?.user) return { success: false, error: "No autenticado" };
+    const user = await getActionUser();
+    if (!user) return { success: false, error: "No autenticado" };
 
     const parsed = tareaSchema.safeParse(rawData);
     if (!parsed.success) {
@@ -38,57 +46,57 @@ export async function createTareaAction(rawData: unknown): Promise<ActionResult<
     await createTarea(ctx, tarea);
     revalidatePath("/admin/tareas");
     revalidatePath("/horas/nuevo");
-    return { success: true, data: JSON.parse(JSON.stringify(tarea)) };
+    return actionOk(tarea);
   } catch (e: unknown) {
-    return { success: false, error: e instanceof Error ? e.message : "Error al crear tarea" };
+    return actionError(e, "Error al crear tarea");
   }
 }
 
 export async function toggleTareaAction(id: string, activa: boolean): Promise<ActionResult> {
   try {
-    const session = await auth();
-    if (!session?.user) return { success: false, error: "No autenticado" };
+    const user = await getActionUser();
+    if (!user) return { success: false, error: "No autenticado" };
     const ctx = await getSheetCtx();
     await toggleTareaActiva(ctx, id, activa);
     revalidatePath("/admin/tareas");
-    return { success: true };
+    return actionDone();
   } catch (e: unknown) {
-    return { success: false, error: e instanceof Error ? e.message : "Error" };
+    return actionError(e, "Error");
   }
 }
 
 export async function updateTareaAction(id: string, rawData: unknown): Promise<ActionResult> {
   try {
-    const session = await auth();
-    if (!session?.user) return { success: false, error: "No autenticado" };
+    const user = await getActionUser();
+    if (!user) return { success: false, error: "No autenticado" };
     const parsed = tareaSchema.partial().safeParse(rawData);
     if (!parsed.success) return { success: false, error: "Datos inválidos" };
     const ctx = await getSheetCtx();
     await updateTarea(ctx, id, parsed.data);
     revalidatePath("/admin/tareas");
-    return { success: true };
+    return actionDone();
   } catch (e: unknown) {
-    return { success: false, error: e instanceof Error ? e.message : "Error al actualizar" };
+    return actionError(e, "Error al actualizar");
   }
 }
 
 export async function deleteTareaAction(id: string): Promise<ActionResult> {
   try {
-    const session = await auth();
-    if (!session?.user) return { success: false, error: "No autenticado" };
+    const user = await getActionUser();
+    if (!user) return { success: false, error: "No autenticado" };
     const ctx = await getSheetCtx();
     await deleteTarea(ctx, id);
     revalidatePath("/admin/tareas");
     revalidatePath("/horas/nuevo");
-    return { success: true };
+    return actionDone();
   } catch (e: unknown) {
-    return { success: false, error: e instanceof Error ? e.message : "Error al eliminar" };
+    return actionError(e, "Error al eliminar");
   }
 }
 
 export async function getTareasAction(): Promise<Tarea[]> {
-  const session = await auth();
-  if (!session?.user) return [];
+  const user = await getActionUser();
+  if (!user) return [];
   const ctx = await getSheetCtx();
   return getTareas(ctx);
 }

@@ -8,6 +8,7 @@ import {
   PDFDownloadLink, Svg, Rect, Circle, G, Path, Line as PdfLine, Polyline
 } from "@react-pdf/renderer";
 import type { ReportData } from "@/types/api";
+import { formatDateShort, formatMonthYearLabel, formatPeriodLabel } from "@/lib/utils/index";
 
 // ── Paleta Meridian (valores estáticos — react-pdf no lee CSS vars) ───────────
 const C = {
@@ -82,10 +83,10 @@ const s = StyleSheet.create({
   },
 
   // ── Body content
-  body: { paddingHorizontal: 40, paddingTop: 24 },
+  body: { paddingHorizontal: 36, paddingTop: 18 },
 
   // ── Secciones
-  section: { marginBottom: 22 },
+  section: { marginBottom: 14 },
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -148,7 +149,7 @@ const s = StyleSheet.create({
     borderBottom: `1px solid ${C.surfaceHigh}`,
   },
   tableRowAlt: { backgroundColor: C.surfaceLow },
-  tableCell: { fontSize: 8.5, color: C.onSurface },
+  tableCell: { fontSize: 8.3, color: C.onSurface, lineHeight: 1.25 },
   tableCellMuted: { color: C.muted },
   tableCellAccent: { color: C.teal, fontFamily: "Helvetica-Bold" },
 
@@ -156,7 +157,7 @@ const s = StyleSheet.create({
   registroRow: {
     flexDirection: "row",
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 7,
     borderBottom: `1px solid ${C.surfaceHigh}`,
   },
 
@@ -190,14 +191,14 @@ const s = StyleSheet.create({
   },
 
   // ── Charts side by side
-  chartsRow: { flexDirection: "row", gap: 10, marginBottom: 22 },
+  chartsRow: { flexDirection: "row", gap: 10, marginBottom: 10 },
   chartHalf: { flex: 1 },
 
   // ── Leyenda del pie
   legendRow: { flexDirection: "row", alignItems: "center", gap: 5, marginBottom: 4 },
   legendDot: { width: 7, height: 7, borderRadius: 3.5 },
-  legendLabel: { fontSize: 7.5, color: C.onSurface, flex: 1 },
-  legendValue: { fontSize: 7.5, color: C.muted, fontFamily: "Helvetica-Bold" },
+  legendLabel: { fontSize: 7.2, color: C.onSurface, flex: 1.4, lineHeight: 1.2 },
+  legendValue: { fontSize: 7.2, color: C.muted, fontFamily: "Helvetica-Bold" },
 
   // ── Footer
   footer: {
@@ -216,8 +217,8 @@ const s = StyleSheet.create({
   footerAccent: { color: C.teal, fontFamily: "Helvetica-Bold" },
   
   // ── TuCloud Logos
-  headerLogo: { height: 22, width: "auto", marginLeft: 14 },
-  footerLogo: { height: 14, width: "auto", marginLeft: 8 },
+  headerLogo: { height: 44, width: "auto", marginLeft: 14 },
+  footerLogo: { height: 28, width: "auto", marginLeft: 8 },
 });
 
 // ── Helpers de formato ────────────────────────────────────────────────────────
@@ -392,7 +393,8 @@ function ReporteDoc({
   tituloReporte,
 }: DocProps) {
   const { kpis, porMes, porProyecto, porTarea, alertasTramo2 } = data;
-  const now = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" });
+  const now = formatDateShort(new Date().toISOString().slice(0, 10));
+  const periodLabel = formatPeriodLabel(fechaDesde, fechaHasta);
 
   // Datos para el bar chart (por proyecto — top 6)
   const barData = porProyecto.slice(0, 6).map(p => ({
@@ -414,7 +416,7 @@ function ReporteDoc({
 
   return (
     <Document
-      title={`Reporte Ptime — ${fechaDesde ?? ""}${fechaHasta ? " → " + fechaHasta : ""}`}
+      title={`Reporte Ptime — ${periodLabel}`}
       author={nombreEmpresa}
       subject="Reporte de horas y facturación"
       creator="Ptime"
@@ -447,7 +449,7 @@ function ReporteDoc({
             {fechaDesde && fechaHasta && (
               <View style={s.metaChip}>
                 <Text style={s.metaLabel}>Período</Text>
-                <Text style={s.metaValue}>{fechaDesde} → {fechaHasta}</Text>
+                <Text style={s.metaValue}>{periodLabel}</Text>
               </View>
             )}
             <View style={s.metaChip}>
@@ -540,7 +542,7 @@ function ReporteDoc({
                           <View key={i} style={s.legendRow}>
                             <View style={[s.legendDot, { backgroundColor: d.color }]} />
                             <Text style={s.legendLabel}>
-                              {d.label.length > 14 ? d.label.slice(0, 13) + "…" : d.label}
+                              {d.label}
                             </Text>
                             <Text style={s.legendValue}>{fmtH(d.value)}</Text>
                           </View>
@@ -565,7 +567,7 @@ function ReporteDoc({
                   <Text style={[s.tableHeaderCell, { flex: 3 }]}>Proyecto</Text>
                   <Text style={[s.tableHeaderCell, { flex: 1.2, textAlign: "right" }]}>Horas</Text>
                   <Text style={[s.tableHeaderCell, { flex: 2, textAlign: "right" }]}>Facturado</Text>
-                  <Text style={[s.tableHeaderCell, { flex: 1.2, textAlign: "right" }]}>$/h</Text>
+                  <Text style={[s.tableHeaderCell, { flex: 1.2, textAlign: "right" }]}>Prom. USD/h</Text>
                 </View>
                 {porProyecto.map((p, i) => {
                   const avg = p.horas > 0 ? p.ingresos / p.horas : 0;
@@ -583,14 +585,14 @@ function ReporteDoc({
                   <Text style={[s.tableCell, { flex: 3, fontFamily: "Helvetica-Bold" }]}>TOTAL</Text>
                   <Text style={[s.tableCell, { flex: 1.2, textAlign: "right", fontFamily: "Helvetica-Bold" }]}>{fmtH(kpis.totalHoras)}</Text>
                   <Text style={[s.tableCell, s.tableCellAccent, { flex: 2, textAlign: "right", fontFamily: "Helvetica-Bold" }]}>{fmt(kpis.totalIngresos, moneda)}</Text>
-                  <Text style={[s.tableCell, { flex: 1.2, textAlign: "right" }]}>{promedioHora.toFixed(0)}</Text>
+                  <Text style={[s.tableCell, { flex: 1.2, textAlign: "right" }]}>—</Text>
                 </View>
               </View>
             </View>
           )}
 
           {/* ── Tabla por mes ── */}
-          {porMes.length > 0 && (
+          {porMes.length > 1 && (
             <View style={s.section}>
               <View style={s.sectionHeader}>
                 <View style={s.sectionDot} />
@@ -609,7 +611,7 @@ function ReporteDoc({
                     : 0;
                   return (
                     <View key={m.mes} style={[s.tableRow, i % 2 === 1 ? s.tableRowAlt : {}]}>
-                      <Text style={[s.tableCell, { flex: 2, fontFamily: "Helvetica-Bold" }]}>{m.mes}</Text>
+                      <Text style={[s.tableCell, { flex: 2, fontFamily: "Helvetica-Bold" }]}>{formatMonthYearLabel(m.mes)}</Text>
                       <Text style={[s.tableCell, s.tableCellMuted, { flex: 1, textAlign: "right" }]}>{fmtH(m.horas)}</Text>
                       <Text style={[s.tableCell, s.tableCellAccent, { flex: 2, textAlign: "right" }]}>{fmt(m.ingresos, moneda)}</Text>
                       <Text style={[s.tableCell, s.tableCellMuted, { flex: 1.5, textAlign: "right" }]}>{pct}%</Text>
@@ -622,31 +624,25 @@ function ReporteDoc({
 
           {/* ── Detalle de registros (si se pasan) ── */}
           {registros.length > 0 && (
-            <View style={s.section} break>
+            <View style={[s.section, { marginTop: 18 }]} break>
               <View style={s.sectionHeader}>
                 <View style={s.sectionDot} />
                 <Text style={s.sectionTitle}>Detalle de registros ({registros.length})</Text>
               </View>
               <View style={s.table}>
                 <View style={s.tableHeader}>
-                  <Text style={[s.tableHeaderCell, { flex: 1.2 }]}>Fecha</Text>
-                  <Text style={[s.tableHeaderCell, { flex: 2 }]}>Proyecto</Text>
-                  <Text style={[s.tableHeaderCell, { flex: 3 }]}>Descripción</Text>
+                  <Text style={[s.tableHeaderCell, { flex: 1.05 }]}>Fecha</Text>
+                  <Text style={[s.tableHeaderCell, { flex: 1.8 }]}>Proyecto</Text>
+                  <Text style={[s.tableHeaderCell, { flex: 4.5, paddingLeft: 8 }]}>Descripción</Text>
                   <Text style={[s.tableHeaderCell, { flex: 0.8, textAlign: "right" }]}>Horas</Text>
-                  <Text style={[s.tableHeaderCell, { flex: 0.8, textAlign: "right" }]}>$/h</Text>
                   <Text style={[s.tableHeaderCell, { flex: 1.5, textAlign: "right" }]}>Total</Text>
                 </View>
                 {registros.map((r, i) => (
                   <View key={i} style={[s.registroRow, i % 2 === 1 ? s.tableRowAlt : { backgroundColor: C.white }]}>
-                    <Text style={[s.tableCell, s.tableCellMuted, { flex: 1.2 }]}>{r.fecha}</Text>
-                    <Text style={[s.tableCell, { flex: 2 }]}>
-                      {r.proyectoNombre.length > 20 ? r.proyectoNombre.slice(0, 19) + "…" : r.proyectoNombre}
-                    </Text>
-                    <Text style={[s.tableCell, s.tableCellMuted, { flex: 3 }]}>
-                      {r.descripcion.length > 45 ? r.descripcion.slice(0, 44) + "…" : r.descripcion}
-                    </Text>
+                    <Text style={[s.tableCell, s.tableCellMuted, { flex: 1.05 }]}>{formatDateShort(r.fecha)}</Text>
+                    <Text style={[s.tableCell, { flex: 1.8, paddingRight: 8 }]}>{r.proyectoNombre}</Text>
+                    <Text style={[s.tableCell, s.tableCellMuted, { flex: 4.5, paddingLeft: 8 }]}>{r.descripcion}</Text>
                     <Text style={[s.tableCell, { flex: 0.8, textAlign: "right" }]}>{r.horas}h</Text>
-                    <Text style={[s.tableCell, s.tableCellMuted, { flex: 0.8, textAlign: "right" }]}>${r.precioHora}</Text>
                     <Text style={[s.tableCell, s.tableCellAccent, { flex: 1.5, textAlign: "right" }]}>{fmt(r.total, moneda)}</Text>
                   </View>
                 ))}
@@ -688,8 +684,8 @@ interface ButtonProps extends DocProps {
 
 export default function ReporteTemplate({ className = "", label = "Exportar PDF", ...docProps }: ButtonProps) {
   const period = docProps.fechaDesde && docProps.fechaHasta
-    ? `${docProps.fechaDesde}_${docProps.fechaHasta}`
-    : new Date().toISOString().slice(0, 10);
+    ? `${formatDateShort(docProps.fechaDesde)}_${formatDateShort(docProps.fechaHasta)}`
+    : formatDateShort(new Date().toISOString().slice(0, 10));
   const fileName = `reporte-ptime-${period}.pdf`;
 
   return (

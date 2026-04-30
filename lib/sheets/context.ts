@@ -4,7 +4,8 @@
 // desde la sesión del usuario y la cookie de configuración.
 // ─────────────────────────────────────────────────────────────────────────────
 import { auth }    from "@/auth";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { getLocalDevAccessContext, getRequestUrlFromHeaders } from "@/lib/env/dev-access";
 
 export interface SheetCtx {
   sheetId:     string;
@@ -16,6 +17,9 @@ export interface SheetCtx {
  * Lanza error si no hay sesión o no está configurado el sheet.
  */
 export async function getSheetCtx(): Promise<SheetCtx> {
+  const localCtx = getLocalDevAccessContext(getRequestUrlFromHeaders(headers()));
+  if (localCtx) return localCtx;
+
   const session = await auth();
 
   if (!session?.user?.accessToken) {

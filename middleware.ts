@@ -1,10 +1,13 @@
 // middleware.ts
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
+import { isLocalDevAccessEnabled } from "@/lib/env/dev-access";
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
   const session      = req.auth;
+
+  if (isLocalDevAccessEnabled(req.url)) return NextResponse.next();
 
   // Rutas siempre públicas
   const isPublic = ["/login", "/api/auth", "/setup", "/privacy", "/terms"].some((p) => pathname.startsWith(p));

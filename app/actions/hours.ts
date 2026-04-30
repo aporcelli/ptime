@@ -1,87 +1,103 @@
 'use server';
 import { revalidatePath }    from "next/cache";
+import { headers }           from "next/headers";
 import { auth }              from "@/auth";
 import { getSheetCtx }       from "@/lib/sheets/context";
 import { hourFormSchema }    from "@/lib/schemas/hour";
 import { calculateHoursAmount } from "@/lib/pricing/calculateHoursAmount";
 import { getPricingConfigForProject } from "@/app/actions/config";
 import { getProyectoById, getRegistrosHoras } from "@/lib/sheets/queries";
-import { createRegistroHoras, updateRegistroEstado, updateRegistroHoras, updateProyectoHorasAcumuladas } from "@/lib/sheets/mutations";
+import { updateRegistroEstado, updateRegistroHoras, updateProyectoHorasAcumuladas } from "@/lib/sheets/mutations";
 import { sanitize }          from "@/lib/utils/sanitize";
 import { generateUUID }      from "@/lib/utils/index";
 import type { ActionResult, HoraEstado, RegistroHoras } from "@/types/entities";
+import { actionDone, actionError, validationError } from "@/lib/actions/result";
+import { applyProjectHourDelta, calculateProjectHourAdjustments, getMonthlyWorkedHoursAccumulated } from "@/lib/hours/accounting";
+import { getLocalDevUser, getRequestUrlFromHeaders } from "@/lib/env/dev-access";
+import { saveHourFromActionInput } from "@/lib/hours/save-flow";
+import { getEligibleInvoiceRecordIds } from "@/lib/hours/monthly";
+
+async function getActionUser() {
+  const session = await auth();
+  return session?.user ?? getLocalDevUser(getRequestUrlFromHeaders(headers()));
+}
 
 export async function createHour(rawData: unknown): Promise<ActionResult<RegistroHoras>> {
   try {
-    const session = await auth();
-    if (!session?.user) return { success: false, error: "No autenticado" };
+    const user = await getActionUser();
+    if (!user) return { success: false, error: "No autenticado" };
 
-    const parsed = hourFormSchema.safeParse(rawData);
-    if (!parsed.success) return { success: false, error: "Datos inválidos", fieldErrors: parsed.error.flatten().fieldErrors as Record<string,string[]> };
+    const result = await saveHourFromActionInput(rawData, {
+      ctx: await getSheetCtx(),
+      user,
+      idFactory: generateUUID,
+      getPricingConfig: getPricingConfigForProject,
+    });
 
-    const ctx      = await getSheetCtx();
-    const data     = parsed.data;
-    const proyecto = await getProyectoById(ctx, data.proyecto_id);
-    if (!proyecto) return { success: false, error: "Proyecto no encontrado" };
-    if (proyecto.estado !== "activo") return { success: false, error: "El proyecto no está activo" };
+    if (result.success) {
+      revalidatePath("/horas");
+      revalidatePath("/dashboard");
+    }
 
-    const usuarioId = session.user.email ?? session.user.id;
-
-    const mes = data.fecha.slice(0, 7); // "YYYY-MM"
-    const registrosMes = await getRegistrosHoras(ctx, { usuarioId });
-    const horasAcumuladasMes = registrosMes
-      .filter((r) => r.fecha.startsWith(mes))
-      .reduce((sum, r) => sum + r.horas, 0);
-
-    const pricingConfig = await getPricingConfigForProject(data.proyecto_id);
-    const { montoTotal, precioAplicado } = calculateHoursAmount(
-      data.horas,
-      horasAcumuladasMes,
-      pricingConfig
-    );
-
-    const id = generateUUID();
-    const registro: Omit<RegistroHoras, "created_at"|"updated_at"> = {
-      id, cliente_id: data.cliente_id, proyecto_id: data.proyecto_id, tarea_id: data.tarea_id,
-      usuario_id: usuarioId,
-      fecha: data.fecha, horas: data.horas,
-      descripcion: sanitize(data.descripcion),
-      precio_hora_aplicado: precioAplicado,
-      monto_total: montoTotal, estado: data.estado,
-    };
-
-    await createRegistroHoras(ctx, registro);
-    await updateProyectoHorasAcumuladas(ctx, data.proyecto_id, Math.round((proyecto.horas_acumuladas + data.horas) * 10000) / 10000);
-
-    revalidatePath("/horas");
-    revalidatePath("/dashboard");
-    return { success: true, data: JSON.parse(JSON.stringify({ ...registro, created_at: "", updated_at: "" })) };
+    return result;
   } catch (e: unknown) {
     console.error("[createHour] Error:", e);
-    return { success: false, error: e instanceof Error ? e.message : "Error desconocido al crear" };
+    return actionError(e, "Error desconocido al crear");
   }
 }
 
 export async function changeHourStatus(id: string, estado: HoraEstado): Promise<ActionResult> {
-  const session = await auth();
-  if (!session?.user) return { success: false, error: "No autenticado" };
-  const ctx = await getSheetCtx();
-  await updateRegistroEstado(ctx, id, estado);
-  revalidatePath("/horas");
-  return { success: true };
+  try {
+    const user = await getActionUser();
+    if (!user) return { success: false, error: "No autenticado" };
+    const ctx = await getSheetCtx();
+    await updateRegistroEstado(ctx, id, estado);
+    revalidatePath("/horas");
+    revalidatePath("/dashboard");
+    revalidatePath("/reportes");
+    return actionDone();
+  } catch (e) {
+    return actionError(e, "Error al cambiar estado");
+  }
+}
+
+export async function markMonthAsInvoiced(month: string): Promise<ActionResult<{ count: number; totalAmount: number }>> {
+  try {
+    const user = await getActionUser();
+    if (!user) return { success: false, error: "No autenticado" };
+    const usuarioId = user.email ?? user.id;
+    if (!usuarioId) return { success: false, error: "No autenticado" };
+    if (!/^\d{4}-\d{2}$/.test(month)) return { success: false, error: "Mes inválido" };
+
+    const ctx = await getSheetCtx();
+    const registros = await getRegistrosHoras(ctx, { usuarioId });
+    const ids = getEligibleInvoiceRecordIds(registros, month, usuarioId);
+    const totalAmount = registros
+      .filter((registro) => ids.includes(registro.id))
+      .reduce((total, registro) => Math.round((total + registro.monto_total) * 100) / 100, 0);
+
+    for (const id of ids) await updateRegistroEstado(ctx, id, "facturado");
+
+    revalidatePath("/horas");
+    revalidatePath("/dashboard");
+    revalidatePath("/reportes");
+    return { success: true, data: { count: ids.length, totalAmount } };
+  } catch (e) {
+    return actionError(e, "Error al facturar el mes");
+  }
 }
 
 export async function updateHourAction(id: string, rawData: unknown): Promise<ActionResult> {
   try {
-    const session = await auth();
-    if (!session?.user) return { success: false, error: "No autenticado" };
+    const user = await getActionUser();
+    if (!user) return { success: false, error: "No autenticado" };
 
     const parsed = hourFormSchema.safeParse(rawData);
-    if (!parsed.success) return { success: false, error: "Datos inválidos", fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]> };
+    if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors as Record<string, string[]>);
 
     const ctx = await getSheetCtx();
     const data = parsed.data;
-    const usuarioId = session.user.email ?? session.user.id;
+    const usuarioId = user.email ?? user.id;
 
     // Calculamos el precio nuevamente por si cambió horas o proyecto.
     const mes = data.fecha.slice(0, 7);
@@ -91,12 +107,10 @@ export async function updateHourAction(id: string, rawData: unknown): Promise<Ac
     const currentRegistro = registrosMes.find(r => r.id === id);
     if (!currentRegistro) return { success: false, error: "Registro no encontrado" };
 
-    const horasAcumuladasMes = registrosMes
-      .filter((r) => r.fecha.startsWith(mes) && r.id !== id)
-      .reduce((sum, r) => sum + r.horas, 0);
+    const horasAcumuladasMes = getMonthlyWorkedHoursAccumulated(registrosMes, mes, id);
 
     const pricingConfig = await getPricingConfigForProject(data.proyecto_id);
-    const { montoTotal, precioAplicado } = calculateHoursAmount(
+    const { montoTotal, precioAplicado, horasTrabajadas, horasACobrar } = calculateHoursAmount(
       data.horas,
       horasAcumuladasMes,
       pricingConfig
@@ -110,27 +124,27 @@ export async function updateHourAction(id: string, rawData: unknown): Promise<Ac
       tarea_id: data.tarea_id,
       fecha: data.fecha,
       horas: data.horas,
+      horas_trabajadas: horasTrabajadas,
+      horas_a_cobrar: horasACobrar,
       descripcion: cleanDesc,
       precio_hora_aplicado: precioAplicado,
       monto_total: montoTotal,
       estado: data.estado,
     });
 
-    const diffHoras = data.horas - currentRegistro.horas;
-    if (diffHoras !== 0) {
-      const proyecto = await getProyectoById(ctx, data.proyecto_id);
+    for (const adjustment of calculateProjectHourAdjustments(currentRegistro, data)) {
+      const proyecto = await getProyectoById(ctx, adjustment.proyectoId);
       if (proyecto) {
-        await updateProyectoHorasAcumuladas(ctx, data.proyecto_id, Math.round((proyecto.horas_acumuladas + diffHoras) * 10000) / 10000);
+        await updateProyectoHorasAcumuladas(ctx, adjustment.proyectoId, applyProjectHourDelta(proyecto.horas_acumuladas, adjustment.deltaHoras));
       }
     }
 
     revalidatePath("/horas");
     revalidatePath("/dashboard");
     revalidatePath(`/horas/${id}`);
-    return { success: true };
+    return actionDone();
   } catch (e: unknown) {
     console.error("[updateHourAction] Error:", e);
-    const msg = e instanceof Error ? e.message : "Error desconocido al actualizar";
-    return { success: false, error: msg };
+    return actionError(e, "Error desconocido al actualizar");
   }
 }

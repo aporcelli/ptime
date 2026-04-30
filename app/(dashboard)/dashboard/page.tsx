@@ -1,17 +1,16 @@
 // app/(dashboard)/dashboard/page.tsx
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { auth } from "@/auth";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getRegistrosHoras, getProyectos, getAppConfig } from "@/lib/sheets/queries";
-import { formatCurrency, formatHours } from "@/lib/utils/index";
+import { formatCurrency, formatDateShort, formatHours } from "@/lib/utils/index";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { Clock, DollarSign, FolderOpen, TrendingUp, AlertTriangle, Plus, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { Sparkline } from "@/components/charts/Sparkline";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -20,22 +19,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getPageCtx } from "@/lib/sheets/getPageCtx";
+import { getLocalDevUser, getRequestUrlFromHeaders } from "@/lib/env/dev-access";
+import { DataPanel, MetricCard, PageShell, SectionCard, StatusPill } from "@/components/ui/structure";
+import { repriceMonthlyRecords, summarizeRecords } from "@/lib/hours/monthly";
 
 export const metadata: Metadata = { title: "Dashboard" };
 export const revalidate = 300;
 
 export default async function DashboardPage() {
   const session = await auth();
-  const cookieStore = cookies();
-  const sheetId = (session?.user as { sheetId?: string })?.sheetId
-               ?? cookieStore.get("ptime-sheet-id")?.value;
-  const accessToken = session?.user?.accessToken;
-
-  if (!session || !sheetId || !accessToken) {
-    redirect("/setup");
-  }
-
-  const ctx = { sheetId, accessToken };
+  const localUser = getLocalDevUser(getRequestUrlFromHeaders(headers()));
+  const userName = session?.user?.name ?? localUser?.name ?? "";
+  const ctx = await getPageCtx();
 
   try {
     const hoy = new Date();
@@ -48,8 +44,10 @@ export default async function DashboardPage() {
       getAppConfig(ctx),
     ]);
 
+    const registrosRepriced = repriceMonthlyRecords(registros, Object.fromEntries(proyectos.map((p) => [p.id, p])), config);
+    const monthSummary = summarizeRecords(registrosRepriced);
     const totalHoras = registros.reduce((s, r) => s + r.horas, 0);
-    const totalIngresos = registros.reduce((s, r) => s + r.monto_total, 0);
+    const totalIngresos = monthSummary.totalAmount;
     const diasDelMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
     const promedioHoras = +(totalHoras / Math.max(diasDelMes, 1)).toFixed(2);
 
@@ -58,15 +56,11 @@ export default async function DashboardPage() {
     );
 
     return (
-      <div className="flex flex-col gap-8 animate-fade-in">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="font-serif text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground mt-1">
-              {format(hoy, "MMMM yyyy")} · Bienvenido, {session?.user?.name}
-            </p>
-          </div>
-          <div className="flex gap-3">
+      <PageShell
+        title="Dashboard"
+        description={`${format(hoy, "MMMM yyyy")} · Bienvenido, ${userName}`}
+        actions={
+          <>
             <Button asChild variant="outline">
               <Link href="/reportes">Ver reportes</Link>
             </Button>
@@ -75,41 +69,37 @@ export default async function DashboardPage() {
                 <Plus className="mr-2 h-4 w-4" /> Cargar horas
               </Link>
             </Button>
-          </div>
-        </div>
+          </>
+        }
+      >
 
         {/* KPIs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <KpiCard
+          <MetricCard
             icon={<Clock size={20} className="text-blue-500" />}
             label="Horas del mes"
             value={formatHours(totalHoras)}
-            sparkData={registros.slice(-7).map((r) => r.horas)}
-            iconBg="bg-blue-500/10"
-            sparkColor="#3b82f6"
-          />
-          <KpiCard
+          >
+            {registros.length > 0 && <Sparkline data={registros.slice(-7).map((r) => r.horas)} color="#3b82f6" height={30} />}
+          </MetricCard>
+          <MetricCard
             icon={<DollarSign size={20} className="text-emerald-500" />}
             label="Ingresos del mes"
             value={formatCurrency(totalIngresos, config.moneda)}
-            accent
-            sparkData={registros.slice(-7).map((r) => r.monto_total)}
-            sparkColor="#10b981"
-            iconBg="bg-emerald-500/10"
-          />
-          <KpiCard
+            tone="success"
+          >
+            {registrosRepriced.length > 0 && <Sparkline data={registrosRepriced.slice(-7).map((r) => r.monto_total)} color="#10b981" height={30} />}
+          </MetricCard>
+          <MetricCard
             icon={<TrendingUp size={20} className="text-amber-500" />}
             label="Promedio diario"
             value={`${promedioHoras}h`}
-            sparkColor="#f59e0b"
-            iconBg="bg-amber-500/10"
+            tone="warning"
           />
-          <KpiCard
+          <MetricCard
             icon={<FolderOpen size={20} className="text-purple-500" />}
             label="Proyectos activos"
             value={String(proyectos.length)}
-            sparkColor="#a855f7"
-            iconBg="bg-purple-500/10"
           />
         </div>
 
@@ -132,18 +122,17 @@ export default async function DashboardPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Últimos registros */}
-          <div className="lg:col-span-2 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-foreground">Registros recientes</h2>
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/horas" className="text-primary">
-                  Ver todos <ChevronRight className="ml-1 h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
+          <SectionCard className="lg:col-span-2" title="Registros recientes" icon={<Clock className="h-4 w-4 text-primary" />}>
+            <div className="mb-4 flex justify-end">
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/horas" className="text-primary">
+                    Ver todos <ChevronRight className="ml-1 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
 
-            {registros.length > 0 ? (
-              <Card className="overflow-hidden">
+            {registrosRepriced.length > 0 ? (
+              <DataPanel>
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/50 hover:bg-muted/50">
@@ -154,10 +143,10 @@ export default async function DashboardPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {[...registros].reverse().slice(0, 5).map((r) => (
+                    {[...registrosRepriced].reverse().slice(0, 5).map((r) => (
                       <TableRow key={r.id}>
                         <TableCell className="font-mono text-xs text-muted-foreground whitespace-nowrap">
-                          {r.fecha}
+                          {formatDateShort(r.fecha)}
                         </TableCell>
                         <TableCell className="max-w-[200px] truncate text-foreground">
                           {r.descripcion}
@@ -172,7 +161,7 @@ export default async function DashboardPage() {
                     ))}
                   </TableBody>
                 </Table>
-              </Card>
+              </DataPanel>
             ) : (
               <Card className="bg-muted/30 border-dashed flex flex-col items-center justify-center p-12 text-center">
                 <p className="text-muted-foreground text-sm mb-4">No hay registros este mes aún.</p>
@@ -181,11 +170,10 @@ export default async function DashboardPage() {
                 </Button>
               </Card>
             )}
-          </div>
+          </SectionCard>
 
           {/* Proyectos activos summary */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-foreground">Estado de proyectos</h2>
+          <SectionCard title="Estado de proyectos" icon={<FolderOpen className="h-4 w-4 text-primary" />}>
             <div className="space-y-3">
               {proyectos.slice(0, 5).map((p) => {
                 const isHigh = p.horas_acumuladas > config.umbralHoras;
@@ -199,9 +187,9 @@ export default async function DashboardPage() {
                             {p.horas_acumuladas}h acumuladas
                           </p>
                         </div>
-                        <Badge variant={isHigh ? "warning" : "success"} className="text-[10px] shrink-0">
+                        <StatusPill tone={isHigh ? "warning" : "success"}>
                           {isHigh ? "Tarifa Alta" : "Tarifa Base"}
-                        </Badge>
+                        </StatusPill>
                       </div>
                       <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
                         <div
@@ -219,47 +207,12 @@ export default async function DashboardPage() {
                 </Button>
               )}
             </div>
-          </div>
+          </SectionCard>
         </div>
-      </div>
+      </PageShell>
     );
   } catch (error) {
     console.error("[Dashboard] Error fatal:", error);
     redirect("/setup");
   }
-}
-
-interface KpiCardProps {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  accent?: boolean;
-  sparkData?: number[];
-  sparkColor?: string;
-  iconBg?: string;
-}
-
-function KpiCard({ icon, label, value, accent, sparkData, sparkColor, iconBg }: KpiCardProps) {
-  return (
-    <Card className="overflow-hidden hover:shadow-md hover:border-primary/30 transition-all">
-      <CardContent className="p-5 flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${iconBg ?? "bg-muted"}`}>
-            {icon}
-          </div>
-          {sparkData && sparkData.length > 0 && (
-            <div className="w-20 opacity-80">
-              <Sparkline data={sparkData} color={sparkColor ?? "#2563eb"} height={30} />
-            </div>
-          )}
-        </div>
-        <div>
-          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{label}</p>
-          <p className={`text-2xl font-serif font-bold mt-1 ${accent ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"}`}>
-            {value}
-          </p>
-        </div>
-      </CardContent>
-    </Card>
-  );
 }

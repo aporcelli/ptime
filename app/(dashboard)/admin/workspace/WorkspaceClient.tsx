@@ -3,6 +3,7 @@ import { useState, useTransition } from "react";
 import { UserPlus, Trash2, RefreshCw, Shield, Eye, Users } from "lucide-react";
 import { inviteMemberAction, updateMemberRolAction, removeMemberAction } from "@/app/actions/workspace";
 import type { WorkspaceMember, WorkspaceMemberRol } from "@/types/entities";
+import { formatDateShort } from "@/lib/utils/index";
 
 const ROL_CONFIG: Record<WorkspaceMemberRol, { label: string; desc: string; color: string; icon: React.ReactNode }> = {
   OWNER:       { label: "Owner",        desc: "Control total",            color: "text-primary-fixed bg-primary-fixed/10",   icon: <Shield size={12} /> },
@@ -138,7 +139,7 @@ export default function WorkspaceClient({ members: initMembers, currentUserEmail
                       {isMe && <span className="ml-2 text-xs text-on-surface-variant">(vos)</span>}
                     </p>
                     <p className="text-xs text-on-surface-variant">
-                      Invitado por {m.invited_by} · {new Date(m.created_at).toLocaleDateString("es-AR")}
+                      Invitado por {m.invited_by} · {formatDateShort(m.created_at)}
                     </p>
                   </div>
 

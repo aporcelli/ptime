@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, Shield, ShieldOff, ToggleLeft, ToggleRight, ExternalLink, Trash2, AlertTriangle } from "lucide-react";
 import { setUserRole, setUserActivo, deleteUserAction } from "@/app/actions/users";
 import type { PtimeUser } from "@/app/actions/users";
+import { formatDateShort } from "@/lib/utils/index";
 
 export default function UsuariosAdmin({ users, currentEmail }: { users: PtimeUser[]; currentEmail: string }) {
   const router = useRouter();
@@ -89,7 +90,7 @@ export default function UsuariosAdmin({ users, currentEmail }: { users: PtimeUse
                       </span>
                     </td>
                     <td className="p-3 text-xs font-mono text-faint whitespace-nowrap">
-                      {u.ultimoAcceso ? new Date(u.ultimoAcceso).toLocaleDateString("es-AR") : "—"}
+                      {u.ultimoAcceso ? formatDateShort(u.ultimoAcceso) : "—"}
                     </td>
                     <td className="p-3">
                       {u.sheetId ? (

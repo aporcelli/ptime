@@ -12,9 +12,9 @@ export const SHEET_NAMES = {
   WORKSPACE_MEMBERS:  "Workspace_Members",
 } as const;
 
-// Rangos de columnas por hoja (A:L = todas las columnas relevantes)
+// Rangos de columnas por hoja (A:O = todas las columnas relevantes)
 export const SHEET_RANGES = {
-  REGISTROS_HORAS:    "Registros_Horas!A:M",
+  REGISTROS_HORAS:    "Registros_Horas!A:O",
   PROYECTOS:          "Proyectos!A:K",
   CLIENTES:           "Clientes!A:G",
   TAREAS:             "Tareas!A:F",
@@ -27,7 +27,7 @@ export const SHEET_HEADERS = {
   REGISTROS_HORAS: [
     "id", "proyecto_id", "tarea_id", "usuario_id", "fecha", "horas",
     "descripcion", "precio_hora_aplicado", "monto_total", "estado",
-    "created_at", "updated_at",
+    "created_at", "updated_at", "cliente_id", "horas_trabajadas", "horas_a_cobrar",
   ],
   PROYECTOS: [
     "id", "nombre", "cliente_id", "presupuesto_horas", "horas_acumuladas",

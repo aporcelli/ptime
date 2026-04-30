@@ -129,8 +129,7 @@ export function ReportesFiltersClient({
     setRangoMes(parseInt(yStr), parseInt(mStr));
   }
 
-  const tituloFinal = titulo
-    + (clienteSeleccionado ? ` - Cliente: ${clienteSeleccionado.nombre}` : "");
+  const tituloFinal = titulo;
 
   return (
     <div className="flex flex-col gap-4">
@@ -244,7 +243,7 @@ export function ReportesFiltersClient({
             {(titulo || clienteSeleccionado) && (
               <div className="bg-surface-low rounded-lg px-3 py-2 text-xs text-on-surface-variant">
                 <span className="font-medium text-on-surface">{titulo}</span>
-                {clienteSeleccionado && <span className="ml-1">— Cliente: {clienteSeleccionado.nombre}</span>}
+                {clienteSeleccionado && <span className="ml-1">· Cliente: {clienteSeleccionado.nombre}</span>}
               </div>
             )}
 

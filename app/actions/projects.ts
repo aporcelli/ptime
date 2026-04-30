@@ -1,5 +1,6 @@
 'use server';
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { auth } from "@/auth";
 import { getSheetCtx } from "@/lib/sheets/context";
 import { getProyectos } from "@/lib/sheets/queries";
@@ -8,11 +9,14 @@ import { projectFormSchema } from "@/lib/schemas/project";
 import { sanitizeObject } from "@/lib/utils/sanitize";
 import { generateUUID } from "@/lib/utils/index";
 import type { ActionResult, Proyecto } from "@/types/entities";
+import { actionDone, actionError, actionOk } from "@/lib/actions/result";
+import { getLocalDevUser, getRequestUrlFromHeaders } from "@/lib/env/dev-access";
 
 async function requireAuth() {
   const session = await auth();
-  if (!session?.user) throw new Error("NO_AUTH");
-  return session;
+  const user = session?.user ?? getLocalDevUser(getRequestUrlFromHeaders(headers()));
+  if (!user) throw new Error("NO_AUTH");
+  return user;
 }
 
 export async function createProyectoAction(rawData: unknown): Promise<ActionResult<Proyecto>> {
@@ -45,10 +49,9 @@ export async function createProyectoAction(rawData: unknown): Promise<ActionResu
     await createProyecto(ctx, proyecto);
     revalidatePath("/admin/proyectos");
     revalidatePath("/horas/nuevo");
-    return { success: true, data: JSON.parse(JSON.stringify(proyecto)) };
+    return actionOk(proyecto);
   } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "Error desconocido";
-    return { success: false, error: msg };
+    return actionError(e, "Error desconocido");
   }
 }
 
@@ -60,9 +63,9 @@ export async function updateProyectoAction(id: string, rawData: unknown): Promis
     const ctx = await getSheetCtx();
     await updateProyecto(ctx, id, parsed.data);
     revalidatePath("/admin/proyectos");
-    return { success: true };
+    return actionDone();
   } catch (e: unknown) {
-    return { success: false, error: e instanceof Error ? e.message : "Error" };
+    return actionError(e, "Error");
   }
 }
 
@@ -73,9 +76,9 @@ export async function deleteProyectoAction(id: string): Promise<ActionResult> {
     await deleteProyecto(ctx, id);
     revalidatePath("/admin/proyectos");
     revalidatePath("/horas/nuevo");
-    return { success: true };
+    return actionDone();
   } catch (e: unknown) {
-    return { success: false, error: e instanceof Error ? e.message : "Error al eliminar" };
+    return actionError(e, "Error al eliminar");
   }
 }
 
