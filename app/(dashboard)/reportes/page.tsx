@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 import { getRegistrosHoras, getProyectos, getTareas, getAppConfig, getClientes } from "@/lib/sheets/queries";
 import { getPageCtx } from "@/lib/sheets/getPageCtx";
-import { formatCurrency, formatHours } from "@/lib/utils/index";
-import { format, startOfMonth, subMonths } from "date-fns";
+import { formatCurrency, formatDateShort, formatHours, formatMonthYearLabel, formatPeriodLabel } from "@/lib/utils/index";
+import { format, startOfMonth } from "date-fns";
 import IngresosLineChart from "@/components/charts/IngresosLineChart";
 import HorasPorProyecto from "@/components/charts/HorasPorProyecto";
 import TareasPieChart from "@/components/charts/TareasPieChart";
-import { BarChart3, TrendingUp, Clock, FileDown } from "lucide-react";
+import { BarChart3, TrendingUp, Clock } from "lucide-react";
 import type { ReportData } from "@/types/api";
-import { ReporteExportClientDynamic } from "./ReporteExportClientDynamic";
 import { ReportesFiltersClient } from "./ReportesFiltersClient";
 import type { HoraEstado } from "@/types/entities";
+import { DataPanel, MetricCard, PageShell, SectionCard } from "@/components/ui/structure";
+import { repriceMonthlyRecords } from "@/lib/hours/monthly";
 
 export const metadata: Metadata = { title: "Reportes" };
 export const revalidate = 300;
@@ -39,9 +40,10 @@ export default async function ReportesPage({
 
   const proyectosMap = new Map(proyectos.map(p => [p.id, p]));
   const tareasMap    = new Map(tareas.map(t => [t.id, t]));
+  const registrosRepriced = repriceMonthlyRecords(registros, Object.fromEntries(proyectos.map((p) => [p.id, p])), config);
 
   // ── Agregados por mes
-  const porMesMap = registros.reduce<Record<string, { horas: number; ingresos: number }>>((acc, r) => {
+  const porMesMap = registrosRepriced.reduce<Record<string, { horas: number; ingresos: number }>>((acc, r) => {
     const mes = r.fecha.slice(0, 7);
     if (!acc[mes]) acc[mes] = { horas: 0, ingresos: 0 };
     acc[mes].horas    += r.horas;
@@ -50,7 +52,7 @@ export default async function ReportesPage({
   }, {});
 
   // ── Agregados por proyecto
-  const porProyectoMap = registros.reduce<Record<string, { nombre: string; horas: number; ingresos: number }>>((acc, r) => {
+  const porProyectoMap = registrosRepriced.reduce<Record<string, { nombre: string; horas: number; ingresos: number }>>((acc, r) => {
     if (!acc[r.proyecto_id]) {
       const p = proyectosMap.get(r.proyecto_id);
       acc[r.proyecto_id] = { nombre: p?.nombre ?? "—", horas: 0, ingresos: 0 };
@@ -61,7 +63,7 @@ export default async function ReportesPage({
   }, {});
 
   // ── Agregados por tarea
-  const porTareaMap = registros.reduce<Record<string, { nombre: string; horas: number }>>((acc, r) => {
+  const porTareaMap = registrosRepriced.reduce<Record<string, { nombre: string; horas: number }>>((acc, r) => {
     if (!acc[r.tarea_id]) {
       const t = tareasMap.get(r.tarea_id);
       acc[r.tarea_id] = { nombre: t?.nombre ?? "Sin tarea", horas: 0 };
@@ -70,12 +72,12 @@ export default async function ReportesPage({
     return acc;
   }, {});
 
-  const totalHoras    = registros.reduce((s, r) => s + r.horas, 0);
-  const totalIngresos = registros.reduce((s, r) => s + r.monto_total, 0);
+  const totalHoras    = registrosRepriced.reduce((s, r) => s + r.horas, 0);
+  const totalIngresos = registrosRepriced.reduce((s, r) => s + r.monto_total, 0);
 
   const mesesData = Object.entries(porMesMap)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([mes, d]) => ({ mes, ...d }));
+    .map(([mes, d]) => ({ mes: formatMonthYearLabel(mes), ...d }));
 
   const proyectosData = Object.values(porProyectoMap).sort((a, b) => b.ingresos - a.ingresos);
   const tareasDataRaw = Object.values(porTareaMap).sort((a, b) => b.horas - a.horas);
@@ -108,10 +110,10 @@ export default async function ReportesPage({
   };
 
   // ── Registros enriquecidos para detalle en PDF
-  const registrosParaPdf = registros
+  const registrosParaPdf = registrosRepriced
     .sort((a, b) => b.fecha.localeCompare(a.fecha))
     .map(r => ({
-      fecha:          r.fecha,
+      fecha:          formatDateShort(r.fecha),
       descripcion:    r.descripcion,
       proyectoNombre: proyectosMap.get(r.proyecto_id)?.nombre ?? "—",
       horas:          r.horas,
@@ -121,17 +123,7 @@ export default async function ReportesPage({
     }));
 
   return (
-    <div className="flex flex-col gap-8 animate-fade-in">
-
-      {/* ── Header ── */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="font-display text-3xl font-extrabold text-on-surface tracking-tight">Reportes</h1>
-          <p className="text-on-surface-variant mt-1">
-            {fechaDesde} → {fechaHasta} · {registros.length} registros
-          </p>
-        </div>
-      </div>
+    <PageShell title="Reportes" description={`${formatPeriodLabel(fechaDesde, fechaHasta)} · ${registros.length} registros`}>
 
       <ReportesFiltersClient
         clientes={clientes}
@@ -146,59 +138,31 @@ export default async function ReportesPage({
 
       {/* ── KPIs ── */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <div className="bg-surface-lowest rounded-xl p-5 shadow-ambient flex flex-col gap-2 border-l-4 border-primary-fixed">
-          <div className="w-8 h-8 rounded-lg bg-surface-low flex items-center justify-center">
-            <Clock size={16} className="text-primary-fixed" />
-          </div>
-          <span className="text-sm text-on-surface-variant">Total horas</span>
-          <span className="text-2xl font-semibold font-mono text-on-surface">{formatHours(totalHoras)}</span>
-        </div>
-        <div className="bg-surface-lowest rounded-xl p-5 shadow-ambient flex flex-col gap-2 border-l-4 border-primary-fixed">
-          <div className="w-8 h-8 rounded-lg bg-surface-low flex items-center justify-center">
-            <TrendingUp size={16} className="text-primary-fixed" />
-          </div>
-          <span className="text-sm text-on-surface-variant">Total ingresos</span>
-          <span className="text-2xl font-semibold font-mono text-primary-fixed">{formatCurrency(totalIngresos, config.moneda)}</span>
-        </div>
-        <div className="bg-surface-lowest rounded-xl p-5 shadow-ambient flex flex-col gap-2 col-span-2 md:col-span-1 border-l-4 border-amber-400">
-          <div className="w-8 h-8 rounded-lg bg-surface-low flex items-center justify-center">
-            <BarChart3 size={16} className="text-amber-500" />
-          </div>
-          <span className="text-sm text-on-surface-variant">Precio promedio/h</span>
-          <span className="text-2xl font-semibold font-mono text-on-surface">
-            {formatCurrency(totalHoras > 0 ? totalIngresos / totalHoras : 0, config.moneda)}
-          </span>
-        </div>
+        <MetricCard label="Total horas" value={formatHours(totalHoras)} icon={<Clock size={16} />} />
+        <MetricCard label="Total ingresos" value={formatCurrency(totalIngresos, config.moneda)} icon={<TrendingUp size={16} />} tone="success" />
+        <MetricCard label="Precio promedio/h" value={formatCurrency(totalHoras > 0 ? totalIngresos / totalHoras : 0, config.moneda)} icon={<BarChart3 size={16} />} tone="warning" />
       </div>
 
       {/* ── Charts ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <section className="bg-surface-lowest rounded-xl p-5 shadow-ambient">
-          <h2 className="font-semibold text-on-surface mb-4 flex items-center gap-2">
-            <TrendingUp size={16} className="text-primary-fixed" /> Tendencia de ingresos
-          </h2>
+        <SectionCard title="Tendencia de ingresos" icon={<TrendingUp size={16} className="text-primary" />}>
           <IngresosLineChart data={mesesData} moneda={config.moneda} showHoras />
-        </section>
+        </SectionCard>
 
-        <section className="bg-surface-lowest rounded-xl p-5 shadow-ambient">
-          <h2 className="font-semibold text-on-surface mb-4 flex items-center gap-2">
-            <BarChart3 size={16} className="text-primary-fixed" /> Horas por proyecto
-          </h2>
+        <SectionCard title="Horas por proyecto" icon={<BarChart3 size={16} className="text-primary" />}>
           <HorasPorProyecto data={proyectosData} moneda={config.moneda} />
-        </section>
+        </SectionCard>
       </div>
 
-      <section className="bg-surface-lowest rounded-xl p-5 shadow-ambient">
-        <h2 className="font-semibold text-on-surface mb-4">Distribución por tarea</h2>
+      <SectionCard title="Distribución por tarea">
         <div className="max-w-md mx-auto">
           <TareasPieChart data={tareasData} />
         </div>
-      </section>
+      </SectionCard>
 
       {/* ── Tabla por mes ── */}
-      <section>
-        <h2 className="font-semibold text-on-surface mb-3">Detalle por mes</h2>
-        <div className="bg-surface-lowest rounded-xl overflow-hidden shadow-ambient">
+      <SectionCard title="Detalle por mes">
+        <DataPanel>
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-surface-high">
@@ -216,7 +180,7 @@ export default async function ReportesPage({
                 const pct = totalIngresos > 0 ? Math.round((d.ingresos / totalIngresos) * 100) : 0;
                 return (
                   <tr key={mes} className={`transition-colors hover:bg-surface-low ${i % 2 === 0 ? "bg-surface-lowest" : "bg-surface-low"}`}>
-                    <td className="p-3 font-mono text-on-surface font-medium">{mes}</td>
+                    <td className="p-3 font-mono text-on-surface font-medium">{formatMonthYearLabel(mes)}</td>
                     <td className="p-3 text-right font-mono text-on-surface-variant">{formatHours(d.horas)}</td>
                     <td className="p-3 text-right font-mono text-primary-fixed font-semibold">{formatCurrency(d.ingresos, config.moneda)}</td>
                     <td className="p-3 text-right text-on-surface-variant text-xs">{pct}%</td>
@@ -225,13 +189,12 @@ export default async function ReportesPage({
               })}
             </tbody>
           </table>
-        </div>
-      </section>
+        </DataPanel>
+      </SectionCard>
 
       {/* ── Tabla por proyecto ── */}
-      <section>
-        <h2 className="font-semibold text-on-surface mb-3">Detalle por proyecto</h2>
-        <div className="bg-surface-lowest rounded-xl overflow-hidden shadow-ambient">
+      <SectionCard title="Detalle por proyecto">
+        <DataPanel>
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-surface-high">
@@ -254,9 +217,9 @@ export default async function ReportesPage({
               ))}
             </tbody>
           </table>
-        </div>
-      </section>
+        </DataPanel>
+      </SectionCard>
 
-    </div>
+    </PageShell>
   );
 }

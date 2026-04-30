@@ -2,6 +2,7 @@
 import { appendSheetRow, getSheetRows, updateSheetRow, clearSheetRow } from "./client";
 import { SHEET_NAMES, SHEET_RANGES } from "@/lib/constants";
 import type { Cliente, Proyecto, Tarea, RegistroHoras, WorkspaceMember, WorkspaceMemberRol } from "@/types/entities";
+import { parseRegistroHorasRow, serializeRegistroHorasRow } from "./serializers";
 
 interface SheetCtx { sheetId: string; accessToken: string; }
 
@@ -54,8 +55,7 @@ export async function createTarea(ctx: SheetCtx, data: Omit<Tarea, "created_at">
 export async function createRegistroHoras(ctx: SheetCtx, data: Omit<RegistroHoras, "created_at" | "updated_at">): Promise<void> {
   const ts = now();
   await appendSheetRow(ctx.sheetId, ctx.accessToken, SHEET_RANGES.REGISTROS_HORAS,
-    [data.id, data.proyecto_id, data.tarea_id, data.usuario_id, data.fecha, data.horas,
-    data.descripcion, data.precio_hora_aplicado, data.monto_total, data.estado, ts, ts, data.cliente_id || ""]);
+    serializeRegistroHorasRow(data, { created_at: ts, updated_at: ts }));
 }
 
 export async function updateRegistroEstado(ctx: SheetCtx, id: string, estado: RegistroHoras["estado"]): Promise<void> {
@@ -63,8 +63,9 @@ export async function updateRegistroEstado(ctx: SheetCtx, id: string, estado: Re
   if (!rowNum) throw new Error(`Registro ${id} no encontrado`);
   const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, SHEET_RANGES.REGISTROS_HORAS);
   const current = rows.find((r) => r[0] === id)!;
+  const parsed = parseRegistroHorasRow(current);
   await updateSheetRow(ctx.sheetId, ctx.accessToken, SHEET_NAMES.REGISTROS_HORAS, rowNum,
-    [...current.slice(0, 9), estado, current[10], now(), current[12] || ""]);
+    serializeRegistroHorasRow({ ...parsed, estado, updated_at: now() }));
 }
 
 export async function updateRegistroHoras(ctx: SheetCtx, id: string, data: Partial<Omit<RegistroHoras, "id" | "created_at" | "updated_at">>): Promise<void> {
@@ -72,22 +73,25 @@ export async function updateRegistroHoras(ctx: SheetCtx, id: string, data: Parti
   if (!rowNum) throw new Error(`Registro ${id} no encontrado`);
   const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, SHEET_RANGES.REGISTROS_HORAS);
   const c = rows.find((r) => r[0] === id)!;
+  const current = parseRegistroHorasRow(c);
   
-  await updateSheetRow(ctx.sheetId, ctx.accessToken, SHEET_NAMES.REGISTROS_HORAS, rowNum, [
-    c[0], 
-    data.proyecto_id ?? c[1], 
-    data.tarea_id ?? c[2], 
-    data.usuario_id ?? c[3], 
-    data.fecha ?? c[4], 
-    data.horas !== undefined ? data.horas : c[5],
-    data.descripcion !== undefined ? data.descripcion : c[6], 
-    data.precio_hora_aplicado !== undefined ? data.precio_hora_aplicado : c[7], 
-    data.monto_total !== undefined ? data.monto_total : c[8], 
-    data.estado ?? c[9], 
-    c[10], 
-    now(),
-    data.cliente_id !== undefined ? data.cliente_id : (c[12] || "")
-  ]);
+  await updateSheetRow(ctx.sheetId, ctx.accessToken, SHEET_NAMES.REGISTROS_HORAS, rowNum, serializeRegistroHorasRow({
+    id: current.id,
+    proyecto_id: data.proyecto_id ?? current.proyecto_id,
+    tarea_id: data.tarea_id ?? current.tarea_id,
+    usuario_id: data.usuario_id ?? current.usuario_id,
+    fecha: data.fecha ?? current.fecha,
+    horas: data.horas !== undefined ? data.horas : current.horas,
+    horas_trabajadas: data.horas_trabajadas !== undefined ? data.horas_trabajadas : current.horas_trabajadas,
+    horas_a_cobrar: data.horas_a_cobrar !== undefined ? data.horas_a_cobrar : current.horas_a_cobrar,
+    descripcion: data.descripcion !== undefined ? data.descripcion : current.descripcion,
+    precio_hora_aplicado: data.precio_hora_aplicado !== undefined ? data.precio_hora_aplicado : current.precio_hora_aplicado,
+    monto_total: data.monto_total !== undefined ? data.monto_total : current.monto_total,
+    estado: data.estado ?? current.estado,
+    created_at: current.created_at,
+    updated_at: now(),
+    cliente_id: data.cliente_id !== undefined ? data.cliente_id : current.cliente_id,
+  }));
 }
 
 export async function upsertConfig(ctx: SheetCtx, clave: string, valor: string): Promise<void> {

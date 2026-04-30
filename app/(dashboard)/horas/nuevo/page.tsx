@@ -3,6 +3,7 @@ import { getTareas, getProyectos, getClientes, getRegistrosHoras, getAppConfig }
 import { getPageCtx }    from "@/lib/sheets/getPageCtx";
 import { auth }          from "@/auth";
 import HorasForm         from "@/components/forms/HorasForm";
+import { getMonthlyWorkedHoursAccumulated } from "@/lib/hours/accounting";
 
 export const metadata: Metadata = { title: "Cargar Horas" };
 
@@ -26,9 +27,7 @@ export default async function NuevaHoraPage() {
   const proyectos = todosProyectos.filter(p => p.estado === "activo");
 
   // Acumulado mensual global: todas las horas del usuario en el mes actual
-  const horasAcumuladasMes = registrosMes
-    .filter((r) => r.fecha.startsWith(mesActual))
-    .reduce((sum, r) => sum + r.horas, 0);
+  const horasAcumuladasMes = getMonthlyWorkedHoursAccumulated(registrosMes, mesActual);
 
   return (
     <div className="max-w-2xl mx-auto animate-fade-in">

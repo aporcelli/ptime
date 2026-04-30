@@ -8,6 +8,7 @@ import { getSheetCtx } from "@/lib/sheets/context";
 import { getRegistrosHoras, getProyectos, getClientes, getTareas, getAppConfig } from "@/lib/sheets/queries";
 import type { ReportQueryParams, ReportData } from "@/types/api";
 import type { ActionResult } from "@/types/entities";
+import { repriceMonthlyRecords } from "@/lib/hours/monthly";
 
 export async function getReportData(
     params: ReportQueryParams = {}
@@ -40,18 +41,19 @@ export async function getReportData(
         }
         return true;
     });
+    const registrosRepriced = repriceMonthlyRecords(registrosFiltrados, Object.fromEntries(proyectos.map((p) => [p.id, p])), config);
 
     // ── KPIs ─────────────────────────────────────────────────────────────────
-    const totalHoras = registrosFiltrados.reduce((s, r) => s + r.horas, 0);
-    const totalIngresos = registrosFiltrados.reduce((s, r) => s + r.monto_total, 0);
-    const fechas = registrosFiltrados.map((r) => r.fecha);
+    const totalHoras = registrosRepriced.reduce((s, r) => s + r.horas, 0);
+    const totalIngresos = registrosRepriced.reduce((s, r) => s + r.monto_total, 0);
+    const fechas = registrosRepriced.map((r) => r.fecha);
     const diasUnicos = new Set(fechas).size;
     const promedioHorasDia = diasUnicos > 0 ? totalHoras / diasUnicos : 0;
     const proyectosActivos = proyectos.filter((p) => p.estado === "activo").length;
 
     // ── Por mes ───────────────────────────────────────────────────────────────
     const mesBucket: Record<string, { horas: number; ingresos: number }> = {};
-    for (const r of registrosFiltrados) {
+    for (const r of registrosRepriced) {
         const mes = r.fecha.slice(0, 7);
         if (!mesBucket[mes]) mesBucket[mes] = { horas: 0, ingresos: 0 };
         mesBucket[mes].horas += r.horas;
@@ -63,7 +65,7 @@ export async function getReportData(
 
     // ── Por proyecto ──────────────────────────────────────────────────────────
     const proyBucket: Record<string, { nombre: string; horas: number; ingresos: number; clienteNombre?: string }> = {};
-    for (const r of registrosFiltrados) {
+    for (const r of registrosRepriced) {
         if (!proyBucket[r.proyecto_id]) {
             const p = proyectos.find((p) => p.id === r.proyecto_id);
             const cliente = clientes.find((c) => c.id === p?.cliente_id);
@@ -80,7 +82,7 @@ export async function getReportData(
 
     // ── Por tarea ─────────────────────────────────────────────────────────────
     const tareasBucket: Record<string, { nombre: string; horas: number }> = {};
-    for (const r of registrosFiltrados) {
+    for (const r of registrosRepriced) {
         if (!tareasBucket[r.tarea_id]) {
             const t = tareas.find((t) => t.id === r.tarea_id);
             tareasBucket[r.tarea_id] = { nombre: t?.nombre ?? "Desconocida", horas: 0 };
@@ -112,7 +114,7 @@ export async function getReportData(
                 totalIngresos: Math.round(totalIngresos * 100) / 100,
                 promedioHorasDia: Math.round(promedioHorasDia * 100) / 100,
                 proyectosActivos,
-                registrosTotales: registrosFiltrados.length,
+                registrosTotales: registrosRepriced.length,
             },
             porMes,
             porProyecto,

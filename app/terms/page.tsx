@@ -10,11 +10,11 @@ export default function TermsPage() {
         </div>
         <div>
           <h2 className="text-xl font-semibold text-warm-500 mb-2">2. Google API</h2>
-          <p>This service integrates with Google APIs. Your use of Ptime is also subject to Google's Terms of Service.</p>
+          <p>This service integrates with Google APIs. Your use of Ptime is also subject to Google&apos;s Terms of Service.</p>
         </div>
         <div>
           <h2 className="text-xl font-semibold text-warm-500 mb-2">3. Limitation of Liability</h2>
-          <p>Ptime is provided "as is". TuCloud.pro shall not be liable for any data loss or service interruptions related to Google's infrastructure.</p>
+          <p>Ptime is provided &quot;as is&quot;. TuCloud.pro shall not be liable for any data loss or service interruptions related to Google&apos;s infrastructure.</p>
         </div>
       </section>
       <footer className="mt-12 pt-8 border-t border-slate-800 text-sm">

@@ -12,6 +12,7 @@ const ESTADOS: { value: HoraEstado; label: string; color: string }[] = [
     { value: "borrador", label: "Borrador", color: "bg-slate-100 text-slate-600 hover:bg-slate-200" },
     { value: "confirmado", label: "Confirmado", color: "bg-green-100 text-green-700 hover:bg-green-200" },
     { value: "facturado", label: "Facturado", color: "bg-blue-100 text-blue-700 hover:bg-blue-200" },
+    { value: "rechazado", label: "Rechazado", color: "bg-red-100 text-red-700 hover:bg-red-200" },
 ];
 
 interface Props {

@@ -1,8 +1,9 @@
 // lib/sheets/getPageCtx.ts
 // Helper para obtener el ctx en Server Components (pages).
 import { auth }     from "@/auth";
-import { cookies }  from "next/headers";
+import { cookies, headers }  from "next/headers";
 import { redirect } from "next/navigation";
+import { getLocalDevAccessContext, getRequestUrlFromHeaders } from "@/lib/env/dev-access";
 
 export interface SheetCtx {
   sheetId:     string;
@@ -10,6 +11,9 @@ export interface SheetCtx {
 }
 
 export async function getPageCtx(): Promise<SheetCtx> {
+  const localCtx = getLocalDevAccessContext(getRequestUrlFromHeaders(headers()));
+  if (localCtx) return localCtx;
+
   const session     = await auth();
   const cookieStore = cookies();
 

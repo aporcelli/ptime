@@ -21,7 +21,7 @@ export interface ReportQueryParams {
     clienteId?: string;
     tareaId?: string;
     usuarioId?: string;
-    estado?: "borrador" | "confirmado" | "facturado";
+    estado?: "borrador" | "confirmado" | "facturado" | "rechazado";
 }
 
 /** Datos agregados para el dashboard de BI */

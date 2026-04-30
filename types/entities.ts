@@ -18,7 +18,7 @@ export interface WorkspaceMember {
   updated_at:  string;
 }
 
-export type HoraEstado = "borrador" | "confirmado" | "facturado";
+export type HoraEstado = "borrador" | "confirmado" | "facturado" | "rechazado";
 export type ProyectoEstado = "activo" | "pausado" | "cerrado";
 
 // ── Cliente ───────────────────────────────────────────────────────────────────
@@ -68,6 +68,8 @@ export interface RegistroHoras {
   usuario_id: string;
   fecha: string;         // YYYY-MM-DD
   horas: number;         // decimales permitidos (min 0.25)
+  horas_trabajadas?: number;
+  horas_a_cobrar?: number;
   descripcion: string;
   precio_hora_aplicado: number;
   monto_total: number;

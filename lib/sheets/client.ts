@@ -4,6 +4,8 @@
 // NO usa Service Account — las credenciales son del propio usuario.
 // ─────────────────────────────────────────────────────────────────────────────
 import { google, sheets_v4 } from "googleapis";
+import { LOCAL_DEV_ACCESS_TOKEN } from "@/lib/env/dev-access";
+import { appendLocalRow, clearLocalRow, getLocalRows, updateLocalRow } from "./local-store";
 
 /**
  * Crea un cliente de Sheets autenticado con el access token del usuario.
@@ -25,6 +27,7 @@ export async function getSheetRows(
   accessToken: string,
   range: string
 ): Promise<string[][]> {
+  if (accessToken === LOCAL_DEV_ACCESS_TOKEN) return getLocalRows(range);
   const sheets = createSheetsClient(accessToken);
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId,
@@ -41,6 +44,7 @@ export async function getSheetRowsWithHeaders(
   accessToken: string,
   range: string
 ): Promise<string[][]> {
+  if (accessToken === LOCAL_DEV_ACCESS_TOKEN) return getLocalRows(range);
   const sheets = createSheetsClient(accessToken);
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId,
@@ -56,6 +60,10 @@ export async function appendSheetRow(
   range: string,
   values: (string | number | boolean)[]
 ): Promise<void> {
+  if (accessToken === LOCAL_DEV_ACCESS_TOKEN) {
+    appendLocalRow(range, values);
+    return;
+  }
   const sheets = createSheetsClient(accessToken);
   await sheets.spreadsheets.values.append({
     spreadsheetId,
@@ -73,6 +81,10 @@ export async function updateSheetRow(
   rowNumber: number,
   values: (string | number | boolean)[]
 ): Promise<void> {
+  if (accessToken === LOCAL_DEV_ACCESS_TOKEN) {
+    updateLocalRow(sheetName, rowNumber, values);
+    return;
+  }
   const sheets = createSheetsClient(accessToken);
   await sheets.spreadsheets.values.update({
     spreadsheetId,
@@ -88,6 +100,10 @@ export async function clearSheetRow(
   sheetName: string,
   rowNumber: number
 ): Promise<void> {
+  if (accessToken === LOCAL_DEV_ACCESS_TOKEN) {
+    clearLocalRow(sheetName, rowNumber);
+    return;
+  }
   const sheets = createSheetsClient(accessToken);
   await sheets.spreadsheets.values.clear({
     spreadsheetId,
@@ -104,6 +120,7 @@ export async function validateSpreadsheet(
   accessToken: string
 ): Promise<{ valid: boolean; title?: string; error?: string }> {
   try {
+    if (accessToken === LOCAL_DEV_ACCESS_TOKEN) return { valid: true, title: "Ptime Local" };
     const sheets = createSheetsClient(accessToken);
     const res = await sheets.spreadsheets.get({
       spreadsheetId,
@@ -123,9 +140,10 @@ export async function initializeSpreadsheet(
   spreadsheetId: string,
   accessToken: string
 ): Promise<void> {
+  if (accessToken === LOCAL_DEV_ACCESS_TOKEN) return;
   const sheets  = createSheetsClient(accessToken);
   const headers = {
-    Registros_Horas: ["id","proyecto_id","tarea_id","usuario_id","fecha","horas","descripcion","precio_hora_aplicado","monto_total","estado","created_at","updated_at","cliente_id"],
+    Registros_Horas: ["id","proyecto_id","tarea_id","usuario_id","fecha","horas","descripcion","precio_hora_aplicado","monto_total","estado","created_at","updated_at","cliente_id","horas_trabajadas","horas_a_cobrar"],
     Proyectos:       ["id","nombre","cliente_id","presupuesto_horas","horas_acumuladas","umbral_precio_alto","precio_base","precio_alto","estado","created_at","updated_at"],
     Clientes:        ["id","nombre","email","telefono","activo","created_at","updated_at"],
     Tareas:          ["id","nombre","categoria","activa","created_at"],

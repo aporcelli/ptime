@@ -16,7 +16,10 @@ const config: Config = {
         primary: {
           DEFAULT:    "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          fixed:      "hsl(var(--primary))",
         },
+        heading: "hsl(var(--text-heading))",
+        sub:     "hsl(var(--text-sub))",
         secondary: {
           DEFAULT:    "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
