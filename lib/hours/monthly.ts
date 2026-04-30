@@ -41,8 +41,16 @@ export function repriceMonthlyRecords(
   return sortMonthlyRecords(records).map((record) => {
     const month = record.fecha.slice(0, 7);
     const acumulado = horasTrabajadasPorMes.get(month) ?? 0;
+    const workedHours = record.horas_trabajadas ?? record.horas;
+    const hasPersistedBilling = record.horas_a_cobrar !== undefined && record.horas_trabajadas !== undefined && record.monto_total > 0;
+
+    if (hasPersistedBilling) {
+      horasTrabajadasPorMes.set(month, round4(acumulado + workedHours));
+      return record;
+    }
+
     const recalculated = calculateHoursAmount(
-      record.horas_trabajadas ?? record.horas,
+      workedHours,
       acumulado,
       getPricingConfigForRecord(record, pricingByProject, fallbackConfig),
     );

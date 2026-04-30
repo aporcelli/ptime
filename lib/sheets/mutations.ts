@@ -97,6 +97,11 @@ export async function updateRegistroHoras(ctx: SheetCtx, id: string, data: Parti
   }));
 }
 
+export async function deleteRegistroHoras(ctx: SheetCtx, id: string): Promise<void> {
+  await ensureRegistroHorasHeaders(ctx.sheetId, ctx.accessToken);
+  await deleteRow(ctx, SHEET_RANGES.REGISTROS_HORAS, SHEET_NAMES.REGISTROS_HORAS, id);
+}
+
 export async function upsertConfig(ctx: SheetCtx, clave: string, valor: string): Promise<void> {
   const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, SHEET_RANGES.CONFIGURACIONES);
   const rowIdx = rows.findIndex((r) => r[0] === clave);
