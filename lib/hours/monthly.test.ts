@@ -97,11 +97,26 @@ describe("monthly hours helpers", () => {
     expect(getEligibleInvoiceRecordIds(scopedRows, "2026-04", "other@test")).toEqual(["other-confirmed"]);
   });
 
-  it("reprices month records in sequence using current billing logic for stale legacy rows", () => {
+  it("keeps persisted billing totals instead of recalculating contradictory rows", () => {
+    const persisted = [
+      record("a", "2026-04-01", "confirmado", 682.5, 19.5, 19.5, "c1"),
+      record("b", "2026-04-02", "confirmado", 17.5, 0.3, 0.5, "c1"),
+      record("c", "2026-04-03", "confirmado", 45, 0.5, 1, "c1"),
+      record("d", "2026-04-04", "confirmado", 45, 0.5, 1, "c1"),
+    ];
+
+    expect(summarizeRecords(repriceMonthlyRecords(persisted, {}, cfg))).toMatchObject({
+      totalWorkedHours: 20.8,
+      totalBillableHours: 22,
+      totalAmount: 790,
+    });
+  });
+
+  it("fills missing legacy billing fields in sequence using current billing logic", () => {
     const repriced = repriceMonthlyRecords([
-      record("a", "2026-04-01", "confirmado", 17.5, 19.5, 19.5, "c1"),
-      record("b", "2026-04-02", "confirmado", 17.5, 0.3, 0.3, "c1"),
-      record("c", "2026-04-03", "confirmado", 17.5, 0.5, 0.5, "c1"),
+      record("a", "2026-04-01", "confirmado", 682.5, 19.5, 19.5, "c1"),
+      { ...record("b", "2026-04-02", "confirmado", 0, 0.3, 0.3, "c1"), horas_a_cobrar: undefined, horas_trabajadas: undefined, monto_total: 0 },
+      { ...record("c", "2026-04-03", "confirmado", 0, 0.5, 0.5, "c1"), horas_a_cobrar: undefined, horas_trabajadas: undefined, monto_total: 0 },
     ], {}, cfg);
 
     expect(repriced.map((row) => ({
@@ -111,28 +126,28 @@ describe("monthly hours helpers", () => {
     }))).toEqual([
       { id: "a", horas_a_cobrar: 19.5, monto_total: 682.5 },
       { id: "b", horas_a_cobrar: 0.5, monto_total: 17.5 },
-      { id: "c", horas_a_cobrar: 1, monto_total: 45 },
+      { id: "c", horas_a_cobrar: 1.5, monto_total: 62.5 },
     ]);
 
     expect(summarizeRecords(repriced)).toMatchObject({
       totalWorkedHours: 20.3,
-      totalBillableHours: 21,
-      totalAmount: 745,
+      totalBillableHours: 21.5,
+      totalAmount: 762.5,
     });
   });
 
-  it("calculates April example as monthly aggregate: 61.5h -> 2590 USD", () => {
+  it("sums persisted April per-record charges instead of recomputing aggregate total", () => {
     const aprilRows = [
-      record("base", "2026-04-01", "confirmado", 0, 20, 20, "c1"),
+      record("base", "2026-04-01", "confirmado", 700, 20, 20, "c1"),
       ...Array.from({ length: 83 }, (_, index) =>
-        record(`high-${index}`, `2026-04-${String(2 + Math.floor(index / 4)).padStart(2, "0")}`, "confirmado", 0, 0.5, 0.5, "c1"),
+        record(`high-${index}`, `2026-04-${String(2 + Math.floor(index / 4)).padStart(2, "0")}`, "confirmado", 45, 0.5, 1, "c1"),
       ),
     ];
 
     expect(summarizeRecords(repriceMonthlyRecords(aprilRows, {}, cfg))).toMatchObject({
       totalWorkedHours: 61.5,
-      totalBillableHours: 62,
-      totalAmount: 2590,
+      totalBillableHours: 103,
+      totalAmount: 4435,
     });
   });
 

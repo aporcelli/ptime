@@ -105,14 +105,14 @@ describe("hour save flow runtime normalization", () => {
     expect(getLocalRows(SHEET_RANGES.REGISTROS_HORAS)[0].slice(13, 15)).toEqual(["0.3", "0.5"]);
   });
 
-  it("uses prior raw worked monthly hours to calculate aggregate threshold billing", async () => {
+  it("uses prior raw worked monthly hours to calculate per-record high threshold billing", async () => {
     resetLocalStore({
       [SHEET_RANGES.CLIENTES]: [[clienteId, "Cliente", "cliente@ptime.test", "", "true", "", ""]],
       [SHEET_RANGES.PROYECTOS]: [[proyectoId, "Proyecto", clienteId, "", 0, 20, 35, 45, "activo", "", ""]],
       [SHEET_RANGES.TAREAS]: [[tareaId, "Desarrollo", "General", "true", ""]],
       [SHEET_RANGES.REGISTROS_HORAS]: [
-        ["prev-1", proyectoId, tareaId, "local.dev@ptime.local", "2026-04-01", "19.5", "Primer bloque", "35", "682.5", "confirmado", "", "", clienteId, "19.5", "19.5"],
-        ["prev-2", proyectoId, tareaId, "local.dev@ptime.local", "2026-04-02", "0.3", "Segundo bloque", "35", "17.5", "confirmado", "", "", clienteId, "0.3", "0.5"],
+        ["prev-1", proyectoId, tareaId, "local.dev@ptime.local", "2026-04-01", "20", "Primer bloque", "35", "700", "confirmado", "", "", clienteId, "20", "20"],
+        ["prev-2", proyectoId, tareaId, "local.dev@ptime.local", "2026-04-02", "41.5", "Segundo bloque", "45", "1890", "confirmado", "", "", clienteId, "41.5", "42"],
       ],
     });
 

@@ -1,14 +1,12 @@
 // lib/pricing/calculateHoursAmount.ts
 // ─────────────────────────────────────────────────────────────────────────────
-// Cálculo marginal mensual.
+// Cálculo marginal por registro dentro del mes.
 //
 // REGLA DE NEGOCIO:
 //   - Umbral mensual global: 20h.
 //   - Hasta 20h: precio base, redondeo a múltiplos de 0.5h.
-//   - Pasado 20h: precio alto, redondeo MENSUAL agregado a horas completas.
-//   - Ejemplo mes 61.5h: 20×35 + ceil(41.5)×45 = 700 + 1890 = 2590.
-//   - La función devuelve el delta que aporta el nuevo registro contra el total
-//     mensual antes/después. Así la suma del mes siempre respeta la fórmula.
+//   - Pasado 20h: precio alto, cada registro fraccionario cobra hora completa.
+//   - Si un registro cruza el umbral: parte base en 0.5h, parte alta a entero.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { PricingConfig } from "@/types/entities";
@@ -53,26 +51,21 @@ export function calculateHoursAmount(
 
   const horas = round4(horasNuevas);
   const acum = round4(horasAcumuladasMes);
-  const nextAcum = round4(acum + horas);
-
-  const before = calculateMonthlyBillingSnapshot(acum, config);
-  const after = calculateMonthlyBillingSnapshot(nextAcum, config);
-
   const horasTrabajadasTramo1 = round4(Math.min(Math.max(umbralHoras - acum, 0), horas));
   const horasTrabajadasTramo2 = round4(Math.max(horas - horasTrabajadasTramo1, 0));
 
-  const horasEnTramo1 = round4(after.baseBillableHours - before.baseBillableHours);
-  const horasEnTramo2 = round4(after.highBillableHours - before.highBillableHours);
-  const montoTramo1 = round2(after.baseAmount - before.baseAmount);
-  const montoTramo2 = round2(after.highAmount - before.highAmount);
-  const montoTotal = round2(after.totalAmount - before.totalAmount);
+  const horasEnTramo1 = roundBaseHours(horasTrabajadasTramo1);
+  const horasEnTramo2 = roundHighHours(horasTrabajadasTramo2);
+  const montoTramo1 = round2(horasEnTramo1 * precioBase);
+  const montoTramo2 = round2(horasEnTramo2 * precioAlto);
+  const montoTotal = round2(montoTramo1 + montoTramo2);
   const precioAplicado = horasTrabajadasTramo2 > 0 || horasEnTramo2 > 0 ? precioAlto : precioBase;
 
   return {
     montoTotal,
     precioAplicado,
     horasTrabajadas: horas,
-    horasACobrar: round4(after.totalBillableHours - before.totalBillableHours),
+    horasACobrar: round4(horasEnTramo1 + horasEnTramo2),
     desglose: { horasTrabajadasTramo1, horasTrabajadasTramo2, horasEnTramo1, horasEnTramo2, montoTramo1, montoTramo2 },
   };
 }
@@ -124,17 +117,23 @@ if (import.meta.vitest) {
   const { describe, it, expect } = import.meta.vitest;
   const cfg: PricingConfig = { precioBase: 35, precioAlto: 45, umbralHoras: 20 };
 
-  describe("calculateHoursAmount — regla mensual agregada", () => {
+  describe("calculateHoursAmount — regla por registro", () => {
     it("base hasta 20h: 20×35 = 700", () => {
       const r = calculateHoursAmount(20, 0, cfg);
       expect(r.montoTotal).toBe(700);
       expect(r.horasACobrar).toBe(20);
     });
 
-    it("abril 61.5h: 20×35 + ceil(41.5)×45 = 2590", () => {
+    it("registro 61.5h inicial: parte alta del mismo registro redondea a entero", () => {
       const r = calculateHoursAmount(61.5, 0, cfg);
       expect(r.montoTotal).toBe(2590);
       expect(r.horasACobrar).toBe(62);
+    });
+
+    it("61.5 acumuladas + 0.5 nuevo: cobra 1h alta", () => {
+      const r = calculateHoursAmount(0.5, 61.5, cfg);
+      expect(r.montoTotal).toBe(45);
+      expect(r.horasACobrar).toBe(1);
     });
 
     it("marzo 55h: 20×35 + 35×45 = 2275", () => {

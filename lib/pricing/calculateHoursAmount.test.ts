@@ -4,7 +4,7 @@ import type { PricingConfig } from "@/types/entities";
 
 const cfg: PricingConfig = { precioBase: 35, precioAlto: 45, umbralHoras: 20 };
 
-describe("calculateHoursAmount monthly aggregate billing", () => {
+describe("calculateHoursAmount per-record threshold billing", () => {
   it.each([
     [0.1, 0.5, 17.5],
     [0.3, 0.5, 17.5],
@@ -25,7 +25,7 @@ describe("calculateHoursAmount monthly aggregate billing", () => {
     [1, 1, 45],
     [1.5, 2, 90],
     [41.5, 42, 1890],
-  ])("high segment from threshold %s worked -> ceil monthly high", (worked, billable, amount) => {
+  ])("high segment from threshold %s worked -> per-record integer high", (worked, billable, amount) => {
     const result = calculateHoursAmount(worked, 20, cfg);
 
     expect(result.horasTrabajadas).toBe(worked);
@@ -34,13 +34,32 @@ describe("calculateHoursAmount monthly aggregate billing", () => {
     expect(result.montoTotal).toBe(amount);
   });
 
-  it("uses monthly aggregate high rounding, not per-row high rounding", () => {
+  it("charges each fractional high-segment record even when prior high total is fractional", () => {
     const firstHalf = calculateHoursAmount(0.5, 20, cfg);
     const secondHalf = calculateHoursAmount(0.5, 20.5, cfg);
 
     expect(firstHalf).toMatchObject({ horasACobrar: 1, montoTotal: 45 });
-    expect(secondHalf).toMatchObject({ horasACobrar: 0, montoTotal: 0 });
-    expect(firstHalf.montoTotal + secondHalf.montoTotal).toBe(45);
+    expect(secondHalf).toMatchObject({ horasACobrar: 1, montoTotal: 45 });
+    expect(firstHalf.montoTotal + secondHalf.montoTotal).toBe(90);
+  });
+
+  it("charges 61.5 accumulated + 0.5 new as 1 high billable hour", () => {
+    const result = calculateHoursAmount(0.5, 61.5, cfg);
+
+    expect(result).toMatchObject({
+      horasTrabajadas: 0.5,
+      horasACobrar: 1,
+      precioAplicado: 45,
+      montoTotal: 45,
+    });
+    expect(result.desglose).toMatchObject({
+      horasTrabajadasTramo1: 0,
+      horasTrabajadasTramo2: 0.5,
+      horasEnTramo1: 0,
+      horasEnTramo2: 1,
+      montoTramo1: 0,
+      montoTramo2: 45,
+    });
   });
 
   it("splits crossing entry against monthly aggregate totals", () => {
@@ -60,7 +79,7 @@ describe("calculateHoursAmount monthly aggregate billing", () => {
     });
   });
 
-  it("matches required monthly examples", () => {
+  it("keeps aggregate snapshot available only as a legacy monthly estimate", () => {
     expect(calculateMonthlyBillingSnapshot(61.5, cfg)).toMatchObject({
       baseBillableHours: 20,
       highBillableHours: 42,

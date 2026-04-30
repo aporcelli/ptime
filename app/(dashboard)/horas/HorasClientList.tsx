@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Calendar, Clock, Edit2, Eye, TrendingUp } from "lucide-react";
+import { Calendar, Clock, Edit2, Eye, Trash2, TrendingUp } from "lucide-react";
 import { formatCurrency, formatDateShort, formatHours, formatMonthShort } from "@/lib/utils/index";
 import type { Cliente, PricingConfig, RegistroHoras, Proyecto, Tarea } from "@/types/entities";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import DataTable, { type Column } from "@/components/shared/DataTable";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { markMonthAsInvoiced } from "@/app/actions/hours";
+import { deleteHourAction, markMonthAsInvoiced } from "@/app/actions/hours";
 import {
   getFilteredRecords,
   getMonthInvoiceSummary,
@@ -133,6 +133,19 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
         return;
       }
       setConfirmOpen(false);
+      router.refresh();
+    });
+  }
+
+  function handleDeleteHour(id: string) {
+    if (!window.confirm("¿Borrar este registro de horas? Esta acción resta las horas del proyecto.")) return;
+    setError(null);
+    startTransition(async () => {
+      const result = await deleteHourAction(id);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
       router.refresh();
     });
   }
@@ -389,6 +402,19 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
             </Button>
             <Button variant="ghost" size="icon" onClick={() => router.push(`/horas/${r.id}/editar`)} title="Editar">
               <Edit2 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(event) => {
+                event.stopPropagation();
+                handleDeleteHour(r.id);
+              }}
+              title="Borrar"
+              disabled={isPending}
+              className="text-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         )}

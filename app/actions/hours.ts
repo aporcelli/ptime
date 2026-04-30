@@ -7,7 +7,7 @@ import { hourFormSchema }    from "@/lib/schemas/hour";
 import { calculateHoursAmount } from "@/lib/pricing/calculateHoursAmount";
 import { getPricingConfigForProject } from "@/app/actions/config";
 import { getProyectoById, getRegistrosHoras } from "@/lib/sheets/queries";
-import { updateRegistroEstado, updateRegistroHoras, updateProyectoHorasAcumuladas } from "@/lib/sheets/mutations";
+import { deleteRegistroHoras, updateRegistroEstado, updateRegistroHoras, updateProyectoHorasAcumuladas } from "@/lib/sheets/mutations";
 import { sanitize }          from "@/lib/utils/sanitize";
 import { generateUUID }      from "@/lib/utils/index";
 import type { ActionResult, HoraEstado, RegistroHoras } from "@/types/entities";
@@ -146,5 +146,39 @@ export async function updateHourAction(id: string, rawData: unknown): Promise<Ac
   } catch (e: unknown) {
     console.error("[updateHourAction] Error:", e);
     return actionError(e, "Error desconocido al actualizar");
+  }
+}
+
+export async function deleteHourAction(id: string): Promise<ActionResult> {
+  try {
+    const user = await getActionUser();
+    if (!user) return { success: false, error: "No autenticado" };
+    const usuarioId = user.email ?? user.id;
+    if (!usuarioId) return { success: false, error: "No autenticado" };
+
+    const ctx = await getSheetCtx();
+    const registros = await getRegistrosHoras(ctx, { usuarioId });
+    const registro = registros.find((r) => r.id === id);
+    if (!registro) return { success: false, error: "Registro no encontrado" };
+
+    await deleteRegistroHoras(ctx, id);
+
+    const proyecto = await getProyectoById(ctx, registro.proyecto_id);
+    if (proyecto) {
+      await updateProyectoHorasAcumuladas(
+        ctx,
+        registro.proyecto_id,
+        applyProjectHourDelta(proyecto.horas_acumuladas, -registro.horas),
+      );
+    }
+
+    revalidatePath("/horas");
+    revalidatePath("/dashboard");
+    revalidatePath("/reportes");
+    revalidatePath(`/horas/${id}`);
+    return actionDone();
+  } catch (e: unknown) {
+    console.error("[deleteHourAction] Error:", e);
+    return actionError(e, "Error al eliminar registro");
   }
 }
