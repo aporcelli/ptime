@@ -4,6 +4,7 @@
 // NO usa Service Account — las credenciales son del propio usuario.
 // ─────────────────────────────────────────────────────────────────────────────
 import { google, sheets_v4 } from "googleapis";
+import { SHEET_HEADERS, SHEET_NAMES } from "@/lib/constants";
 import { LOCAL_DEV_ACCESS_TOKEN } from "@/lib/env/dev-access";
 import { appendLocalRow, clearLocalRow, getLocalRows, updateLocalRow } from "./local-store";
 
@@ -37,6 +38,43 @@ export async function getSheetRows(
   });
   const rows = res.data.values ?? [];
   return rows.slice(1); // Saltar fila de encabezados
+}
+
+export function mergeSheetHeaders(current: unknown[], expected: readonly string[]): string[] {
+  const next = [...current.map((value) => String(value ?? ""))];
+  expected.forEach((header, index) => {
+    if (!next[index]) next[index] = header;
+  });
+  return next;
+}
+
+export async function ensureSheetHeaders(
+  spreadsheetId: string,
+  accessToken: string,
+  sheetName: string,
+  expectedHeaders: readonly string[],
+): Promise<void> {
+  if (accessToken === LOCAL_DEV_ACCESS_TOKEN) return;
+  const sheets = createSheetsClient(accessToken);
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: `${sheetName}!1:1`,
+    valueRenderOption: "UNFORMATTED_VALUE",
+  });
+  const current = res.data.values?.[0] ?? [];
+  const merged = mergeSheetHeaders(current, expectedHeaders);
+  const needsUpdate = merged.length !== current.length || merged.some((value, index) => value !== String(current[index] ?? ""));
+  if (!needsUpdate) return;
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range: `${sheetName}!A1`,
+    valueInputOption: "RAW",
+    requestBody: { values: [merged] },
+  });
+}
+
+export async function ensureRegistroHorasHeaders(spreadsheetId: string, accessToken: string): Promise<void> {
+  await ensureSheetHeaders(spreadsheetId, accessToken, SHEET_NAMES.REGISTROS_HORAS, SHEET_HEADERS.REGISTROS_HORAS);
 }
 
 export async function getSheetRowsWithHeaders(
@@ -143,11 +181,11 @@ export async function initializeSpreadsheet(
   if (accessToken === LOCAL_DEV_ACCESS_TOKEN) return;
   const sheets  = createSheetsClient(accessToken);
   const headers = {
-    Registros_Horas: ["id","proyecto_id","tarea_id","usuario_id","fecha","horas","descripcion","precio_hora_aplicado","monto_total","estado","created_at","updated_at","cliente_id","horas_trabajadas","horas_a_cobrar"],
-    Proyectos:       ["id","nombre","cliente_id","presupuesto_horas","horas_acumuladas","umbral_precio_alto","precio_base","precio_alto","estado","created_at","updated_at"],
-    Clientes:        ["id","nombre","email","telefono","activo","created_at","updated_at"],
-    Tareas:          ["id","nombre","categoria","activa","created_at"],
-    Configuraciones: ["clave","valor","updated_at"],
+    Registros_Horas: SHEET_HEADERS.REGISTROS_HORAS,
+    Proyectos:       SHEET_HEADERS.PROYECTOS,
+    Clientes:        SHEET_HEADERS.CLIENTES,
+    Tareas:          SHEET_HEADERS.TAREAS,
+    Configuraciones: SHEET_HEADERS.CONFIGURACIONES,
     Usuarios:        ["id","nombre","email","rol","activo","ultimo_acceso","sheet_id"],
     Workspace_Members: ["email","sheet_id","rol","invited_by","created_at","updated_at"],
   };
@@ -177,8 +215,10 @@ export async function initializeSpreadsheet(
         spreadsheetId,
         range:            `${nombre}!A1`,
         valueInputOption: "RAW",
-        requestBody: { values: [cols] },
+        requestBody: { values: [[...cols]] },
       });
+    } else {
+      await ensureSheetHeaders(spreadsheetId, accessToken, nombre, cols);
     }
   }
 
