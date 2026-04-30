@@ -5,6 +5,36 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.5] — 2026-04-28
+
+### 🚀 Facturación, desarrollo local y reportes
+
+#### Agregado
+- **Modo local sin OAuth**: `LOCAL_DEV_ACCESS=true npm run dev` permite probar la app en `localhost` sin depender del callback OAuth de Google. El bypass está bloqueado por diseño en producción.
+- **Facturación mensual corregida**: cálculo por usuario/mes con primeras 20h a precio base y tramo alto posterior al umbral.
+- **Redondeo facturable**: en tramo base las fracciones facturan mínimo 0.5h; en tramo alto cualquier fracción redondea a hora completa.
+- **Trazabilidad de horas**: se diferencian `horas_trabajadas` y `horas_a_cobrar` para no mezclar tiempo real con tiempo facturable.
+- **Mis Horas mensual**: filtro por último mes, mes anterior y ver todo; totales alineados al filtro seleccionado.
+- **Cierre mensual**: acción segura para marcar como `facturado` el mes seleccionado sin tocar registros rechazados o ya facturados.
+- **Cotización BNA**: endpoint `/api/bna-dolar` y parser para mostrar dólar oficial venta del Banco Nación en la tarjeta “A cobrar”.
+- **Tests ampliados**: cobertura Vitest para pricing, save-flow, serializers, BNA, fechas, helpers de horas, acciones y acceso local.
+
+#### Modificado / Mejorado
+- **PDF de reportes**: mejoras visuales en logos TuCloud, salto de página para `Detalle de registros`, fechas DD-MM-AA, títulos, leyendas y layout de tablas.
+- **Clientes**: se permite crear clientes con emails repetidos; la identidad de cliente depende del `id`, no del email.
+- **React Flight / Server Actions**: resultados y datos de Sheets se normalizan para evitar objetos no serializables, `undefined` y `NaN` en límites cliente-servidor.
+- **UI estructural**: nuevos componentes de estructura/tokenización para paneles, tarjetas y estados.
+- **ESLint**: `.eslintrc.json` agregado para evitar prompts interactivos en `npm run lint`.
+- **Versión visible**: Sidebar, `package.json` y `package-lock.json` sincronizados en **v1.2.5**.
+
+#### Verificación
+- `npm test -- --run`: 56 tests pasando.
+- `npx tsc --noEmit`: OK.
+- `npm run lint`: OK con warnings no bloqueantes de imágenes/alt text.
+- `npm run build`: OK.
+
+---
+
 ## [1.2.2] — 2026-04-23
 
 ### 🚀 Refactor Mayor: Persistencia, UI/UX y Componentes

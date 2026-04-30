@@ -8,10 +8,13 @@
 - **Google Sheets como DB:** Utiliza una hoja de cálculo como backend, permitiendo a los administradores editar datos directamente o visualizar reportes crudos sin salir de Google.
 - **Autenticación Segura:** NextAuth.js integrado con Google OAuth 2.0 y control de acceso basado en roles (RBAC) para proteger zonas administrativas. Soporte para JWTs Edge-compatible.
 - **Experiencia de Usuario Moderna**: Componentes Shadcn/UI reescritos y optimizados para Tailwind CSS v3 (Combobox, Popover, Card, Button, etc.). Diseño completamente migrado a tokens semánticos, ofreciendo un **Dark/Light Mode unificado, instantáneo y consistente** en toda la aplicación. Nuevos efectos "glass" y animaciones "slide-up" mejoran la interfaz.
-- **Tarifas y Facturación Escalonada:** Algoritmo dinámico que calcula los precios de las horas basado en un umbral global mensual.
-- **Módulo BI / Reportes:** Dashboard completo y exportación en formato PDF con el branding y gráficos interactivos (`react-pdf` y Recharts).
-- **Gestión Administrativa Completa:** CRUD de Clientes, Proyectos, Tareas, Configuraciones y Usuarios, con mejora en el filtrado y reseteo automático de proyectos en la carga de horas. Soporte para edición de registros de horas existentes.
+- **Tarifas y Facturación Escalonada:** Algoritmo mensual por usuario: primeras 20h a precio base, fracciones del tramo base redondeadas a 0.5h y tramo alto redondeado a hora completa. Se guardan horas trabajadas y horas facturables por separado.
+- **Mis Horas con Cierre Mensual:** Vista por último mes, mes anterior o todo. Totales de horas trabajadas, horas facturables, monto USD, conversión manual ARS/USD, cotización BNA oficial y acción segura para marcar un mes como `facturado`.
+- **Módulo BI / Reportes:** Dashboard completo y exportación PDF con branding TuCloud, fechas DD-MM-AA, layouts optimizados y gráficos interactivos (`react-pdf` y Recharts).
+- **Gestión Administrativa Completa:** CRUD de Clientes, Proyectos, Tareas, Configuraciones y Usuarios. Los clientes pueden compartir email si el negocio lo requiere; la identidad real sigue siendo el `id` del cliente.
 - **Server Actions con Seguridad Mejorada**: Configuración de `allowedOrigins` para `ptime.tucloud.pro` y `*.ptime.tucloud.pro`, garantizando el correcto funcionamiento en producción.
+- **Modo Local sin OAuth**: Para desarrollo se puede entrar en localhost sin OAuth con `LOCAL_DEV_ACCESS=true`; este bypass queda bloqueado en producción.
+- **Suite de Tests**: Vitest cubre pricing, horas, serialización, BNA, acciones y helpers críticos.
 
 ## 📦 Tecnologías
 
@@ -56,6 +59,53 @@ npm run dev
 
 La aplicación estará corriendo en `http://localhost:3000`.
 
+### Modo local sin OAuth
+
+Para probar en localhost sin depender del callback OAuth de Google:
+
+```bash
+LOCAL_DEV_ACCESS=true npm run dev
+```
+
+Reglas de seguridad:
+- Solo funciona con `NODE_ENV !== "production"`.
+- Solo funciona en `localhost` o `127.0.0.1`.
+- Aunque la variable exista en Vercel/producción, el acceso local queda bloqueado.
+
+### Verificación local
+
+```bash
+npm run test:run
+npx tsc --noEmit
+npm run lint
+npm run build
+```
+
+`npm run test:run` usa Vitest en modo no-watch.
+
+## 💵 Reglas de facturación
+
+Ptime calcula costos por usuario y por mes:
+
+- Primeras **20h mensuales**: precio base del proyecto/configuración.
+- Después de **20h mensuales**: precio alto.
+- En tramo base, cualquier fracción menor a 0.5h se redondea a **0.5h**.
+- En tramo alto, cualquier fracción se redondea a la **siguiente hora completa**.
+- `horas_trabajadas` conserva lo cargado por el usuario.
+- `horas_a_cobrar` conserva lo facturable después del redondeo.
+
+Ejemplos:
+
+| Acumulado mensual | Nueva carga | Tramo | Horas facturables |
+|---:|---:|---|---:|
+| 0h | 0.1h | Base | 0.5h |
+| 0h | 0.5h | Base | 0.5h |
+| 19.5h | 0.5h | Base | 0.5h |
+| 20h | 0.5h | Alto | 1h |
+| 20h | 2.5h | Alto | 3h |
+
+En **Mis Horas**, la vista default muestra el último mes con registros. También hay filtro de mes anterior y ver todo. La acción “Marcar mes como facturado” solo opera sobre el mes seleccionado y no toca registros rechazados ni ya facturados.
+
 ## 🚢 Despliegue (Deploy)
 
 El proyecto está preparado para desplegarse fácilmente en **Vercel**.
@@ -82,7 +132,7 @@ Esta es la organización principal de los directorios de Ptime (Next.js 14 App R
 │   ├── (auth)/           # Rutas de autenticación (login)
 │   ├── (dashboard)/      # Vistas protegidas (panel, horas, reportes, admin)
 │   ├── actions/          # Server Actions para mutaciones (CRUD)
-│   └── api/              # Endpoints API (health, auth)
+│   └── api/              # Endpoints API (health, auth, bna-dolar)
 ├── components/           # Componentes de React (Shadcn/UI reescritos)
 │   ├── admin/            # Componentes específicos de administración
 │   ├── charts/           # Gráficos con Recharts
@@ -92,10 +142,13 @@ Esta es la organización principal de los directorios de Ptime (Next.js 14 App R
 │   └── shared/           # Componentes reutilizables (DataTables, Botones)
 ├── hooks/                # Custom hooks (e.g. usePricingPreview)
 ├── lib/                  # Lógica de negocio y utilidades
+│   ├── actions/          # Helpers comunes para Server Actions
+│   ├── env/              # Modo local sin OAuth y guards de entorno
+│   ├── hours/            # Save-flow, accounting, mensualización y moneda
 │   ├── pricing/          # Algoritmo de cálculo de precios y unit tests
 │   ├── schemas/          # Esquemas de validación Zod
-│   ├── sheets/           # Cliente y queries hacia la API de Google Sheets (incluye master-edge.ts)
-│   └── utils/            # Utilidades generales
+│   ├── sheets/           # Cliente, queries, mutations y serializers Google Sheets
+│   └── utils/            # Utilidades generales y formateo
 ├── public/               # Archivos estáticos y logos (e.g., logo_tucloud_white.png)
 ├── types/                # Definiciones de TypeScript e interfaces
 ├── auth.ts               # Configuración de NextAuth.js (integración con MASTER_SHEET_ID)
