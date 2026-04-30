@@ -74,7 +74,11 @@ export async function ensureSheetHeaders(
 }
 
 export async function ensureRegistroHorasHeaders(spreadsheetId: string, accessToken: string): Promise<void> {
-  await ensureSheetHeaders(spreadsheetId, accessToken, SHEET_NAMES.REGISTROS_HORAS, SHEET_HEADERS.REGISTROS_HORAS);
+  try {
+    await ensureSheetHeaders(spreadsheetId, accessToken, SHEET_NAMES.REGISTROS_HORAS, SHEET_HEADERS.REGISTROS_HORAS);
+  } catch (error) {
+    console.warn("[ensureRegistroHorasHeaders] No se pudieron migrar headers; se continúa sin bloquear guardado", error);
+  }
 }
 
 export async function getSheetRowsWithHeaders(
