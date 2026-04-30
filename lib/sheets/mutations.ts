@@ -1,5 +1,5 @@
 // lib/sheets/mutations.ts
-import { appendSheetRow, getSheetRows, updateSheetRow, clearSheetRow } from "./client";
+import { appendSheetRow, ensureRegistroHorasHeaders, getSheetRows, updateSheetRow, clearSheetRow } from "./client";
 import { SHEET_NAMES, SHEET_RANGES } from "@/lib/constants";
 import type { Cliente, Proyecto, Tarea, RegistroHoras, WorkspaceMember, WorkspaceMemberRol } from "@/types/entities";
 import { parseRegistroHorasRow, serializeRegistroHorasRow } from "./serializers";
@@ -53,12 +53,14 @@ export async function createTarea(ctx: SheetCtx, data: Omit<Tarea, "created_at">
 }
 
 export async function createRegistroHoras(ctx: SheetCtx, data: Omit<RegistroHoras, "created_at" | "updated_at">): Promise<void> {
+  await ensureRegistroHorasHeaders(ctx.sheetId, ctx.accessToken);
   const ts = now();
   await appendSheetRow(ctx.sheetId, ctx.accessToken, SHEET_RANGES.REGISTROS_HORAS,
     serializeRegistroHorasRow(data, { created_at: ts, updated_at: ts }));
 }
 
 export async function updateRegistroEstado(ctx: SheetCtx, id: string, estado: RegistroHoras["estado"]): Promise<void> {
+  await ensureRegistroHorasHeaders(ctx.sheetId, ctx.accessToken);
   const rowNum = await findRowNumber(ctx, SHEET_RANGES.REGISTROS_HORAS, id);
   if (!rowNum) throw new Error(`Registro ${id} no encontrado`);
   const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, SHEET_RANGES.REGISTROS_HORAS);
@@ -69,6 +71,7 @@ export async function updateRegistroEstado(ctx: SheetCtx, id: string, estado: Re
 }
 
 export async function updateRegistroHoras(ctx: SheetCtx, id: string, data: Partial<Omit<RegistroHoras, "id" | "created_at" | "updated_at">>): Promise<void> {
+  await ensureRegistroHorasHeaders(ctx.sheetId, ctx.accessToken);
   const rowNum = await findRowNumber(ctx, SHEET_RANGES.REGISTROS_HORAS, id);
   if (!rowNum) throw new Error(`Registro ${id} no encontrado`);
   const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, SHEET_RANGES.REGISTROS_HORAS);

@@ -1,5 +1,5 @@
 // lib/sheets/queries.ts
-import { getSheetRows } from "./client";
+import { ensureRegistroHorasHeaders, getSheetRows } from "./client";
 import { SHEET_RANGES } from "@/lib/constants";
 import type { Cliente, Proyecto, Tarea, RegistroHoras, AppConfig, ReporteFilters, WorkspaceMember, WorkspaceMemberRol } from "@/types/entities";
 import { PRICING_DEFAULTS } from "@/lib/constants";
@@ -45,6 +45,7 @@ export async function getTareas(ctx: SheetCtx, soloActivas = false): Promise<Tar
 }
 
 export async function getRegistrosHoras(ctx: SheetCtx, filters: ReporteFilters = {}): Promise<RegistroHoras[]> {
+  await ensureRegistroHorasHeaders(ctx.sheetId, ctx.accessToken);
   const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, SHEET_RANGES.REGISTROS_HORAS);
   let list = rows.filter((r) => r[0]).map((r) => parseRegistroHorasRow(r));
   if (filters.fechaDesde) list = list.filter((r) => r.fecha >= filters.fechaDesde!);
