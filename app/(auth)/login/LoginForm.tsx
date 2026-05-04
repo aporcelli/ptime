@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { safeCallbackUrl } from "@/lib/utils/safe-callback-url";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 
@@ -39,7 +40,7 @@ export default function LoginForm({ callbackUrl }: Props) {
       return;
     }
 
-    router.push(callbackUrl ?? "/dashboard");
+    router.push(safeCallbackUrl(callbackUrl));
     router.refresh();
   }
 

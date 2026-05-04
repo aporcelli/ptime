@@ -56,7 +56,8 @@ async function refreshGoogleToken(refreshToken: string): Promise<{
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  secret: process.env.NEXTAUTH_SECRET,
+  trustHost: process.env.AUTH_TRUST_HOST === "true" || process.env.VERCEL === "1",
+  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
   session: { strategy: "jwt", maxAge: 8 * 60 * 60 },
   pages:   { signIn: "/login", error: "/login" },
 
