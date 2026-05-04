@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth, signIn } from "@/auth";
+import { safeCallbackUrl } from "@/lib/utils/safe-callback-url";
 
 export const metadata: Metadata = { title: "Ingresar" };
 
@@ -12,12 +13,14 @@ export default async function LoginPage({
   searchParams: { callbackUrl?: string; error?: string };
 }) {
   const session = await auth();
-  if (session?.user) redirect(searchParams.callbackUrl ?? "/dashboard");
+  const callbackUrl = safeCallbackUrl(searchParams.callbackUrl);
+  if (session?.user) redirect(callbackUrl);
 
   const errorMessages: Record<string, string> = {
     OAuthAccountNotLinked: "Esta cuenta ya está vinculada con otro método de login.",
     AccessDenied:          "Acceso denegado.",
     TokenExpired:          "Tu sesión con Google expiró. Volvé a iniciar sesión para renovar el acceso.",
+    Configuration:         "Configuración OAuth inválida en producción. Revisá variables AUTH/NEXTAUTH y redirect URI de Google.",
     Default:               "Ocurrió un error al iniciar sesión.",
   };
   const errorMsg = searchParams.error ? (errorMessages[searchParams.error] ?? errorMessages.Default) : null;
@@ -52,7 +55,7 @@ export default async function LoginPage({
           {/* Google OAuth button — usa Server Action */}
           <form action={async () => {
             "use server";
-            await signIn("google", { redirectTo: searchParams.callbackUrl ?? "/dashboard" });
+            await signIn("google", { redirectTo: callbackUrl });
           }}>
             <button
               type="submit"

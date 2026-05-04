@@ -47,8 +47,8 @@
    ```
 4. Configura las variables en `.env`:
    - `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET`: Obtenidos de tu proyecto en GCP.
-   - `NEXTAUTH_SECRET`: Genera uno con `openssl rand -base64 32`.
-   - `NEXTAUTH_URL`: `http://localhost:3000` (para desarrollo local).
+   - `AUTH_SECRET` (o `NEXTAUTH_SECRET`): Genera uno con `openssl rand -base64 32`.
+   - `AUTH_URL` (o `NEXTAUTH_URL`): `http://localhost:3000` en desarrollo local.
    - `MASTER_SHEET_ID`: El ID de tu hoja maestra de Google Sheets (donde se gestionan los usuarios y workspaces).
 
 ### Arrancar la aplicación
@@ -114,7 +114,11 @@ Asegúrate de:
 1. Importar el repositorio en Vercel.
 2. Configurar las variables de entorno de producción (incluyendo `MASTER_SHEET_ID`).
 3. Actualizar la URI de redirección autorizada en Google Cloud Console con el dominio de tu Vercel (ej: `https://tu-proyecto.vercel.app/api/auth/callback/google` o `https://ptime.tucloud.pro/api/auth/callback/google` si usas el dominio oficial).
-4. Asegurarte que los `allowedOrigins` en `next.config.mjs` incluyan tu dominio de producción para Server Actions.
+4. Configurar variables de Auth en Vercel para producción:
+   - `AUTH_SECRET` (recomendado) y opcionalmente `NEXTAUTH_SECRET` por compatibilidad.
+   - `AUTH_URL` (o `NEXTAUTH_URL`) exactamente con el dominio productivo canónico (`https://ptime.tucloud.pro`).
+   - `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` en el environment Production.
+5. Asegurarte que los `allowedOrigins` en `next.config.mjs` incluyan tu dominio de producción para Server Actions.
 
 Para más detalles, revisa el [CHANGELOG.md](./CHANGELOG.md).
 

@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 
 const isDev = process.env.NODE_ENV === "development";
+const serverActionAllowedOrigins = isDev
+  ? ["localhost:3000", "127.0.0.1:3000", "ptime.tucloud.pro", "ptime.vercel.app"]
+  : ["ptime.tucloud.pro", "www.ptime.tucloud.pro", "ptime.vercel.app"];
 
 const nextConfig = {
   reactStrictMode: true,
@@ -8,12 +11,15 @@ const nextConfig = {
 
   experimental: {
     serverActions: {
-      allowedOrigins: ["localhost:3000", "ptime.tucloud.pro", "*.ptime.tucloud.pro", "*.vercel.app", "*.ptime.app", "ptime.vercel.app"],
+      allowedOrigins: serverActionAllowedOrigins,
     },
   },
 
   images: {
-    remotePatterns: [{ protocol: "https", hostname: "**" }],
+    remotePatterns: [
+      { protocol: "https", hostname: "lh3.googleusercontent.com" },
+      { protocol: "https", hostname: "avatars.githubusercontent.com" },
+    ],
   },
 
   // ── Security Headers ──────────────────────────────────────────────────────
