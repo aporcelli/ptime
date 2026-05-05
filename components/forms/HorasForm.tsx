@@ -10,6 +10,7 @@ import { previewMonto } from "@/lib/pricing/calculateHoursAmount";
 import { createProyectoAction } from "@/app/actions/projects";
 import { createTareaAction } from "@/app/actions/tasks";
 import { createClienteAction } from "@/app/actions/clients";
+import { createHour, updateHourAction } from "@/app/actions/hours";
 import { formatCurrency } from "@/lib/utils/index";
 import type { Tarea, Proyecto, Cliente, AppConfig } from "@/types/entities";
 
@@ -164,40 +165,24 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
     setServerError(null);
 
     try {
-      const payload = initialData
-        ? { id: initialData.id, ...data }
-        : data;
+      const result = initialData
+        ? await updateHourAction(initialData.id, data)
+        : await createHour(data);
 
-      const res = await fetch("/api/horas", {
-        method: initialData ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.status === 401) {
-        router.push("/login");
-        return;
-      }
-
-      const contentType = res.headers.get("content-type") || "";
-      const isJson = contentType.includes("application/json");
-      const json = isJson ? await res.json() : null;
-
-      if (!res.ok || !json?.success) {
+      if (!result.success) {
         setStatus("error");
 
-        if (json?.error === "NO_SHEET_CONFIGURED") {
+        if (result.error === "NO_SESSION" || result.error === "No autenticado") {
+          router.push("/login");
+          return;
+        }
+
+        if (result.error === "NO_SHEET_CONFIGURED") {
           setServerError("Tu workspace no está configurado. Abrí Setup y vinculá tu Google Sheet.");
           return;
         }
 
-        if (!isJson) {
-          const bodyText = await res.text().catch(() => "");
-          setServerError(`Error del servidor (${res.status}). ${bodyText.slice(0, 120) || "Respuesta no JSON"}`);
-          return;
-        }
-
-        setServerError(json?.error ?? "Error del servidor");
+        setServerError(result.error || "Error del servidor");
         return;
       }
 
