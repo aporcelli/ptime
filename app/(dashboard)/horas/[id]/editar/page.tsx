@@ -41,7 +41,7 @@ export default async function EditarHoraPage({ params }: { params: { id: string 
   if (!proyOrig) {
     const pViejos = await getProyectos(ctx);
     const proj = pViejos.find(p => p.id === registro.proyecto_id);
-    if (proj) proyectos.push(proj);
+    if (proj) proyectos = [...proyectos, proj];
   }
 
   // Mes de la fecha original
