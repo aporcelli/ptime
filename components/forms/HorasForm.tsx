@@ -198,8 +198,11 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
       }
 
       setStatus("success");
-      router.refresh();
       setTimeout(() => {
+        if (typeof window !== "undefined") {
+          window.location.href = "/horas";
+          return;
+        }
         router.push("/horas");
       }, 800);
     } catch (err: any) {
