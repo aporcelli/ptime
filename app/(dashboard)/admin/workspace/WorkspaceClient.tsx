@@ -124,7 +124,7 @@ export default function WorkspaceClient({ members: initMembers, currentUserEmail
           <ul className="divide-y divide-outline-variant/10">
             {members.map((m) => {
               const cfg = ROL_CONFIG[m.rol] || ROL_CONFIG.VIEWER;
-              const isMe = m.email === currentUserEmail;
+              const isMe = m.email.toLowerCase() === currentUserEmail.toLowerCase();
               return (
                 <li key={m.email} className="flex items-center gap-3 px-5 py-3 hover:bg-surface-low transition-colors">
                   {/* Avatar inicial */}
