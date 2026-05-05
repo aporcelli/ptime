@@ -54,6 +54,7 @@ export default async function NuevaHoraPage() {
         proyectos={proyectos}
         defaultConfig={config}
         horasAcumuladasMes={horasAcumuladasMes}
+        sheetId={ctx.sheetId}
       />
     </div>
   );
