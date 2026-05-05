@@ -39,7 +39,6 @@ export default async function ConfiguracionPage() {
             </div>
             <form action={async () => {
               "use server";
-              const { cookies } = await import("next/headers");
               cookies().delete("ptime-sheet-id");
             }}>
               <button type="submit"

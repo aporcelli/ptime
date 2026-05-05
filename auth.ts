@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import Google   from "next-auth/providers/google";
+import { findSharedSheetForEmailEdge } from "@/lib/sheets/master-edge";
 
 declare module "next-auth" {
   interface Session {
@@ -98,7 +99,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // Usamos la versión Edge-compatible (sin googleapis pesado).
         if (user.email) {
           try {
-            const { findSharedSheetForEmailEdge } = await import("@/lib/sheets/master-edge");
             const persisted = await findSharedSheetForEmailEdge(user.email);
             if (persisted) {
               token.sheetId = persisted;
