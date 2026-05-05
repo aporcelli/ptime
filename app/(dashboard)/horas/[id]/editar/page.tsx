@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getTareas, getProyectos, getClientes, getRegistrosHoras, getAppConfig } from "@/lib/sheets/queries";
+import { getTareas, getProyectos, getClientes, getRegistrosHoras, getAppConfig, getRegistroById } from "@/lib/sheets/queries";
 import { getPageCtx } from "@/lib/sheets/getPageCtx";
 import { auth } from "@/auth";
 import HorasForm from "@/components/forms/HorasForm";
@@ -14,16 +14,23 @@ export default async function EditarHoraPage({ params }: { params: { id: string 
     const session = await auth();
     const usuarioId = session?.user?.email ?? session?.user?.id ?? "";
 
-    let clientes, tareas, proyectos, config, registrosMes;
+    let clientes, tareas, proyectos, config, registrosMes, registroTarget;
 
     try {
-      [clientes, tareas, proyectos, config, registrosMes] = await Promise.all([
+      const [resClientes, resTareas, resProyectos, resConfig, resRegistros, resRegistroTarget] = await Promise.all([
         getClientes(ctx, true),
         getTareas(ctx, true),
         getProyectos(ctx, { soloActivos: true }),
         getAppConfig(ctx),
         getRegistrosHoras(ctx, { usuarioId }),
+        getRegistroById(ctx, params.id),
       ]);
+      clientes = resClientes;
+      tareas = resTareas;
+      proyectos = resProyectos;
+      config = resConfig;
+      registrosMes = resRegistros;
+      registroTarget = resRegistroTarget;
     } catch (error) {
       console.error("[EditarHoraPage] Error cargando datos de edición", { id: params.id, error });
       return (
@@ -37,7 +44,7 @@ export default async function EditarHoraPage({ params }: { params: { id: string 
       );
     }
 
-    const registro = registrosMes.find((r) => r.id === params.id) ?? null;
+    const registro = registroTarget ?? null;
 
     if (!registro) {
       return (

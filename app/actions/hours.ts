@@ -103,8 +103,9 @@ export async function updateHourAction(id: string, rawData: unknown): Promise<Ac
     const mes = data.fecha.slice(0, 7);
     const registrosMes = await getRegistrosHoras(ctx, { usuarioId });
     
-    // Ojo: Restamos las horas actuales de *este* registro del acumulado para no contarlas doble
-    const currentRegistro = registrosMes.find(r => r.id === id);
+    // Ojo: Traemos el registro usando queries importadas dinámicamente para evitar dependencias circulares.
+    const { getRegistroById } = await import("@/lib/sheets/queries");
+    const currentRegistro = await getRegistroById(ctx, id);
     if (!currentRegistro) return { success: false, error: "Registro no encontrado" };
 
     const horasAcumuladasMes = getMonthlyWorkedHoursAccumulated(registrosMes, mes, id);
