@@ -82,7 +82,7 @@ export async function getWorkspaceMembers(ctx: SheetCtx): Promise<WorkspaceMembe
   const members = rows.filter((r) => r[0]).map((r) => ({
     email:      String(r[0] ?? "").trim().toLowerCase(),
     sheet_id:   String(r[1] ?? ""),
-    rol:        (r[2] ?? "COLABORADOR") as WorkspaceMemberRol,
+    rol:        String(r[2] ?? "COLABORADOR").trim().toUpperCase() as WorkspaceMemberRol,
     invited_by: String(r[3] ?? ""),
     created_at: String(r[4] ?? ""),
     updated_at: String(r[5] ?? ""),
