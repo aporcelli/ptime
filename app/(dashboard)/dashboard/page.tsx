@@ -25,7 +25,6 @@ import { DataPanel, MetricCard, PageShell, SectionCard, StatusPill } from "@/com
 import { repriceMonthlyRecords, summarizeRecords } from "@/lib/hours/monthly";
 
 export const metadata: Metadata = { title: "Dashboard" };
-export const revalidate = 300;
 
 export default async function DashboardPage() {
   const session = await auth();
