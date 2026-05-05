@@ -173,6 +173,7 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
         return;
       }
       setStatus("success");
+      router.refresh();
       setTimeout(() => router.push("/horas"), 1200);
     } catch (err: any) {
       setStatus("error");

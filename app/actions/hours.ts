@@ -35,8 +35,8 @@ export async function createHour(rawData: unknown): Promise<ActionResult<Registr
     });
 
     if (result.success) {
-      revalidatePath("/horas");
-      revalidatePath("/dashboard");
+      // revalidatePath("/horas");
+      // revalidatePath("/dashboard");
     }
 
     return result;
@@ -52,9 +52,9 @@ export async function changeHourStatus(id: string, estado: HoraEstado): Promise<
     if (!user) return { success: false, error: "No autenticado" };
     const ctx = await getSheetCtx();
     await updateRegistroEstado(ctx, id, estado);
-    revalidatePath("/horas");
-    revalidatePath("/dashboard");
-    revalidatePath("/reportes");
+    // revalidatePath("/horas");
+    // revalidatePath("/dashboard");
+    // revalidatePath("/reportes");
     return actionDone();
   } catch (e) {
     return actionError(e, "Error al cambiar estado");
@@ -140,8 +140,8 @@ export async function updateHourAction(id: string, rawData: unknown): Promise<Ac
       }
     }
 
-    revalidatePath("/horas", "layout");
-    revalidatePath("/dashboard", "layout");
+    // revalidatePath("/horas", "layout");
+    // revalidatePath("/dashboard", "layout");
     return actionDone();
   } catch (e: unknown) {
     console.error("[updateHourAction] Error:", e);
@@ -172,10 +172,10 @@ export async function deleteHourAction(id: string): Promise<ActionResult> {
       );
     }
 
-    revalidatePath("/horas");
-    revalidatePath("/dashboard");
-    revalidatePath("/reportes");
-    revalidatePath(`/horas/${id}`);
+    // revalidatePath("/horas");
+    // revalidatePath("/dashboard");
+    // revalidatePath("/reportes");
+    // revalidatePath(`/horas/${id}`);
     return actionDone();
   } catch (e: unknown) {
     console.error("[deleteHourAction] Error:", e);
