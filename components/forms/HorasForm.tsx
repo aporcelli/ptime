@@ -164,14 +164,9 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
     setServerError(null);
 
     try {
-      const sheetId = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("ptime-sheet-id="))
-        ?.split("=")[1];
-
       const payload = initialData
-        ? { id: initialData.id, ...data, sheetId }
-        : { ...data, sheetId };
+        ? { id: initialData.id, ...data }
+        : data;
 
       const res = await fetch("/api/horas", {
         method: initialData ? "PUT" : "POST",

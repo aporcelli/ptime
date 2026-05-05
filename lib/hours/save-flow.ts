@@ -20,15 +20,6 @@ type SaveHourOptions = {
   getPricingConfig?: (projectId: string) => Promise<PricingConfig>;
 };
 
-const defaultPricingConfig = async (projectId: string, ctx: SheetCtx): Promise<PricingConfig> => {
-  const proyecto = await getProyectoById(ctx, projectId);
-  return {
-    precioBase: proyecto?.precio_base ?? 35,
-    precioAlto: proyecto?.precio_alto ?? 45,
-    umbralHoras: proyecto?.umbral_precio_alto ?? 20,
-  };
-};
-
 export async function saveHourFromActionInput(rawData: unknown, options: SaveHourOptions): Promise<ActionResult<RegistroHoras>> {
   try {
     const parsed = hourFormSchema.safeParse(rawData);
@@ -48,7 +39,11 @@ export async function saveHourFromActionInput(rawData: unknown, options: SaveHou
 
     const pricingConfig = options.getPricingConfig
       ? await options.getPricingConfig(data.proyecto_id)
-      : await defaultPricingConfig(data.proyecto_id, options.ctx);
+      : {
+          precioBase: proyecto.precio_base ?? 35,
+          precioAlto: proyecto.precio_alto ?? 45,
+          umbralHoras: proyecto.umbral_precio_alto ?? 20,
+        };
     const { montoTotal, precioAplicado, horasTrabajadas, horasACobrar } = calculateHoursAmount(data.horas, horasAcumuladasMes, pricingConfig);
     const timestamp = options.now?.() ?? new Date().toISOString();
 

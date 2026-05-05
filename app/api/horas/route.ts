@@ -9,12 +9,30 @@ import { sanitize } from "@/lib/utils/sanitize";
 import { calculateHoursAmount } from "@/lib/pricing/calculateHoursAmount";
 import { calculateProjectHourAdjustments, applyProjectHourDelta, getMonthlyWorkedHoursAccumulated } from "@/lib/hours/accounting";
 
-function buildSheetCtxFromSession(session: any, sheetIdFromBody?: string): SheetCtx {
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const maxDuration = 30;
+
+function getErrorStatus(error: unknown): number {
+  if (error instanceof Error && error.message === "NO_SESSION") return 401;
+  if (error instanceof Error && error.message === "NO_SHEET_CONFIGURED") return 428;
+  return 500;
+}
+
+function getPublicError(error: unknown, fallback: string): string {
+  if (error instanceof Error && (error.message === "NO_SESSION" || error.message === "NO_SHEET_CONFIGURED")) {
+    return error.message;
+  }
+  return fallback;
+}
+
+function buildSheetCtxFromRequest(session: any, req: NextRequest, sheetIdFromBody?: string): SheetCtx {
   const accessToken = session?.user?.accessToken;
   if (!accessToken) throw new Error("NO_SESSION");
 
   const jwtSheetId = (session?.user as { sheetId?: string } | undefined)?.sheetId;
-  const sheetId = (sheetIdFromBody || "").trim() || jwtSheetId;
+  const cookieSheetId = req.cookies.get("ptime-sheet-id")?.value;
+  const sheetId = (sheetIdFromBody || "").trim() || jwtSheetId || cookieSheetId;
   if (!sheetId) throw new Error("NO_SHEET_CONFIGURED");
 
   return { sheetId, accessToken };
@@ -28,7 +46,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const ctx = buildSheetCtxFromSession(session, body?.sheetId);
+    const ctx = buildSheetCtxFromRequest(session, req, body?.sheetId);
     const result = await saveHourFromActionInput(body, {
       ctx,
       user: session.user,
@@ -41,7 +59,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(result);
   } catch (error) {
     console.error("[api/horas POST]", error);
-    return NextResponse.json({ success: false, error: "Error al guardar" }, { status: 500 });
+    return NextResponse.json({ success: false, error: getPublicError(error, "Error al guardar") }, { status: getErrorStatus(error) });
   }
 }
 
@@ -64,7 +82,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Datos inválidos", fieldErrors: parsed.error.flatten().fieldErrors }, { status: 400 });
     }
 
-    const ctx = buildSheetCtxFromSession(session, sheetId);
+    const ctx = buildSheetCtxFromRequest(session, req, sheetId);
     const data = parsed.data;
     const usuarioId = session.user.email ?? session.user.id;
 
@@ -120,6 +138,6 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[api/horas PUT]", error);
-    return NextResponse.json({ success: false, error: "Error al actualizar" }, { status: 500 });
+    return NextResponse.json({ success: false, error: getPublicError(error, "Error al actualizar") }, { status: getErrorStatus(error) });
   }
 }
