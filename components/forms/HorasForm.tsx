@@ -318,7 +318,7 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
           <Button type="submit" disabled={status === "loading" || status === "success"} className="flex-1">
             {status === "loading" && <Loader2 size={15} className="animate-spin mr-2" />}
             {status === "success" && <CheckCircle size={15} className="mr-2" />}
-            {status === "idle" ? "Guardar registro" : status === "loading" ? "Guardando…" : "¡Guardado!"}
+            {status === "idle" ? "Guardar registro" : status === "loading" ? "Guardando…" : status === "error" ? "Error al guardar" : "¡Guardado!"}
           </Button>
           <Button variant="outline" type="button" onClick={() => router.back()}>
             Cancelar

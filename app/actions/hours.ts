@@ -140,9 +140,8 @@ export async function updateHourAction(id: string, rawData: unknown): Promise<Ac
       }
     }
 
-    revalidatePath("/horas");
-    revalidatePath("/dashboard");
-    revalidatePath(`/horas/${id}`);
+    revalidatePath("/horas", "layout");
+    revalidatePath("/dashboard", "layout");
     return actionDone();
   } catch (e: unknown) {
     console.error("[updateHourAction] Error:", e);
