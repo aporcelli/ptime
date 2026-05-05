@@ -4,7 +4,6 @@ import { getPageCtx } from "@/lib/sheets/getPageCtx";
 import ProyectosAdmin from "./ProyectosAdmin";
 
 export const metadata: Metadata = { title: "Proyectos" };
-export const revalidate = 60;
 
 export default async function ProyectosPage() {
   const ctx = await getPageCtx();

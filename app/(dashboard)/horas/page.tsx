@@ -7,7 +7,6 @@ import { HorasClientList } from "./HorasClientList";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = { title: "Mis Horas" };
-export const revalidate = 60;
 
 export default async function HorasPage() {
   try {

@@ -14,7 +14,6 @@ import { DataPanel, MetricCard, PageShell, SectionCard } from "@/components/ui/s
 import { repriceMonthlyRecords } from "@/lib/hours/monthly";
 
 export const metadata: Metadata = { title: "Reportes" };
-export const revalidate = 300;
 
 export default async function ReportesPage({
   searchParams,
