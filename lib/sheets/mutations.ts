@@ -3,6 +3,7 @@ import { appendSheetRow, ensureRegistroHorasHeaders, getSheetRows, updateSheetRo
 import { SHEET_NAMES, SHEET_RANGES } from "@/lib/constants";
 import type { Cliente, Proyecto, Tarea, RegistroHoras, WorkspaceMember, WorkspaceMemberRol } from "@/types/entities";
 import { parseRegistroHorasRow, serializeRegistroHorasRow } from "./serializers";
+import { WorkspaceMemberSchema, WorkspaceMemberRolSchema } from "./schemas";
 
 interface SheetCtx { sheetId: string; accessToken: string; }
 
@@ -186,13 +187,22 @@ export async function inviteWorkspaceMember(
   invitedBy: string
 ): Promise<void> {
   const ts = now();
-  await appendSheetRow(ctx.sheetId, ctx.accessToken, SHEET_RANGES.WORKSPACE_MEMBERS, [
-    email.toLowerCase().trim(),
-    ctx.sheetId,
+  const parsed = WorkspaceMemberSchema.parse({
+    email,
+    sheet_id: ctx.sheetId,
     rol,
-    invitedBy,
-    ts,
-    ts,
+    invited_by: invitedBy,
+    created_at: ts,
+    updated_at: ts,
+  });
+
+  await appendSheetRow(ctx.sheetId, ctx.accessToken, SHEET_RANGES.WORKSPACE_MEMBERS, [
+    parsed.email,
+    parsed.sheet_id,
+    parsed.rol,
+    parsed.invited_by,
+    parsed.created_at,
+    parsed.updated_at,
   ]);
 }
 
@@ -201,19 +211,28 @@ export async function updateWorkspaceMemberRol(
   email: string,
   nuevoRol: WorkspaceMemberRol
 ): Promise<void> {
+  const emailNorm = String(email ?? "").trim().toLowerCase();
+  const rolNorm = WorkspaceMemberRolSchema.parse(String(nuevoRol ?? "").trim().toUpperCase());
+
   const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, SHEET_RANGES.WORKSPACE_MEMBERS);
-  const idx  = rows.findIndex((r) => r[0].toLowerCase() === email.toLowerCase());
+  const idx = rows.findIndex((r) => String(r[0] ?? "").trim().toLowerCase() === emailNorm);
   if (idx === -1) throw new Error(`Miembro ${email} no encontrado`);
   const rowNum = idx + 2;
   const current = rows[idx];
   await updateSheetRow(ctx.sheetId, ctx.accessToken, SHEET_NAMES.WORKSPACE_MEMBERS, rowNum, [
-    current[0], current[1], nuevoRol, current[3], current[4], now()
+    String(current[0] ?? "").trim().toLowerCase(),
+    current[1],
+    rolNorm,
+    current[3],
+    current[4],
+    now(),
   ]);
 }
 
 export async function removeWorkspaceMember(ctx: SheetCtx, email: string): Promise<void> {
+  const emailNorm = String(email ?? "").trim().toLowerCase();
   const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, SHEET_RANGES.WORKSPACE_MEMBERS);
-  const idx  = rows.findIndex((r) => r[0].toLowerCase() === email.toLowerCase());
+  const idx  = rows.findIndex((r) => String(r[0] ?? "").trim().toLowerCase() === emailNorm);
   if (idx === -1) throw new Error(`Miembro ${email} no encontrado`);
   await clearSheetRow(ctx.sheetId, ctx.accessToken, SHEET_NAMES.WORKSPACE_MEMBERS, idx + 2);
 }
