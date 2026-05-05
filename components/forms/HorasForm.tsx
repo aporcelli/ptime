@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, CheckCircle, AlertCircle, DollarSign, Clock, X, Plus } from "lucide-react";
 import { hourFormSchema, type HourFormData } from "@/lib/schemas/hour";
 import { previewMonto } from "@/lib/pricing/calculateHoursAmount";
-import { createHour, updateHourAction } from "@/app/actions/hours";
 import { createProyectoAction } from "@/app/actions/projects";
 import { createTareaAction } from "@/app/actions/tasks";
 import { createClienteAction } from "@/app/actions/clients";
@@ -161,21 +160,30 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
   }
 
   async function onSubmit(data: HourFormData) {
-    setStatus("loading"); setServerError(null);
-    try {
-      const result = initialData
-        ? await updateHourAction(initialData.id, data)
-        : await createHour(data);
+    setStatus("loading");
+    setServerError(null);
 
-      if (!result.success) {
+    try {
+      const payload = initialData ? { id: initialData.id, ...data } : data;
+      const res = await fetch("/api/horas", {
+        method: initialData ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok || !json?.success) {
         setStatus("error");
-        setServerError(result.error ?? "Ocurrió un error inesperado al guardar.");
+        setServerError(json?.error ?? "Ocurrió un error inesperado al guardar.");
         return;
       }
+
       setStatus("success");
+      router.refresh();
       setTimeout(() => {
-        window.location.href = "/horas";
-      }, 1200);
+        router.push("/horas");
+      }, 800);
     } catch (err: any) {
       setStatus("error");
       setServerError(err?.message || "Error grave de conexión al guardar.");
@@ -183,6 +191,13 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
   }
 
   const selectedP = proyectos.find((p) => p.id === watchedProyectoId);
+  const buttonConfig = {
+    idle: { label: "Guardar registro", disabled: false },
+    loading: { label: "Guardando…", disabled: true },
+    success: { label: "¡Guardado!", disabled: true },
+    error: { label: "Reintentar", disabled: false },
+  } as const;
+  const currentButton = buttonConfig[status];
 
   return (
     <>
@@ -317,10 +332,11 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
         )}
 
         <div className="flex flex-col sm:flex-row gap-3 pt-1">
-          <Button type="submit" disabled={status === "loading" || status === "success"} className="flex-1">
+          <Button type="submit" disabled={currentButton.disabled} className="flex-1">
             {status === "loading" && <Loader2 size={15} className="animate-spin mr-2" />}
             {status === "success" && <CheckCircle size={15} className="mr-2" />}
-            {status === "idle" ? "Guardar registro" : status === "loading" ? "Guardando…" : status === "error" ? "Error al guardar" : "¡Guardado!"}
+            {status === "error" && <AlertCircle size={15} className="mr-2" />}
+            {currentButton.label}
           </Button>
           <Button variant="outline" type="button" onClick={() => router.back()}>
             Cancelar

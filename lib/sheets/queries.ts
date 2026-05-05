@@ -5,6 +5,7 @@ import type { Cliente, Proyecto, Tarea, RegistroHoras, AppConfig, ReporteFilters
 import { PRICING_DEFAULTS } from "@/lib/constants";
 import { toPlainJson } from "@/lib/actions/result";
 import { parseClienteRow, parseNum, parseProyectoRow, parseRegistroHorasRow, parseTareaRow } from "./serializers";
+import { WorkspaceMemberSchema } from "./schemas";
 
 interface SheetCtx { sheetId: string; accessToken: string; }
 
@@ -79,14 +80,25 @@ export async function getAppConfig(ctx: SheetCtx): Promise<AppConfig> {
 
 export async function getWorkspaceMembers(ctx: SheetCtx): Promise<WorkspaceMember[]> {
   const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, SHEET_RANGES.WORKSPACE_MEMBERS);
-  const members = rows.filter((r) => r[0]).map((r) => ({
-    email:      String(r[0] ?? "").trim().toLowerCase(),
-    sheet_id:   String(r[1] ?? ""),
-    rol:        String(r[2] ?? "COLABORADOR").trim().toUpperCase() as WorkspaceMemberRol,
-    invited_by: String(r[3] ?? ""),
-    created_at: String(r[4] ?? ""),
-    updated_at: String(r[5] ?? ""),
-  } satisfies WorkspaceMember));
+  const members = rows
+    .map((r) => {
+      const parsed = WorkspaceMemberSchema.safeParse({
+        email: r[0],
+        sheet_id: r[1],
+        rol: r[2] ?? "VIEWER",
+        invited_by: r[3],
+        created_at: r[4],
+        updated_at: r[5],
+      });
+
+      if (!parsed.success) {
+        return null;
+      }
+
+      return parsed.data as WorkspaceMember;
+    })
+    .filter((m): m is WorkspaceMember => Boolean(m));
+
   return safeReturn(members);
 }
 
