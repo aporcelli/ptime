@@ -51,6 +51,11 @@ const nextConfig = {
           },
           // Previene XSS básico
           { key: "X-XSS-Protection", value: "1; mode=block" },
+          // Content Security Policy
+          {
+            key: "Content-Security-Policy",
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://lh3.googleusercontent.com https://avatars.githubusercontent.com; connect-src 'self' https://oauth2.googleapis.com; frame-ancestors 'none';"
+          },
         ],
       },
     ];
