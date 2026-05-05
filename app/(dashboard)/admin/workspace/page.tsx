@@ -3,6 +3,7 @@ import { getPageCtx } from "@/lib/sheets/getPageCtx";
 import { getWorkspaceMembers } from "@/lib/sheets/queries";
 import { auth } from "@/auth";
 import WorkspaceClient from "./WorkspaceClient";
+import type { WorkspaceMember } from "@/types/entities";
 
 export const metadata: Metadata = { title: "Workspace" };
 
@@ -10,6 +11,20 @@ export default async function WorkspacePage() {
   const ctx     = await getPageCtx();
   const session = await auth();
   const members = await getWorkspaceMembers(ctx);
+  const ownerEmail = session?.user?.email?.trim().toLowerCase() ?? "";
+  const membersWithOwner: WorkspaceMember[] = ownerEmail
+    ? [
+        {
+          email: ownerEmail,
+          sheet_id: ctx.sheetId,
+          rol: "OWNER",
+          invited_by: ownerEmail,
+          created_at: "",
+          updated_at: "",
+        },
+        ...members.filter((m) => m.email.trim().toLowerCase() !== ownerEmail),
+      ]
+    : members;
 
   return (
     <div className="max-w-2xl mx-auto animate-fade-in">
@@ -30,7 +45,7 @@ export default async function WorkspacePage() {
       </div>
 
       <WorkspaceClient
-        members={members}
+        members={membersWithOwner}
         currentUserEmail={session?.user?.email ?? ""}
       />
     </div>
