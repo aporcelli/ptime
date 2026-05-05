@@ -123,13 +123,13 @@ export default function WorkspaceClient({ members: initMembers, currentUserEmail
         ) : (
           <ul className="divide-y divide-outline-variant/10">
             {members.map((m) => {
-              const cfg = ROL_CONFIG[m.rol];
+              const cfg = ROL_CONFIG[m.rol] || ROL_CONFIG.VIEWER;
               const isMe = m.email === currentUserEmail;
               return (
                 <li key={m.email} className="flex items-center gap-3 px-5 py-3 hover:bg-surface-low transition-colors">
                   {/* Avatar inicial */}
                   <div className="w-8 h-8 rounded-full bg-primary-fixed/10 flex items-center justify-center text-primary-fixed font-semibold text-sm shrink-0">
-                    {m.email[0].toUpperCase()}
+                    {m.email?.[0]?.toUpperCase() ?? "?"}
                   </div>
 
                   {/* Info */}
