@@ -13,8 +13,13 @@ export default auth((req) => {
   const isPublic = ["/login", "/api/auth", "/setup", "/privacy", "/terms"].some((p) => pathname.startsWith(p));
   if (isPublic) return NextResponse.next();
 
-  // Sin sesión → login
+  const isApiRoute = pathname.startsWith("/api/");
+
+  // Sin sesión → login (web) / 401 JSON (api)
   if (!session) {
+    if (isApiRoute) {
+      return NextResponse.json({ success: false, error: "No autenticado" }, { status: 401 });
+    }
     const url = new URL("/login", req.url);
     url.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(url);
@@ -32,6 +37,9 @@ export default auth((req) => {
   const sheetId       = jwtSheetId ?? cookieSheetId;
 
   if (!sheetId) {
+    if (isApiRoute) {
+      return NextResponse.json({ success: false, error: "NO_SHEET_CONFIGURED" }, { status: 428 });
+    }
     return NextResponse.redirect(new URL("/setup", req.url));
   }
 

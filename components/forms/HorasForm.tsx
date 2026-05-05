@@ -171,10 +171,23 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
         body: JSON.stringify(payload),
       });
 
-      const json = await res.json();
+      const contentType = res.headers.get("content-type") || "";
+      const isJson = contentType.includes("application/json");
+      const json = isJson ? await res.json() : null;
 
       if (!res.ok || !json?.success) {
         setStatus("error");
+
+        if (json?.error === "NO_SHEET_CONFIGURED") {
+          setServerError("Tu workspace no está configurado. Abrí Setup y vinculá tu Google Sheet.");
+          return;
+        }
+
+        if (!isJson) {
+          setServerError("La sesión venció o hubo un redirect inesperado. Reingresá e intentá de nuevo.");
+          return;
+        }
+
         setServerError(json?.error ?? "Ocurrió un error inesperado al guardar.");
         return;
       }
