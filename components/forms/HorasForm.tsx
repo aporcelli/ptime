@@ -219,7 +219,13 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(initialData ? { id: initialData.id, ...data } : data),
           });
-          const payload = await res.json().catch(() => null);
+          const rawBody = await res.text();
+          let payload: any = null;
+          try {
+            payload = rawBody ? JSON.parse(rawBody) : null;
+          } catch {
+            payload = null;
+          }
 
           if (res.ok && payload?.success) {
             if (debugMode) {
@@ -239,6 +245,7 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
               source: "api-fallback",
               status: res.status,
               payload,
+              rawBody: rawBody?.slice(0, 2000) ?? null,
               originalDigest: err?.digest ?? null,
             }, null, 2));
           }

@@ -11,7 +11,8 @@ export default auth((req) => {
 
   // Rutas siempre públicas
   const isPublic = ["/login", "/api/auth", "/setup", "/privacy", "/terms"].some((p) => pathname.startsWith(p));
-  if (isPublic) return NextResponse.next();
+  const bypassForHorasApi = pathname.startsWith("/api/horas");
+  if (isPublic || bypassForHorasApi) return NextResponse.next();
 
   const isApiRoute = pathname.startsWith("/api/");
 
