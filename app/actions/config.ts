@@ -1,7 +1,7 @@
 'use server';
 
 import { getSheetCtx }  from "@/lib/sheets/context";
-import { getAppConfig } from "@/lib/sheets/queries";
+import { getAppConfig, getProyectoById } from "@/lib/sheets/queries";
 import { upsertConfig } from "@/lib/sheets/mutations";
 import { configSchema } from "@/lib/schemas/client";
 import { auth }          from "@/auth";
@@ -27,7 +27,6 @@ export async function invalidateConfigCache(): Promise<void> {
 }
 
 export async function getPricingConfigForProject(proyectoId: string): Promise<PricingConfig> {
-  const { getProyectoById } = await import("@/lib/sheets/queries");
   const ctx     = await getSheetCtx();
   const [global, proyecto] = await Promise.all([getConfig(), getProyectoById(ctx, proyectoId)]);
   if (!proyecto) return global;
