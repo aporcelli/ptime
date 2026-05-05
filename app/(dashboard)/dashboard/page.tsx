@@ -211,8 +211,16 @@ export default async function DashboardPage() {
         </div>
       </PageShell>
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("[Dashboard] Error fatal:", error);
-    redirect("/setup");
+    return (
+      <div className="p-8 m-8 bg-red-50 text-red-900 rounded-lg border border-red-200">
+        <h2 className="text-xl font-bold mb-2">Error cargando el Dashboard</h2>
+        <p className="mb-4">Ocurrió un error al consultar Google Sheets en producción.</p>
+        <pre className="bg-red-100 p-4 rounded text-sm overflow-auto">
+          {error?.message || String(error)}
+        </pre>
+      </div>
+    );
   }
 }

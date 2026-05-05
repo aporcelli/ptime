@@ -12,13 +12,26 @@ export const revalidate = 60;
 export default async function HorasPage() {
   const ctx = await getPageCtx();
 
-  const [registros, proyectos, tareas, clientes, config] = await Promise.all([
-    getRegistrosHoras(ctx),
-    getProyectos(ctx),
-    getTareas(ctx),
-    getClientes(ctx, true),
-    getAppConfig(ctx),
-  ]);
+  let registros, proyectos, tareas, clientes, config;
+  try {
+    [registros, proyectos, tareas, clientes, config] = await Promise.all([
+      getRegistrosHoras(ctx),
+      getProyectos(ctx),
+      getTareas(ctx),
+      getClientes(ctx, true),
+      getAppConfig(ctx),
+    ]);
+  } catch (err: any) {
+    return (
+      <div className="p-8 bg-red-50 text-red-900 rounded-lg border border-red-200">
+        <h2 className="text-xl font-bold mb-2">Error cargando los datos</h2>
+        <p className="mb-4">Ocurrió un error al consultar Google Sheets en producción.</p>
+        <pre className="bg-red-100 p-4 rounded text-sm overflow-auto">
+          {err?.message || String(err)}
+        </pre>
+      </div>
+    );
+  }
 
   const proyectosMap = Object.fromEntries(proyectos.map((p) => [p.id, p]));
   const tareasMap = Object.fromEntries(tareas.map((t) => [t.id, t]));

@@ -9,16 +9,17 @@ import type { ActionResult, WorkspaceMember, WorkspaceMemberRol } from "@/types/
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-async function requireAuth() {
+async function requireAdmin() {
   const session = await auth();
   if (!session?.user) return null;
+  if (session.user.role !== "ADMIN") throw new Error("Acceso denegado: se requiere rol ADMIN");
   return session;
 }
 
 // ── Listar miembros del workspace actual ──────────────────────────────────────
 
 export async function getWorkspaceMembersAction(): Promise<ActionResult<WorkspaceMember[]>> {
-  const session = await requireAuth();
+  const session = await requireAdmin();
   if (!session) return { success: false, error: "No autenticado" };
   const ctx = await getSheetCtx();
   const members = await getWorkspaceMembers(ctx);
@@ -31,7 +32,7 @@ export async function inviteMemberAction(
   email: string,
   rol: WorkspaceMemberRol
 ): Promise<ActionResult<WorkspaceMember>> {
-  const session = await requireAuth();
+  const session = await requireAdmin();
   if (!session) return { success: false, error: "No autenticado" };
 
   const emailNorm = email.toLowerCase().trim();
@@ -66,7 +67,7 @@ export async function updateMemberRolAction(
   email: string,
   nuevoRol: WorkspaceMemberRol
 ): Promise<ActionResult> {
-  const session = await requireAuth();
+  const session = await requireAdmin();
   if (!session) return { success: false, error: "No autenticado" };
 
   const ctx = await getSheetCtx();
@@ -79,7 +80,7 @@ export async function updateMemberRolAction(
 // ── Remover miembro ───────────────────────────────────────────────────────────
 
 export async function removeMemberAction(email: string): Promise<ActionResult> {
-  const session = await requireAuth();
+  const session = await requireAdmin();
   if (!session) return { success: false, error: "No autenticado" };
 
   const ctx = await getSheetCtx();
