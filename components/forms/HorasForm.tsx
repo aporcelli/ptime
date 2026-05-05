@@ -173,8 +173,9 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
         return;
       }
       setStatus("success");
-      router.refresh();
-      setTimeout(() => router.push("/horas"), 1200);
+      setTimeout(() => {
+        window.location.href = "/horas";
+      }, 1200);
     } catch (err: any) {
       setStatus("error");
       setServerError(err?.message || "Error grave de conexión al guardar.");
