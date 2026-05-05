@@ -35,9 +35,10 @@ interface Props {
   /** Total horas del usuario en el mes actual (todos los proyectos) */
   horasAcumuladasMes:   number;
   initialData?:         HourFormData & { id: string };
+  sheetId?:             string;
 }
 
-export default function HorasForm({ clientes: initClientes, tareas: initTareas, proyectos: initProyectos, defaultConfig, horasAcumuladasMes, initialData }: Props) {
+export default function HorasForm({ clientes: initClientes, tareas: initTareas, proyectos: initProyectos, defaultConfig, horasAcumuladasMes, initialData, sheetId }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const debugMode = searchParams.get("debug") === "1";
@@ -217,7 +218,7 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
           const res = await fetch("/api/horas", {
             method: initialData ? "PUT" : "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(initialData ? { id: initialData.id, ...data } : data),
+            body: JSON.stringify(initialData ? { id: initialData.id, ...data, sheetId } : { ...data, sheetId }),
           });
           const rawBody = await res.text();
           let payload: any = null;
@@ -241,11 +242,14 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
           setStatus("error");
           setServerError(payload?.error || `Error API fallback (${res.status})`);
           if (debugMode) {
+            const staticExportDetected = rawBody.includes("\"nextExport\":true") || rawBody.includes("\"nextExport\": true");
             setDebugError(JSON.stringify({
               source: "api-fallback",
               status: res.status,
               payload,
               rawBody: rawBody?.slice(0, 2000) ?? null,
+              staticExportDetected,
+              hint: staticExportDetected ? "Deploy parece static export (nextExport:true). /api y Server Actions no corren en runtime." : null,
               originalDigest: err?.digest ?? null,
             }, null, 2));
           }

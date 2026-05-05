@@ -84,6 +84,7 @@ export default async function EditarHoraPage({ params }: { params: { id: string 
           proyectos={proyectos}
           defaultConfig={config}
           horasAcumuladasMes={horasAcumuladasMes}
+          sheetId={ctx.sheetId}
           initialData={{
             id: registro.id,
             cliente_id: registro.cliente_id ?? "",
