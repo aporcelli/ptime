@@ -15,13 +15,26 @@ export default async function NuevaHoraPage() {
   // Mes actual para calcular el acumulado mensual global del usuario
   const mesActual = new Date().toISOString().slice(0, 7); // "YYYY-MM"
 
-  const [clientes, tareas, todosProyectos, config, registrosMes] = await Promise.all([
-    getClientes(ctx, true),
-    getTareas(ctx, true),
-    getProyectos(ctx, {}),           // Traer TODOS para que el filtro en el form funcione
-    getAppConfig(ctx),
-    getRegistrosHoras(ctx, { usuarioId }),
-  ]);
+  let clientes, tareas, todosProyectos, config, registrosMes;
+  try {
+    [clientes, tareas, todosProyectos, config, registrosMes] = await Promise.all([
+      getClientes(ctx, true),
+      getTareas(ctx, true),
+      getProyectos(ctx, {}),           // Traer TODOS para que el filtro en el form funcione
+      getAppConfig(ctx),
+      getRegistrosHoras(ctx, { usuarioId }),
+    ]);
+  } catch (error) {
+    return (
+      <div className="p-8 m-8 bg-red-50 text-red-900 rounded-lg border border-red-200">
+        <h2 className="text-xl font-bold mb-2">Error cargando la vista</h2>
+        <p className="mb-4">Ocurrió un error al consultar Google Sheets en producción.</p>
+        <pre className="bg-red-100 p-4 rounded text-sm overflow-auto">
+          {error instanceof Error ? error.message : String(error)}
+        </pre>
+      </div>
+    );
+  }
 
   // Solo proyectos activos para cargar horas (pero sin filtrar por cliente aún)
   const proyectos = todosProyectos.filter(p => p.estado === "activo");

@@ -29,7 +29,15 @@ export default async function EditarHoraPage({ params }: { params: { id: string 
     ]);
   } catch (error) {
     console.error("[EditarHoraPage] Error cargando datos de edición", { id: params.id, error });
-    throw error;
+    return (
+      <div className="p-8 m-8 bg-red-50 text-red-900 rounded-lg border border-red-200">
+        <h2 className="text-xl font-bold mb-2">Error cargando la edición</h2>
+        <p className="mb-4">Ocurrió un error al consultar Google Sheets en producción.</p>
+        <pre className="bg-red-100 p-4 rounded text-sm overflow-auto">
+          {error instanceof Error ? error.message : String(error)}
+        </pre>
+      </div>
+    );
   }
 
   const registro = registrosMes.find((r) => r.id === params.id) ?? null;
