@@ -12,6 +12,7 @@ import HoraStatusEditor from "./HoraStatusEditor";
 export const metadata: Metadata = { title: "Detalle de registro" };
 
 export default async function HoraDetailPage({ params }: { params: { id: string } }) {
+  try {
     const ctx = await getPageCtx();
 
     let registro, proyectos, tareas;
@@ -105,6 +106,17 @@ export default async function HoraDetailPage({ params }: { params: { id: string 
             </div>
         </div>
     );
+  } catch (globalError) {
+    return (
+      <div className="p-8 m-8 bg-red-50 text-red-900 rounded-lg border border-red-200">
+        <h2 className="text-xl font-bold mb-2">Error Crítico</h2>
+        <p className="mb-4">Falló de forma imprevista la página de detalle.</p>
+        <pre className="bg-red-100 p-4 rounded text-sm mt-4 overflow-auto">
+          {globalError instanceof Error ? globalError.message : String(globalError)}
+        </pre>
+      </div>
+    );
+  }
 }
 
 function InfoItem({
