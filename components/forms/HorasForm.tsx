@@ -168,6 +168,17 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
     setServerError(null);
     setDebugError(null);
 
+    const goToHoras = () => {
+      setStatus("success");
+      setTimeout(() => {
+        if (typeof window !== "undefined") {
+          window.location.href = "/horas";
+          return;
+        }
+        router.push("/horas");
+      }, 800);
+    };
+
     try {
       const result = initialData
         ? await updateHourAction(initialData.id, data)
@@ -197,15 +208,56 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
         return;
       }
 
-      setStatus("success");
-      setTimeout(() => {
-        if (typeof window !== "undefined") {
-          window.location.href = "/horas";
+      goToHoras();
+    } catch (err: any) {
+      const isRscRenderError = typeof err?.message === "string" && err.message.includes("Server Components render");
+
+      if (isRscRenderError) {
+        try {
+          const res = await fetch("/api/horas", {
+            method: initialData ? "PUT" : "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(initialData ? { id: initialData.id, ...data } : data),
+          });
+          const payload = await res.json().catch(() => null);
+
+          if (res.ok && payload?.success) {
+            if (debugMode) {
+              setDebugError(JSON.stringify({
+                source: "api-fallback",
+                note: "Server Action falló en transporte RSC; guardado completado por /api/horas",
+              }, null, 2));
+            }
+            goToHoras();
+            return;
+          }
+
+          setStatus("error");
+          setServerError(payload?.error || `Error API fallback (${res.status})`);
+          if (debugMode) {
+            setDebugError(JSON.stringify({
+              source: "api-fallback",
+              status: res.status,
+              payload,
+              originalDigest: err?.digest ?? null,
+            }, null, 2));
+          }
+          return;
+        } catch (fallbackErr: any) {
+          setStatus("error");
+          setServerError(fallbackErr?.message || "Error en fallback API");
+          if (debugMode) {
+            setDebugError(JSON.stringify({
+              source: "api-fallback-catch",
+              name: fallbackErr?.name ?? null,
+              message: fallbackErr?.message ?? null,
+              originalDigest: err?.digest ?? null,
+            }, null, 2));
+          }
           return;
         }
-        router.push("/horas");
-      }, 800);
-    } catch (err: any) {
+      }
+
       setStatus("error");
       setServerError(err?.message || "Error grave de conexión al guardar.");
       if (debugMode) {
