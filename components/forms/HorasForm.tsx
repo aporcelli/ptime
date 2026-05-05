@@ -164,12 +164,25 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
     setServerError(null);
 
     try {
-      const payload = initialData ? { id: initialData.id, ...data } : data;
+      const sheetId = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("ptime-sheet-id="))
+        ?.split("=")[1];
+
+      const payload = initialData
+        ? { id: initialData.id, ...data, sheetId }
+        : { ...data, sheetId };
+
       const res = await fetch("/api/horas", {
         method: initialData ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+
+      if (res.status === 401) {
+        router.push("/login");
+        return;
+      }
 
       const contentType = res.headers.get("content-type") || "";
       const isJson = contentType.includes("application/json");
@@ -184,11 +197,12 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
         }
 
         if (!isJson) {
-          setServerError("La sesión venció o hubo un redirect inesperado. Reingresá e intentá de nuevo.");
+          const bodyText = await res.text().catch(() => "");
+          setServerError(`Error del servidor (${res.status}). ${bodyText.slice(0, 120) || "Respuesta no JSON"}`);
           return;
         }
 
-        setServerError(json?.error ?? "Ocurrió un error inesperado al guardar.");
+        setServerError(json?.error ?? "Error del servidor");
         return;
       }
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getSheetCtx } from "@/lib/sheets/context";
+import type { SheetCtx } from "@/lib/sheets/context";
 import { saveHourFromActionInput } from "@/lib/hours/save-flow";
 import { hourFormSchema } from "@/lib/schemas/hour";
 import { getProyectoById, getRegistroById, getRegistrosHoras } from "@/lib/sheets/queries";
@@ -8,6 +8,17 @@ import { updateRegistroHoras, updateProyectoHorasAcumuladas } from "@/lib/sheets
 import { sanitize } from "@/lib/utils/sanitize";
 import { calculateHoursAmount } from "@/lib/pricing/calculateHoursAmount";
 import { calculateProjectHourAdjustments, applyProjectHourDelta, getMonthlyWorkedHoursAccumulated } from "@/lib/hours/accounting";
+
+function buildSheetCtxFromSession(session: any, sheetIdFromBody?: string): SheetCtx {
+  const accessToken = session?.user?.accessToken;
+  if (!accessToken) throw new Error("NO_SESSION");
+
+  const jwtSheetId = (session?.user as { sheetId?: string } | undefined)?.sheetId;
+  const sheetId = (sheetIdFromBody || "").trim() || jwtSheetId;
+  if (!sheetId) throw new Error("NO_SHEET_CONFIGURED");
+
+  return { sheetId, accessToken };
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,8 +28,9 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
+    const ctx = buildSheetCtxFromSession(session, body?.sheetId);
     const result = await saveHourFromActionInput(body, {
-      ctx: await getSheetCtx(),
+      ctx,
       user: session.user,
     });
 
@@ -41,7 +53,7 @@ export async function PUT(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { id, ...rawData } = body ?? {};
+    const { id, sheetId, ...rawData } = body ?? {};
 
     if (!id || typeof id !== "string") {
       return NextResponse.json({ success: false, error: "ID inválido" }, { status: 400 });
@@ -52,7 +64,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Datos inválidos", fieldErrors: parsed.error.flatten().fieldErrors }, { status: 400 });
     }
 
-    const ctx = await getSheetCtx();
+    const ctx = buildSheetCtxFromSession(session, sheetId);
     const data = parsed.data;
     const usuarioId = session.user.email ?? session.user.id;
 
