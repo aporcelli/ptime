@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
@@ -39,8 +39,11 @@ interface Props {
 
 export default function HorasForm({ clientes: initClientes, tareas: initTareas, proyectos: initProyectos, defaultConfig, horasAcumuladasMes, initialData }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const debugMode = searchParams.get("debug") === "1";
   const [status, setStatus]     = useState<"idle"|"loading"|"success"|"error">("idle");
   const [serverError, setServerError] = useState<string|null>(null);
+  const [debugError, setDebugError] = useState<string|null>(null);
   const [previewAmount, setPreviewAmount] = useState(0);
   const [clientes, setClientes]   = useState(initClientes);
   const [proyectos, setProyectos] = useState(initProyectos);
@@ -163,6 +166,7 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
   async function onSubmit(data: HourFormData) {
     setStatus("loading");
     setServerError(null);
+    setDebugError(null);
 
     try {
       const result = initialData
@@ -183,6 +187,13 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
         }
 
         setServerError(result.error || "Error del servidor");
+        if (debugMode) {
+          setDebugError(JSON.stringify({
+            source: "server-action",
+            error: result.error,
+            debug: result.debug ?? null,
+          }, null, 2));
+        }
         return;
       }
 
@@ -194,6 +205,15 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
     } catch (err: any) {
       setStatus("error");
       setServerError(err?.message || "Error grave de conexión al guardar.");
+      if (debugMode) {
+        setDebugError(JSON.stringify({
+          source: "client-catch",
+          name: err?.name ?? null,
+          message: err?.message ?? null,
+          digest: err?.digest ?? null,
+          stack: err?.stack ? String(err.stack).split("\n").slice(0, 8) : null,
+        }, null, 2));
+      }
     }
   }
 
@@ -335,6 +355,13 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
         {serverError && (
           <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
             <AlertCircle size={15} className="shrink-0" /> {serverError}
+          </div>
+        )}
+
+        {debugMode && debugError && (
+          <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
+            <p className="font-semibold mb-2">Debug save error</p>
+            <pre className="whitespace-pre-wrap break-words">{debugError}</pre>
           </div>
         )}
 

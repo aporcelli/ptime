@@ -1,4 +1,4 @@
-import type { ActionResult } from "@/types/entities";
+import type { ActionDebugInfo, ActionResult } from "@/types/entities";
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
@@ -32,8 +32,23 @@ export function actionDone(): ActionResult {
   return { success: true };
 }
 
+function extractDebug(error: unknown): ActionDebugInfo | undefined {
+  if (!error || typeof error !== "object") return undefined;
+  const source = error as Record<string, unknown>;
+  const debug: ActionDebugInfo = {};
+
+  if (typeof source.name === "string") debug.name = source.name;
+  if (typeof source.message === "string") debug.message = source.message;
+  if (typeof source.digest === "string") debug.digest = source.digest;
+  if (typeof source.code === "string") debug.code = source.code;
+
+  return Object.keys(debug).length > 0 ? debug : undefined;
+}
+
 export function actionError<T = void>(error: unknown, fallback = "Error inesperado"): ActionResult<T> {
-  return { success: false, error: error instanceof Error ? error.message : String(error || fallback) };
+  const baseError = error instanceof Error ? error.message : String(error || fallback);
+  const debug = extractDebug(error);
+  return debug ? { success: false, error: baseError, debug } : { success: false, error: baseError };
 }
 
 export function validationError<T = void>(fieldErrors: Record<string, string[]>): ActionResult<T> {
