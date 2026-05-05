@@ -6,7 +6,7 @@ import { getSheetCtx }       from "@/lib/sheets/context";
 import { hourFormSchema }    from "@/lib/schemas/hour";
 import { calculateHoursAmount } from "@/lib/pricing/calculateHoursAmount";
 import { getPricingConfigForProject } from "@/app/actions/config";
-import { getProyectoById, getRegistrosHoras } from "@/lib/sheets/queries";
+import { getProyectoById, getRegistrosHoras, getRegistroById } from "@/lib/sheets/queries";
 import { deleteRegistroHoras, updateRegistroEstado, updateRegistroHoras, updateProyectoHorasAcumuladas } from "@/lib/sheets/mutations";
 import { sanitize }          from "@/lib/utils/sanitize";
 import { generateUUID }      from "@/lib/utils/index";
@@ -104,7 +104,7 @@ export async function updateHourAction(id: string, rawData: unknown): Promise<Ac
     const registrosMes = await getRegistrosHoras(ctx, { usuarioId });
     
     // Ojo: Traemos el registro usando queries importadas dinámicamente para evitar dependencias circulares.
-    const { getRegistroById } = await import("@/lib/sheets/queries");
+    // const { getRegistroById } = await import("@/lib/sheets/queries");
     const currentRegistro = await getRegistroById(ctx, id);
     if (!currentRegistro) return { success: false, error: "Registro no encontrado" };
 
