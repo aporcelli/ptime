@@ -7,7 +7,7 @@ import { hourFormSchema }    from "@/lib/schemas/hour";
 import { calculateHoursAmount } from "@/lib/pricing/calculateHoursAmount";
 import { getPricingConfigForProject } from "@/app/actions/config";
 import { getProyectoById, getRegistrosHoras, getRegistroById } from "@/lib/sheets/queries";
-import { deleteRegistroHoras, updateRegistroEstado, updateRegistroHoras, updateProyectoHorasAcumuladas } from "@/lib/sheets/mutations";
+import { deleteRegistroHoras, updateRegistroEstado, updateRegistroEstadoBulk, updateRegistroHoras, updateProyectoHorasAcumuladas } from "@/lib/sheets/mutations";
 import { sanitize }          from "@/lib/utils/sanitize";
 import { generateUUID }      from "@/lib/utils/index";
 import type { ActionResult, HoraEstado, RegistroHoras } from "@/types/entities";
@@ -72,11 +72,12 @@ export async function markMonthAsInvoiced(month: string): Promise<ActionResult<{
     const ctx = await getSheetCtx();
     const registros = await getRegistrosHoras(ctx, { usuarioId });
     const ids = getEligibleInvoiceRecordIds(registros, month, usuarioId);
+    const idSet = new Set(ids);
     const totalAmount = registros
-      .filter((registro) => ids.includes(registro.id))
+      .filter((registro) => idSet.has(registro.id))
       .reduce((total, registro) => Math.round((total + registro.monto_total) * 100) / 100, 0);
 
-    for (const id of ids) await updateRegistroEstado(ctx, id, "facturado");
+    await updateRegistroEstadoBulk(ctx, ids, "facturado");
 
     revalidatePath("/horas");
     revalidatePath("/dashboard");

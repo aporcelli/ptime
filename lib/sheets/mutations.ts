@@ -71,6 +71,37 @@ export async function updateRegistroEstado(ctx: SheetCtx, id: string, estado: Re
     serializeRegistroHorasRow({ ...parsed, estado, updated_at: now() }));
 }
 
+export async function updateRegistroEstadoBulk(
+  ctx: SheetCtx,
+  ids: string[],
+  estado: RegistroHoras["estado"],
+): Promise<number> {
+  await ensureRegistroHorasHeaders(ctx.sheetId, ctx.accessToken);
+  if (ids.length === 0) return 0;
+
+  const idSet = new Set(ids);
+  const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, SHEET_RANGES.REGISTROS_HORAS);
+  let updated = 0;
+
+  for (let idx = 0; idx < rows.length; idx++) {
+    const row = rows[idx];
+    const id = row[0];
+    if (!idSet.has(id)) continue;
+
+    const parsed = parseRegistroHorasRow(row);
+    await updateSheetRow(
+      ctx.sheetId,
+      ctx.accessToken,
+      SHEET_NAMES.REGISTROS_HORAS,
+      idx + 2,
+      serializeRegistroHorasRow({ ...parsed, estado, updated_at: now() }),
+    );
+    updated += 1;
+  }
+
+  return updated;
+}
+
 export async function updateRegistroHoras(ctx: SheetCtx, id: string, data: Partial<Omit<RegistroHoras, "id" | "created_at" | "updated_at">>): Promise<void> {
   await ensureRegistroHorasHeaders(ctx.sheetId, ctx.accessToken);
   const rowNum = await findRowNumber(ctx, SHEET_RANGES.REGISTROS_HORAS, id);
