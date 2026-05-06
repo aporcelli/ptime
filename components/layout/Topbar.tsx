@@ -1,6 +1,7 @@
 // components/layout/Topbar.tsx
 "use client";
 
+import { useMemo, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { LogOut, User, Menu } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
@@ -12,7 +13,21 @@ interface Props {
 
 export default function Topbar({ user, onMenuClick }: Props) {
   const { data: session } = useSession();
-  const avatarSrc = (session?.user as { image?: string | null } | undefined)?.image ?? user.image ?? null;
+  const rawAvatarSrc = (session?.user as { image?: string | null } | undefined)?.image ?? user.image ?? null;
+
+  const avatarCandidates = useMemo(() => {
+    if (!rawAvatarSrc) return [] as string[];
+    const set = new Set<string>();
+    set.add(rawAvatarSrc);
+    if (rawAvatarSrc.includes("googleusercontent.com")) {
+      set.add(rawAvatarSrc.replace(/=s\d+-c$/, "=s256-c"));
+      set.add(rawAvatarSrc.replace(/=s\d+-c$/, ""));
+    }
+    return Array.from(set).filter(Boolean);
+  }, [rawAvatarSrc]);
+
+  const [avatarIndex, setAvatarIndex] = useState(0);
+  const avatarSrc = avatarCandidates[avatarIndex] ?? null;
 
   return (
     <header className="h-14 shrink-0 flex items-center px-4 md:px-6 gap-4 bg-card border-b border-border">
@@ -41,7 +56,18 @@ export default function Topbar({ user, onMenuClick }: Props) {
         <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center ring-2 ring-emerald-500/20 overflow-hidden shrink-0">
           {avatarSrc ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={avatarSrc} alt={user.name ?? "Avatar"} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            <img
+              src={avatarSrc}
+              alt={user.name ?? "Avatar"}
+              className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
+              crossOrigin="anonymous"
+              onError={() => {
+                if (avatarIndex < avatarCandidates.length - 1) {
+                  setAvatarIndex((i) => i + 1);
+                }
+              }}
+            />
           ) : (
             <User size={14} className="text-white" />
           )}
