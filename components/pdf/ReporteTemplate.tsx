@@ -372,6 +372,7 @@ interface DocProps {
   registros?: Array<{
     fecha: string;
     descripcion: string;
+    clienteNombre?: string;
     proyectoNombre: string;
     horas: number;
     horasFacturadas?: number;
@@ -633,18 +634,20 @@ function ReporteDoc({
               <View style={s.table}>
                 <View style={s.tableHeader}>
                   <Text style={[s.tableHeaderCell, { flex: 1.05 }]}>Fecha</Text>
-                  <Text style={[s.tableHeaderCell, { flex: 1.8 }]}>Proyecto</Text>
-                  <Text style={[s.tableHeaderCell, { flex: 4.5, paddingLeft: 8 }]}>Descripción</Text>
-                  <Text style={[s.tableHeaderCell, { flex: 0.95, textAlign: "right" }]}>Horas fact.</Text>
-                  <Text style={[s.tableHeaderCell, { flex: 1.5, textAlign: "right" }]}>Total</Text>
+                  <Text style={[s.tableHeaderCell, { flex: 1.5 }]}>Cliente</Text>
+                  <Text style={[s.tableHeaderCell, { flex: 1.5 }]}>Proyecto</Text>
+                  <Text style={[s.tableHeaderCell, { flex: 3.8, paddingLeft: 8 }]}>Descripción</Text>
+                  <Text style={[s.tableHeaderCell, { flex: 0.85, textAlign: "right" }]}>Horas</Text>
+                  <Text style={[s.tableHeaderCell, { flex: 1.3, textAlign: "right" }]}>Total</Text>
                 </View>
                 {registros.map((r, i) => (
                   <View key={i} style={[s.registroRow, i % 2 === 1 ? s.tableRowAlt : { backgroundColor: C.white }]}>
                     <Text style={[s.tableCell, s.tableCellMuted, { flex: 1.05 }]}>{formatDateShort(r.fecha)}</Text>
-                    <Text style={[s.tableCell, { flex: 1.8, paddingRight: 8 }]}>{r.proyectoNombre}</Text>
-                    <Text style={[s.tableCell, s.tableCellMuted, { flex: 4.5, paddingLeft: 8 }]}>{r.descripcion}</Text>
-                    <Text style={[s.tableCell, { flex: 0.95, textAlign: "right" }]}>{(r.horasFacturadas ?? r.horas)}h</Text>
-                    <Text style={[s.tableCell, s.tableCellAccent, { flex: 1.5, textAlign: "right" }]}>{fmt(r.total, moneda)}</Text>
+                    <Text style={[s.tableCell, { flex: 1.5, paddingRight: 6 }]}>{r.clienteNombre ?? clienteNombre ?? "—"}</Text>
+                    <Text style={[s.tableCell, { flex: 1.5, paddingRight: 8 }]}>{r.proyectoNombre}</Text>
+                    <Text style={[s.tableCell, s.tableCellMuted, { flex: 3.8, paddingLeft: 8 }]}>{r.descripcion}</Text>
+                    <Text style={[s.tableCell, { flex: 0.85, textAlign: "right" }]}>{(r.horasFacturadas ?? r.horas)}h</Text>
+                    <Text style={[s.tableCell, s.tableCellAccent, { flex: 1.3, textAlign: "right" }]}>{fmt(r.total, moneda)}</Text>
                   </View>
                 ))}
               </View>

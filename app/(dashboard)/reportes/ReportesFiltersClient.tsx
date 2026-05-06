@@ -13,7 +13,7 @@ interface Props {
   proyectos: Proyecto[];
   data: ReportData;
   registros: Array<{
-    fecha: string; descripcion: string; proyectoNombre: string;
+    fecha: string; descripcion: string; clienteNombre?: string; proyectoNombre: string;
     horas: number; horasFacturadas?: number; precioHora: number; total: number; estado: string;
   }>;
   fechaDesde: string;
