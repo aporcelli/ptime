@@ -27,6 +27,7 @@ export default async function ReportesPage({
   const fechaDesde = searchParams.fechaDesde ?? defaultFechaDesde;
   const fechaHasta = searchParams.fechaHasta ?? defaultFechaHasta;
   const proyectoId = searchParams.proyectoId;
+  const clienteId = searchParams.clienteId;
   const estado     = searchParams.estado as HoraEstado | undefined;
 
   const [registros, proyectos, tareas, config, clientes] = await Promise.all([
@@ -40,7 +41,14 @@ export default async function ReportesPage({
   const proyectosMap = new Map(proyectos.map(p => [p.id, p]));
   const clientesMap   = new Map(clientes.map(c => [c.id, c]));
   const tareasMap    = new Map(tareas.map(t => [t.id, t]));
-  const registrosRepriced = repriceMonthlyRecords(registros, Object.fromEntries(proyectos.map((p) => [p.id, p])), config);
+  const registrosRepricedBase = repriceMonthlyRecords(registros, Object.fromEntries(proyectos.map((p) => [p.id, p])), config);
+  const registrosRepriced = clienteId
+    ? registrosRepricedBase.filter((r) => {
+        const proyecto = proyectosMap.get(r.proyecto_id);
+        const clienteRowId = r.cliente_id ?? proyecto?.cliente_id;
+        return clienteRowId === clienteId;
+      })
+    : registrosRepricedBase;
 
   // ── Agregados por mes
   const porMesMap = registrosRepriced.reduce<Record<string, { horas: number; ingresos: number }>>((acc, r) => {
@@ -104,7 +112,7 @@ export default async function ReportesPage({
       totalIngresos,
       promedioHorasDia: +(totalHoras / 30).toFixed(2),
       proyectosActivos: proyectosEnPeriodo,
-      registrosTotales: registros.length,
+      registrosTotales: registrosRepriced.length,
     },
     porMes:      mesesData,
     porProyecto: proyectosData,
@@ -132,7 +140,7 @@ export default async function ReportesPage({
     });
 
   return (
-    <PageShell title="Reportes" description={`${formatPeriodLabel(fechaDesde, fechaHasta)} · ${registros.length} registros`}>
+    <PageShell title="Reportes" description={`${formatPeriodLabel(fechaDesde, fechaHasta)} · ${registrosRepriced.length} registros`}>
 
       <ReportesFiltersClient
         clientes={clientes}
