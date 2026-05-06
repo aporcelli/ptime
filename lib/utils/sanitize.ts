@@ -1,30 +1,29 @@
 // lib/utils/sanitize.ts
-// ─────────────────────────────────────────────────────────────────────────────
-// Sanitización centralizada contra XSS.
-// Usar en TODOS los inputs de texto libre antes de persistir.
-// ─────────────────────────────────────────────────────────────────────────────
-import DOMPurify from "isomorphic-dompurify";
+// Sanitización server-safe sin dependencias de DOM/jsdom (compatible Vercel Node runtime).
+
+const CONTROL_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
+const TAGS = /<[^>]*>/g;
 
 /**
- * Elimina todo HTML/JS peligroso de un string.
- * Configurado en modo más restrictivo: sin tags ni atributos.
+ * Sanitiza texto libre para persistencia:
+ * - elimina tags HTML
+ * - elimina chars de control no imprimibles
+ * - colapsa whitespace
  */
 export function sanitize(dirty: string): string {
-  return DOMPurify.sanitize(dirty, {
-    ALLOWED_TAGS: [],   // No permitir ningún tag HTML
-    ALLOWED_ATTR: [],   // No permitir atributos
-  }).trim();
+  if (typeof dirty !== "string") return "";
+  return dirty
+    .replace(TAGS, "")
+    .replace(CONTROL_CHARS, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 /**
- * Sanitiza un objeto completo recursivamente (solo strings).
- * Útil para sanitizar form data completo antes de persistir.
+ * Sanitiza recursivamente campos string de un objeto plano.
  */
 export function sanitizeObject<T extends Record<string, unknown>>(obj: T): T {
   return Object.fromEntries(
-    Object.entries(obj).map(([k, v]) => [
-      k,
-      typeof v === "string" ? sanitize(v) : v,
-    ])
+    Object.entries(obj).map(([k, v]) => [k, typeof v === "string" ? sanitize(v) : v]),
   ) as T;
 }
