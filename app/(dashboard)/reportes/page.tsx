@@ -38,6 +38,7 @@ export default async function ReportesPage({
   ]);
 
   const proyectosMap = new Map(proyectos.map(p => [p.id, p]));
+  const clientesMap   = new Map(clientes.map(c => [c.id, c]));
   const tareasMap    = new Map(tareas.map(t => [t.id, t]));
   const registrosRepriced = repriceMonthlyRecords(registros, Object.fromEntries(proyectos.map((p) => [p.id, p])), config);
 
@@ -114,16 +115,20 @@ export default async function ReportesPage({
   // ── Registros enriquecidos para detalle en PDF
   const registrosParaPdf = registrosRepriced
     .sort((a, b) => b.fecha.localeCompare(a.fecha))
-    .map(r => ({
-      fecha:          formatDateShort(r.fecha),
-      descripcion:    r.descripcion,
-      proyectoNombre: proyectosMap.get(r.proyecto_id)?.nombre ?? "—",
-      horas:          r.horas,
-      horasFacturadas: r.horas_a_cobrar ?? r.horas,
-      precioHora:     r.precio_hora_aplicado,
-      total:          r.monto_total,
-      estado:         r.estado,
-    }));
+    .map(r => {
+      const proyecto = proyectosMap.get(r.proyecto_id);
+      return {
+        fecha:          formatDateShort(r.fecha),
+        descripcion:    r.descripcion,
+        clienteNombre:  clientesMap.get(proyecto?.cliente_id ?? "")?.nombre ?? "—",
+        proyectoNombre: proyecto?.nombre ?? "—",
+        horas:          r.horas,
+        horasFacturadas: r.horas_a_cobrar ?? r.horas,
+        precioHora:     r.precio_hora_aplicado,
+        total:          r.monto_total,
+        estado:         r.estado,
+      };
+    });
 
   return (
     <PageShell title="Reportes" description={`${formatPeriodLabel(fechaDesde, fechaHasta)} · ${registros.length} registros`}>
