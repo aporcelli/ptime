@@ -85,6 +85,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (account && user) {
         token.accessToken          = account.access_token;
         token.refreshToken         = account.refresh_token;
+        token.name                 = user.name ?? token.name;
+        token.email                = user.email ?? token.email;
+        token.picture              = (user as { image?: string | null }).image ?? token.picture;
         // Google devuelve expires_in en segundos — convertimos a timestamp absoluto
         token.accessTokenExpiresAt = account.expires_at ??
           Math.floor(Date.now() / 1000) + (account.expires_in as number ?? 3600);
@@ -144,6 +147,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
 
     async session({ session, token }) {
+      session.user.name        = (token.name as string | undefined) ?? session.user.name;
+      session.user.email       = (token.email as string | undefined) ?? session.user.email;
+      session.user.image       = (token.picture as string | undefined) ?? session.user.image;
       session.user.role        = token.role;
       session.user.id          = token.sub ?? session.user.email;
       session.user.accessToken = token.accessToken as string | undefined;
