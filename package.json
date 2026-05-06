@@ -9,6 +9,7 @@
     "dev": "next dev",
     "prebuild": "node -e \"const bad=(process.env.NEXT_OUTPUT==='export')||(process.env.OUTPUT==='export')||(process.env.NEXT_EXPORT==='true'); if(bad){console.error('Blocked build: static export env detected'); process.exit(1)}\"",
     "build": "next build",
+    "postbuild": "node -e \"const fs=require('fs'); const path='.next/server/app/api/horas/route.js'; if(!fs.existsSync(path)){console.error('Blocked deploy: missing server API artifact '+path+' (possible static export)'); process.exit(1)}\"",
     "start": "next start",
     "lint": "next lint",
     "test": "vitest",
