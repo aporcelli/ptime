@@ -14,7 +14,7 @@ interface Props {
   data: ReportData;
   registros: Array<{
     fecha: string; descripcion: string; proyectoNombre: string;
-    horas: number; precioHora: number; total: number; estado: string;
+    horas: number; horasFacturadas?: number; precioHora: number; total: number; estado: string;
   }>;
   fechaDesde: string;
   fechaHasta: string;
