@@ -14,6 +14,7 @@ export type ProtectedSessionUser = {
   id?: string;
   email?: string;
   name?: string | null;
+  image?: string | null;
   role: "USER" | "ADMIN";
   sheetId?: string;
 };
