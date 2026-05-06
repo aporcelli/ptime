@@ -35,6 +35,7 @@ export function ReportesFiltersClient({
   // Filtros
   const [desde,      setDesde]      = useState(initDesde);
   const [hasta,      setHasta]      = useState(initHasta);
+  const [clienteIdFiltro, setClienteIdFiltro] = useState(searchParams.get("clienteId") ?? "");
   const [proyectoId, setProyectoId] = useState(searchParams.get("proyectoId") ?? "");
   const [estado,     setEstado]     = useState(searchParams.get("estado") ?? "");
 
@@ -52,10 +53,11 @@ export function ReportesFiltersClient({
   const clienteSeleccionado = clientes.find(c => c.id === clienteId);
 
   // Helper para armar query params
-  function pushParams(newDesde: string, newHasta: string, newProy: string, newEst: string) {
+  function pushParams(newDesde: string, newHasta: string, newCliente: string, newProy: string, newEst: string) {
     const params = new URLSearchParams();
     if (newDesde) params.set("fechaDesde", newDesde);
     if (newHasta) params.set("fechaHasta", newHasta);
+    if (newCliente) params.set("clienteId", newCliente);
     if (newProy)  params.set("proyectoId", newProy);
     if (newEst)   params.set("estado",     newEst);
     startTransition(() => router.push(`${pathname}?${params.toString()}`));
@@ -64,28 +66,33 @@ export function ReportesFiltersClient({
   function handleDesdeChange(val: string) {
     setDesde(val);
     setMesSeleccionado("");
-    pushParams(val, hasta, proyectoId, estado);
+    pushParams(val, hasta, clienteIdFiltro, proyectoId, estado);
   }
 
   function handleHastaChange(val: string) {
     setHasta(val);
     setMesSeleccionado("");
-    pushParams(desde, val, proyectoId, estado);
+    pushParams(desde, val, clienteIdFiltro, proyectoId, estado);
+  }
+
+  function handleClienteFiltroChange(val: string) {
+    setClienteIdFiltro(val);
+    pushParams(desde, hasta, val, proyectoId, estado);
   }
 
   function handleProyectoChange(val: string) {
     setProyectoId(val);
-    pushParams(desde, hasta, val, estado);
+    pushParams(desde, hasta, clienteIdFiltro, val, estado);
   }
 
   function handleEstadoChange(val: string) {
     setEstado(val);
-    pushParams(desde, hasta, proyectoId, val);
+    pushParams(desde, hasta, clienteIdFiltro, proyectoId, val);
   }
 
   function limpiar() {
     setDesde(""); setHasta("");
-    setProyectoId(""); setEstado("");
+    setClienteIdFiltro(""); setProyectoId(""); setEstado("");
     setMesSeleccionado("");
     startTransition(() => router.push(pathname));
   }
@@ -102,7 +109,7 @@ export function ReportesFiltersClient({
     setDesde(strDesde);
     setHasta(strHasta);
     setMesSeleccionado(valMes);
-    pushParams(strDesde, strHasta, proyectoId, estado);
+    pushParams(strDesde, strHasta, clienteIdFiltro, proyectoId, estado);
   }
 
   function handleQuickEsteMes() {
@@ -122,7 +129,7 @@ export function ReportesFiltersClient({
     setMesSeleccionado(val);
     if (!val) {
       setDesde(""); setHasta("");
-      pushParams("", "", proyectoId, estado);
+      pushParams("", "", clienteIdFiltro, proyectoId, estado);
       return;
     }
     const [yStr, mStr] = val.split("-");
@@ -168,6 +175,15 @@ export function ReportesFiltersClient({
           <label className="text-xs font-medium text-on-surface-variant">Rango (Hasta)</label>
           <input type="date" value={hasta} onChange={e => handleHastaChange(e.target.value)}
             className="meridian-input text-sm h-8 px-2 rounded-lg bg-surface-low text-on-surface focus:outline-none focus:ring-2 focus:ring-primary-fixed/30" />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium text-on-surface-variant">Cliente</label>
+          <select value={clienteIdFiltro} onChange={e => handleClienteFiltroChange(e.target.value)}
+            className="h-8 px-2 rounded-lg bg-surface-low text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary-fixed/30">
+            <option value="">Todos</option>
+            {clientes.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+          </select>
         </div>
 
         <div className="flex flex-col gap-1">
