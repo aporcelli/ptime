@@ -65,12 +65,15 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  let stage = "init";
   try {
+    stage = "auth";
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ success: false, error: "No autenticado" }, { status: 401 });
     }
 
+    stage = "parse-body";
     const body = await req.json();
     const { id, sheetId, ...rawData } = body ?? {};
 
@@ -78,12 +81,14 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ success: false, error: "ID inválido" }, { status: 400 });
     }
 
+    stage = "import-schema";
     const { hourFormSchema } = await import("@/lib/schemas/hour");
     const parsed = hourFormSchema.safeParse(rawData);
     if (!parsed.success) {
       return NextResponse.json({ success: false, error: "Datos inválidos", fieldErrors: parsed.error.flatten().fieldErrors }, { status: 400 });
     }
 
+    stage = "build-ctx";
     const ctx = buildSheetCtxFromRequest(session, req, sheetId);
     const data = parsed.data;
     const usuarioId = session.user.email ?? session.user.id;
@@ -92,6 +97,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ success: false, error: "No autenticado" }, { status: 401 });
     }
 
+    stage = "import-sheets";
     const {
       getProyectoById,
       getRegistroById,
@@ -109,6 +115,7 @@ export async function PUT(req: NextRequest) {
       getMonthlyWorkedHoursAccumulated,
     } = await import("@/lib/hours/accounting");
 
+    stage = "load-current-registro";
     const currentRegistro = await getRegistroById(ctx, id);
     if (!currentRegistro) {
       return NextResponse.json({ success: false, error: "Registro no encontrado" }, { status: 404 });
@@ -129,6 +136,7 @@ export async function PUT(req: NextRequest) {
       { precioBase, precioAlto, umbralHoras },
     );
 
+    stage = "update-registro";
     await updateRegistroHoras(ctx, id, {
       cliente_id: data.cliente_id,
       proyecto_id: data.proyecto_id,
@@ -143,6 +151,7 @@ export async function PUT(req: NextRequest) {
       estado: data.estado,
     });
 
+    stage = "update-proyecto-hours";
     for (const adjustment of calculateProjectHourAdjustments(currentRegistro, data)) {
       const p = await getProyectoById(ctx, adjustment.proyectoId);
       if (p) {
@@ -156,10 +165,14 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[api/horas PUT]", error);
+    console.error("[api/horas PUT]", { stage, error });
+    const status = getErrorStatus(error);
+    const publicError = getPublicError(error, "Error al actualizar");
+    const debugCode = `PUT_${stage.toUpperCase().replace(/[^A-Z0-9]+/g, "_")}`;
+    const debugMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { success: false, error: getPublicError(error, "Error al actualizar") },
-      { status: getErrorStatus(error) },
+      { success: false, error: publicError, debugCode, debugMessage: status === 500 ? debugMessage : undefined },
+      { status },
     );
   }
 }
