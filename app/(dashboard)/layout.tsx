@@ -20,11 +20,14 @@ export default async function DashboardLayout({
     });
     if (access.kind === "redirect") redirect(access.target);
 
+    const sessionUser = session?.user;
+    const accessUserWithImage = access.user as typeof access.user & { image?: string | null };
+
     const shellUser = {
-      name: session.user.name ?? access.user.name,
-      email: session.user.email ?? access.user.email,
+      name: sessionUser?.name ?? access.user.name,
+      email: sessionUser?.email ?? access.user.email,
       role: access.user.role,
-      image: ((session.user as any).image ?? (access.user as any).image ?? null) as string | null,
+      image: sessionUser?.image ?? accessUserWithImage.image ?? null,
     };
 
     return (
