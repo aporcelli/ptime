@@ -129,20 +129,33 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Registro no encontrado" }, { status: 404 });
     }
 
-    const mes = data.fecha.slice(0, 7);
-    const registrosMes = await getRegistrosHoras(ctx, { usuarioId });
-    const horasAcumuladasMes = getMonthlyWorkedHoursAccumulated(registrosMes, mes, id);
+    const normalizeDate = (value: string) => String(value ?? "").slice(0, 10);
+    const pricingSensitiveChanged =
+      currentRegistro.proyecto_id !== data.proyecto_id ||
+      normalizeDate(currentRegistro.fecha) !== normalizeDate(data.fecha) ||
+      Number(currentRegistro.horas) !== Number(data.horas);
 
-    const proyecto = await getProyectoById(ctx, data.proyecto_id);
-    const precioBase = proyecto?.precio_base ?? 35;
-    const precioAlto = proyecto?.precio_alto ?? 45;
-    const umbralHoras = proyecto?.umbral_precio_alto ?? 20;
+    let horasTrabajadas = currentRegistro.horas_trabajadas ?? currentRegistro.horas;
+    let horasACobrar = currentRegistro.horas_a_cobrar ?? currentRegistro.horas;
+    let precioAplicado = currentRegistro.precio_hora_aplicado;
+    let montoTotal = currentRegistro.monto_total;
 
-    const { montoTotal, precioAplicado, horasTrabajadas, horasACobrar } = calculateHoursAmount(
-      data.horas,
-      horasAcumuladasMes,
-      { precioBase, precioAlto, umbralHoras },
-    );
+    if (pricingSensitiveChanged) {
+      const mes = data.fecha.slice(0, 7);
+      const registrosMes = await getRegistrosHoras(ctx, { usuarioId });
+      const horasAcumuladasMes = getMonthlyWorkedHoursAccumulated(registrosMes, mes, id);
+
+      const proyecto = await getProyectoById(ctx, data.proyecto_id);
+      const precioBase = proyecto?.precio_base ?? 35;
+      const precioAlto = proyecto?.precio_alto ?? 45;
+      const umbralHoras = proyecto?.umbral_precio_alto ?? 20;
+
+      const recalculated = calculateHoursAmount(data.horas, horasAcumuladasMes, { precioBase, precioAlto, umbralHoras });
+      horasTrabajadas = recalculated.horasTrabajadas;
+      horasACobrar = recalculated.horasACobrar;
+      precioAplicado = recalculated.precioAplicado;
+      montoTotal = recalculated.montoTotal;
+    }
 
     stage = "update-registro";
     await updateRegistroHoras(ctx, id, {
