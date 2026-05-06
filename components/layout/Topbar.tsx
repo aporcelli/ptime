@@ -29,21 +29,18 @@ export default function Topbar({ user, onMenuClick }: Props) {
     return () => { cancelled = true; };
   }, []);
 
-  const rawAvatarSrc = sessionAvatarFromApi
-    ?? (session?.user as { image?: string | null } | undefined)?.image
-    ?? user.image
-    ?? null;
+  const rawAvatarSrc = `/api/auth/avatar?v=${encodeURIComponent(sessionAvatarFromApi ?? "session")}`;
 
   const avatarCandidates = useMemo(() => {
-    if (!rawAvatarSrc) return [] as string[];
-    const set = new Set<string>();
-    set.add(rawAvatarSrc);
-    if (rawAvatarSrc.includes("googleusercontent.com")) {
-      set.add(rawAvatarSrc.replace(/=s\d+-c$/, "=s256-c"));
-      set.add(rawAvatarSrc.replace(/=s\d+-c$/, ""));
-    }
-    return Array.from(set).filter(Boolean);
-  }, [rawAvatarSrc]);
+    const fallbackExternal = (sessionAvatarFromApi
+      ?? (session?.user as { image?: string | null } | undefined)?.image
+      ?? user.image
+      ?? null);
+
+    const candidates = [rawAvatarSrc] as string[];
+    if (fallbackExternal) candidates.push(fallbackExternal);
+    return candidates;
+  }, [rawAvatarSrc, sessionAvatarFromApi, session, user.image]);
 
   const [avatarIndex, setAvatarIndex] = useState(0);
   const avatarSrc = avatarCandidates[avatarIndex] ?? null;
