@@ -1,7 +1,7 @@
 // components/layout/Topbar.tsx
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { LogOut, User, Menu } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
@@ -13,7 +13,26 @@ interface Props {
 
 export default function Topbar({ user, onMenuClick }: Props) {
   const { data: session } = useSession();
-  const rawAvatarSrc = (session?.user as { image?: string | null } | undefined)?.image ?? user.image ?? null;
+  const [sessionAvatarFromApi, setSessionAvatarFromApi] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/auth/session", { cache: "no-store" })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        const img = data?.user?.image;
+        if (!cancelled && typeof img === "string" && img.trim()) {
+          setSessionAvatarFromApi(img);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  const rawAvatarSrc = sessionAvatarFromApi
+    ?? (session?.user as { image?: string | null } | undefined)?.image
+    ?? user.image
+    ?? null;
 
   const avatarCandidates = useMemo(() => {
     if (!rawAvatarSrc) return [] as string[];
