@@ -103,9 +103,10 @@ export async function updateHourAction(id: string, rawData: unknown): Promise<Ac
     const currentRegistro = await getRegistroById(ctx, id);
     if (!currentRegistro) return { success: false, error: "Registro no encontrado" };
 
+    const normalizeDate = (value: string) => String(value ?? "").slice(0, 10);
     const pricingSensitiveChanged =
       currentRegistro.proyecto_id !== data.proyecto_id ||
-      currentRegistro.fecha !== data.fecha ||
+      normalizeDate(currentRegistro.fecha) !== normalizeDate(data.fecha) ||
       Number(currentRegistro.horas) !== Number(data.horas);
 
     let horasTrabajadas = currentRegistro.horas_trabajadas ?? currentRegistro.horas;
