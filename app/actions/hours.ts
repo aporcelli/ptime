@@ -99,23 +99,31 @@ export async function updateHourAction(id: string, rawData: unknown): Promise<Ac
     const data = parsed.data;
     const usuarioId = user.email ?? user.id;
 
-    // Calculamos el precio nuevamente por si cambió horas o proyecto.
-    const mes = data.fecha.slice(0, 7);
-    const registrosMes = await getRegistrosHoras(ctx, { usuarioId });
-    
-    // Ojo: Traemos el registro usando queries importadas dinámicamente para evitar dependencias circulares.
-    // const { getRegistroById } = await import("@/lib/sheets/queries");
+    // Ojo: Traemos el registro actual para decidir si corresponde recalcular pricing.
     const currentRegistro = await getRegistroById(ctx, id);
     if (!currentRegistro) return { success: false, error: "Registro no encontrado" };
 
-    const horasAcumuladasMes = getMonthlyWorkedHoursAccumulated(registrosMes, mes, id);
+    const pricingSensitiveChanged =
+      currentRegistro.proyecto_id !== data.proyecto_id ||
+      currentRegistro.fecha !== data.fecha ||
+      Number(currentRegistro.horas) !== Number(data.horas);
 
-    const pricingConfig = await getPricingConfigForProject(data.proyecto_id);
-    const { montoTotal, precioAplicado, horasTrabajadas, horasACobrar } = calculateHoursAmount(
-      data.horas,
-      horasAcumuladasMes,
-      pricingConfig
-    );
+    let horasTrabajadas = currentRegistro.horas_trabajadas ?? currentRegistro.horas;
+    let horasACobrar = currentRegistro.horas_a_cobrar ?? currentRegistro.horas;
+    let precioAplicado = currentRegistro.precio_hora_aplicado;
+    let montoTotal = currentRegistro.monto_total;
+
+    if (pricingSensitiveChanged) {
+      const mes = data.fecha.slice(0, 7);
+      const registrosMes = await getRegistrosHoras(ctx, { usuarioId });
+      const horasAcumuladasMes = getMonthlyWorkedHoursAccumulated(registrosMes, mes, id);
+      const pricingConfig = await getPricingConfigForProject(data.proyecto_id);
+      const recalculated = calculateHoursAmount(data.horas, horasAcumuladasMes, pricingConfig);
+      horasTrabajadas = recalculated.horasTrabajadas;
+      horasACobrar = recalculated.horasACobrar;
+      precioAplicado = recalculated.precioAplicado;
+      montoTotal = recalculated.montoTotal;
+    }
 
     const cleanDesc = sanitize(data.descripcion);
 
