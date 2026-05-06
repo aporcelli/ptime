@@ -1,13 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import type { SheetCtx } from "@/lib/sheets/context";
-import { saveHourFromActionInput } from "@/lib/hours/save-flow";
-import { hourFormSchema } from "@/lib/schemas/hour";
-import { getProyectoById, getRegistroById, getRegistrosHoras } from "@/lib/sheets/queries";
-import { updateRegistroHoras, updateProyectoHorasAcumuladas } from "@/lib/sheets/mutations";
-import { sanitize } from "@/lib/utils/sanitize";
-import { calculateHoursAmount } from "@/lib/pricing/calculateHoursAmount";
-import { calculateProjectHourAdjustments, applyProjectHourDelta, getMonthlyWorkedHoursAccumulated } from "@/lib/hours/accounting";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,7 +18,7 @@ function getPublicError(error: unknown, fallback: string): string {
   return fallback;
 }
 
-function buildSheetCtxFromRequest(session: any, req: NextRequest, sheetIdFromBody?: string): SheetCtx {
+function buildSheetCtxFromRequest(session: any, req: NextRequest, sheetIdFromBody?: string) {
   const accessToken = session?.user?.accessToken;
   if (!accessToken) throw new Error("NO_SESSION");
 
@@ -38,6 +30,10 @@ function buildSheetCtxFromRequest(session: any, req: NextRequest, sheetIdFromBod
   return { sheetId, accessToken };
 }
 
+export async function GET() {
+  return NextResponse.json({ success: false, error: "METHOD_NOT_ALLOWED" }, { status: 405 });
+}
+
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
@@ -47,6 +43,8 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const ctx = buildSheetCtxFromRequest(session, req, body?.sheetId);
+
+    const { saveHourFromActionInput } = await import("@/lib/hours/save-flow");
     const result = await saveHourFromActionInput(body, {
       ctx,
       user: session.user,
@@ -59,7 +57,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(result);
   } catch (error) {
     console.error("[api/horas POST]", error);
-    return NextResponse.json({ success: false, error: getPublicError(error, "Error al guardar") }, { status: getErrorStatus(error) });
+    return NextResponse.json(
+      { success: false, error: getPublicError(error, "Error al guardar") },
+      { status: getErrorStatus(error) },
+    );
   }
 }
 
@@ -77,6 +78,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ success: false, error: "ID inválido" }, { status: 400 });
     }
 
+    const { hourFormSchema } = await import("@/lib/schemas/hour");
     const parsed = hourFormSchema.safeParse(rawData);
     if (!parsed.success) {
       return NextResponse.json({ success: false, error: "Datos inválidos", fieldErrors: parsed.error.flatten().fieldErrors }, { status: 400 });
@@ -89,6 +91,23 @@ export async function PUT(req: NextRequest) {
     if (!usuarioId) {
       return NextResponse.json({ success: false, error: "No autenticado" }, { status: 401 });
     }
+
+    const {
+      getProyectoById,
+      getRegistroById,
+      getRegistrosHoras,
+    } = await import("@/lib/sheets/queries");
+    const {
+      updateRegistroHoras,
+      updateProyectoHorasAcumuladas,
+    } = await import("@/lib/sheets/mutations");
+    const { sanitize } = await import("@/lib/utils/sanitize");
+    const { calculateHoursAmount } = await import("@/lib/pricing/calculateHoursAmount");
+    const {
+      calculateProjectHourAdjustments,
+      applyProjectHourDelta,
+      getMonthlyWorkedHoursAccumulated,
+    } = await import("@/lib/hours/accounting");
 
     const currentRegistro = await getRegistroById(ctx, id);
     if (!currentRegistro) {
@@ -107,7 +126,7 @@ export async function PUT(req: NextRequest) {
     const { montoTotal, precioAplicado, horasTrabajadas, horasACobrar } = calculateHoursAmount(
       data.horas,
       horasAcumuladasMes,
-      { precioBase, precioAlto, umbralHoras }
+      { precioBase, precioAlto, umbralHoras },
     );
 
     await updateRegistroHoras(ctx, id, {
@@ -138,6 +157,9 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[api/horas PUT]", error);
-    return NextResponse.json({ success: false, error: getPublicError(error, "Error al actualizar") }, { status: getErrorStatus(error) });
+    return NextResponse.json(
+      { success: false, error: getPublicError(error, "Error al actualizar") },
+      { status: getErrorStatus(error) },
+    );
   }
 }
