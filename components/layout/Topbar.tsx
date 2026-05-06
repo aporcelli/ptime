@@ -1,7 +1,7 @@
 // components/layout/Topbar.tsx
 "use client";
 
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { LogOut, User, Menu } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 
@@ -11,6 +11,9 @@ interface Props {
 }
 
 export default function Topbar({ user, onMenuClick }: Props) {
+  const { data: session } = useSession();
+  const avatarSrc = (session?.user as { image?: string | null } | undefined)?.image ?? user.image ?? null;
+
   return (
     <header className="h-14 shrink-0 flex items-center px-4 md:px-6 gap-4 bg-card border-b border-border">
       {/* Mobile menu button */}
@@ -36,9 +39,9 @@ export default function Topbar({ user, onMenuClick }: Props) {
 
         {/* Avatar */}
         <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center ring-2 ring-emerald-500/20 overflow-hidden shrink-0">
-          {user.image ? (
+          {avatarSrc ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={user.image} alt={user.name ?? "Avatar"} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            <img src={avatarSrc} alt={user.name ?? "Avatar"} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
           ) : (
             <User size={14} className="text-white" />
           )}
