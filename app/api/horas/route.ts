@@ -97,18 +97,26 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ success: false, error: "No autenticado" }, { status: 401 });
     }
 
-    stage = "import-sheets";
+    stage = "import-queries";
     const {
       getProyectoById,
       getRegistroById,
       getRegistrosHoras,
     } = await import("@/lib/sheets/queries");
+
+    stage = "import-mutations";
     const {
       updateRegistroHoras,
       updateProyectoHorasAcumuladas,
     } = await import("@/lib/sheets/mutations");
+
+    stage = "import-sanitize";
     const { sanitize } = await import("@/lib/utils/sanitize");
+
+    stage = "import-pricing";
     const { calculateHoursAmount } = await import("@/lib/pricing/calculateHoursAmount");
+
+    stage = "import-accounting";
     const {
       calculateProjectHourAdjustments,
       applyProjectHourDelta,
