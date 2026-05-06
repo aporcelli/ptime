@@ -20,8 +20,15 @@ export default async function DashboardLayout({
     });
     if (access.kind === "redirect") redirect(access.target);
 
+    const shellUser = {
+      name: session.user.name ?? access.user.name,
+      email: session.user.email ?? access.user.email,
+      role: access.user.role,
+      image: ((session.user as any).image ?? (access.user as any).image ?? null) as string | null,
+    };
+
     return (
-      <DashboardShell role={access.user.role} user={access.user}>
+      <DashboardShell role={access.user.role} user={shellUser}>
         {children}
       </DashboardShell>
     );
