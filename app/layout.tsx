@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Manrope, Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { SessionProvider } from "next-auth/react";
 import "./globals.css";
+import { PwaRegister } from "./pwa-register";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -22,6 +23,20 @@ export const metadata: Metadata = {
   title: { default: "Ptime", template: "%s | Ptime" },
   description: "Gestión y carga de horas para servicios profesionales",
   robots: { index: false, follow: false },
+  manifest: "/manifest.webmanifest",
+  applicationName: "Ptime",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Ptime",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0b1020",
 };
 
 export default function RootLayout({
@@ -43,6 +58,7 @@ export default function RootLayout({
             enableSystem={false}
             disableTransitionOnChange
           >
+            <PwaRegister />
             {children}
           </ThemeProvider>
         </SessionProvider>
