@@ -56,6 +56,21 @@ async function refreshGoogleToken(refreshToken: string): Promise<{
   }
 }
 
+async function fetchGoogleProfilePicture(accessToken?: string): Promise<string | undefined> {
+  if (!accessToken) return undefined;
+  try {
+    const res = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return undefined;
+    const data = (await res.json()) as { picture?: string };
+    return data.picture || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: process.env.AUTH_TRUST_HOST === "true" || process.env.VERCEL === "1",
   secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
@@ -88,6 +103,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.name                 = user.name ?? token.name;
         token.email                = user.email ?? token.email;
         token.picture              = (user as { image?: string | null }).image ?? token.picture;
+        if (!token.picture) {
+          token.picture = await fetchGoogleProfilePicture(token.accessToken as string | undefined) ?? token.picture;
+        }
         // Google devuelve expires_in en segundos — convertimos a timestamp absoluto
         token.accessTokenExpiresAt = account.expires_at ??
           Math.floor(Date.now() / 1000) + (account.expires_in as number ?? 3600);
@@ -138,10 +156,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return { ...token, error: "RefreshTokenError" as const };
       }
 
+      const refreshedPicture = token.picture ?? (await fetchGoogleProfilePicture(refreshed.access_token));
       return {
         ...token,
         accessToken:          refreshed.access_token,
         accessTokenExpiresAt: Math.floor(Date.now() / 1000) + refreshed.expires_in,
+        picture:              refreshedPicture,
         error:                undefined,
       };
     },
