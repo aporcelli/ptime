@@ -44,34 +44,37 @@ export default async function ReportesPage({
   // ── Agregados por mes
   const porMesMap = registrosRepriced.reduce<Record<string, { horas: number; ingresos: number }>>((acc, r) => {
     const mes = r.fecha.slice(0, 7);
+    const horasFact = r.horas_a_cobrar ?? r.horas;
     if (!acc[mes]) acc[mes] = { horas: 0, ingresos: 0 };
-    acc[mes].horas    += r.horas;
+    acc[mes].horas    += horasFact;
     acc[mes].ingresos += r.monto_total;
     return acc;
   }, {});
 
   // ── Agregados por proyecto
   const porProyectoMap = registrosRepriced.reduce<Record<string, { nombre: string; horas: number; ingresos: number }>>((acc, r) => {
+    const horasFact = r.horas_a_cobrar ?? r.horas;
     if (!acc[r.proyecto_id]) {
       const p = proyectosMap.get(r.proyecto_id);
       acc[r.proyecto_id] = { nombre: p?.nombre ?? "—", horas: 0, ingresos: 0 };
     }
-    acc[r.proyecto_id].horas    += r.horas;
+    acc[r.proyecto_id].horas    += horasFact;
     acc[r.proyecto_id].ingresos += r.monto_total;
     return acc;
   }, {});
 
   // ── Agregados por tarea
   const porTareaMap = registrosRepriced.reduce<Record<string, { nombre: string; horas: number }>>((acc, r) => {
+    const horasFact = r.horas_a_cobrar ?? r.horas;
     if (!acc[r.tarea_id]) {
       const t = tareasMap.get(r.tarea_id);
       acc[r.tarea_id] = { nombre: t?.nombre ?? "Sin tarea", horas: 0 };
     }
-    acc[r.tarea_id].horas += r.horas;
+    acc[r.tarea_id].horas += horasFact;
     return acc;
   }, {});
 
-  const totalHoras    = registrosRepriced.reduce((s, r) => s + r.horas, 0);
+  const totalHoras    = registrosRepriced.reduce((s, r) => s + (r.horas_a_cobrar ?? r.horas), 0);
   const totalIngresos = registrosRepriced.reduce((s, r) => s + r.monto_total, 0);
 
   const mesesData = Object.entries(porMesMap)
