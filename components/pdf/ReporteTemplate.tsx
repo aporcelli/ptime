@@ -374,6 +374,7 @@ interface DocProps {
     descripcion: string;
     proyectoNombre: string;
     horas: number;
+    horasFacturadas?: number;
     precioHora: number;
     total: number;
     estado: string;
@@ -634,7 +635,7 @@ function ReporteDoc({
                   <Text style={[s.tableHeaderCell, { flex: 1.05 }]}>Fecha</Text>
                   <Text style={[s.tableHeaderCell, { flex: 1.8 }]}>Proyecto</Text>
                   <Text style={[s.tableHeaderCell, { flex: 4.5, paddingLeft: 8 }]}>Descripción</Text>
-                  <Text style={[s.tableHeaderCell, { flex: 0.8, textAlign: "right" }]}>Horas</Text>
+                  <Text style={[s.tableHeaderCell, { flex: 0.95, textAlign: "right" }]}>Horas fact.</Text>
                   <Text style={[s.tableHeaderCell, { flex: 1.5, textAlign: "right" }]}>Total</Text>
                 </View>
                 {registros.map((r, i) => (
@@ -642,7 +643,7 @@ function ReporteDoc({
                     <Text style={[s.tableCell, s.tableCellMuted, { flex: 1.05 }]}>{formatDateShort(r.fecha)}</Text>
                     <Text style={[s.tableCell, { flex: 1.8, paddingRight: 8 }]}>{r.proyectoNombre}</Text>
                     <Text style={[s.tableCell, s.tableCellMuted, { flex: 4.5, paddingLeft: 8 }]}>{r.descripcion}</Text>
-                    <Text style={[s.tableCell, { flex: 0.8, textAlign: "right" }]}>{r.horas}h</Text>
+                    <Text style={[s.tableCell, { flex: 0.95, textAlign: "right" }]}>{(r.horasFacturadas ?? r.horas)}h</Text>
                     <Text style={[s.tableCell, s.tableCellAccent, { flex: 1.5, textAlign: "right" }]}>{fmt(r.total, moneda)}</Text>
                   </View>
                 ))}

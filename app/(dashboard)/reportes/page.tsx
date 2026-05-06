@@ -116,6 +116,7 @@ export default async function ReportesPage({
       descripcion:    r.descripcion,
       proyectoNombre: proyectosMap.get(r.proyecto_id)?.nombre ?? "—",
       horas:          r.horas,
+      horasFacturadas: r.horas_a_cobrar ?? r.horas,
       precioHora:     r.precio_hora_aplicado,
       total:          r.monto_total,
       estado:         r.estado,
