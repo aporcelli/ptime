@@ -142,6 +142,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const nowSecs   = Math.floor(Date.now() / 1000);
       // Refrescar si vence en menos de 5 minutos (300s de margen)
       if (nowSecs < expiresAt - 300) {
+        if (!token.picture) {
+          token.picture = await fetchGoogleProfilePicture(token.accessToken as string | undefined) ?? token.picture;
+        }
         return token;
       }
 
