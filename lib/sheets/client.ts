@@ -27,23 +27,38 @@ async function sheetsRequest<T>(
   path: string,
   init?: RequestInit,
 ): Promise<T> {
-  const res = await fetch(`${apiBase(spreadsheetId)}${path}`, {
-    ...init,
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-      ...(init?.headers ?? {}),
-    },
-    cache: "no-store",
-  });
+  const maxAttempts = 5;
 
-  if (!res.ok) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const res = await fetch(`${apiBase(spreadsheetId)}${path}`, {
+      ...init,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        ...(init?.headers ?? {}),
+      },
+      cache: "no-store",
+    });
+
+    if (res.ok) {
+      if (res.status === 204) return {} as T;
+      return (await res.json()) as T;
+    }
+
+    const shouldRetry = res.status === 429 || res.status >= 500;
     const text = await res.text();
-    throw new Error(`Google Sheets API ${res.status}: ${text || res.statusText}`);
+
+    if (!shouldRetry || attempt === maxAttempts) {
+      throw new Error(`Google Sheets API ${res.status}: ${text || res.statusText}`);
+    }
+
+    const retryAfterSeconds = Number(res.headers.get("retry-after") ?? "0");
+    const baseMs = retryAfterSeconds > 0 ? retryAfterSeconds * 1000 : Math.min(1000 * 2 ** (attempt - 1), 8000);
+    const jitterMs = Math.floor(Math.random() * 400);
+    await new Promise((resolve) => setTimeout(resolve, baseMs + jitterMs));
   }
 
-  if (res.status === 204) return {} as T;
-  return (await res.json()) as T;
+  throw new Error("Google Sheets request retry loop exhausted");
 }
 
 async function valuesGet(spreadsheetId: string, accessToken: string, range: string, withDateTime = false): Promise<ValuesResponse> {

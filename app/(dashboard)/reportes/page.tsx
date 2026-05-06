@@ -77,6 +77,7 @@ export default async function ReportesPage({
 
   const totalHoras    = registrosRepriced.reduce((s, r) => s + (r.horas_a_cobrar ?? r.horas), 0);
   const totalIngresos = registrosRepriced.reduce((s, r) => s + r.monto_total, 0);
+  const proyectosEnPeriodo = new Set(registrosRepriced.map((r) => r.proyecto_id)).size;
 
   const mesesData = Object.entries(porMesMap)
     .sort(([a], [b]) => a.localeCompare(b))
@@ -102,7 +103,7 @@ export default async function ReportesPage({
       totalHoras,
       totalIngresos,
       promedioHorasDia: +(totalHoras / 30).toFixed(2),
-      proyectosActivos: proyectos.filter(p => p.estado === "activo").length,
+      proyectosActivos: proyectosEnPeriodo,
       registrosTotales: registros.length,
     },
     porMes:      mesesData,
@@ -120,7 +121,7 @@ export default async function ReportesPage({
       return {
         fecha:          formatDateShort(r.fecha),
         descripcion:    r.descripcion,
-        clienteNombre:  clientesMap.get(proyecto?.cliente_id ?? "")?.nombre ?? "—",
+        clienteNombre:  clientesMap.get(r.cliente_id ?? proyecto?.cliente_id ?? "")?.nombre ?? "—",
         proyectoNombre: proyecto?.nombre ?? "—",
         horas:          r.horas,
         horasFacturadas: r.horas_a_cobrar ?? r.horas,
