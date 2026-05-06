@@ -1,43 +1,117 @@
 // lib/sheets/client.ts
-// ─────────────────────────────────────────────────────────────────────────────
-// Cliente de Google Sheets usando el OAuth token del usuario autenticado.
-// NO usa Service Account — las credenciales son del propio usuario.
-// ─────────────────────────────────────────────────────────────────────────────
-import { google, sheets_v4 } from "googleapis";
+// Cliente liviano de Google Sheets usando fetch + OAuth token del usuario.
+// Evita dependencias pesadas de googleapis que en Node 24/Vercel pueden romper por ESM/CJS.
+
 import { SHEET_HEADERS, SHEET_NAMES } from "@/lib/constants";
 import { LOCAL_DEV_ACCESS_TOKEN } from "@/lib/env/dev-access";
 import { appendLocalRow, clearLocalRow, getLocalRows, updateLocalRow } from "./local-store";
 
-/**
- * Crea un cliente de Sheets autenticado con el access token del usuario.
- * Se instancia por request (no singleton) porque cada usuario tiene su token.
- */
-function createSheetsClient(accessToken: string): sheets_v4.Sheets {
-  const auth = new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-  );
-  auth.setCredentials({ access_token: accessToken });
-  return google.sheets({ version: "v4", auth });
+type Primitive = string | number | boolean;
+
+type SheetsGetResponse = {
+  sheets?: Array<{ properties?: { title?: string } }>;
+  properties?: { title?: string };
+};
+
+type ValuesResponse = {
+  values?: unknown[][];
+};
+
+function apiBase(spreadsheetId: string): string {
+  return `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}`;
 }
 
-// ── Helpers públicos ──────────────────────────────────────────────────────────
-
-export async function getSheetRows(
+async function sheetsRequest<T>(
   spreadsheetId: string,
   accessToken: string,
-  range: string
-): Promise<string[][]> {
-  if (accessToken === LOCAL_DEV_ACCESS_TOKEN) return getLocalRows(range);
-  const sheets = createSheetsClient(accessToken);
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId,
-    range,
-    valueRenderOption:    "UNFORMATTED_VALUE",
-    dateTimeRenderOption: "FORMATTED_STRING",
+  path: string,
+  init?: RequestInit,
+): Promise<T> {
+  const res = await fetch(`${apiBase(spreadsheetId)}${path}`, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      ...(init?.headers ?? {}),
+    },
+    cache: "no-store",
   });
-  const rows = res.data.values ?? [];
-  return rows.slice(1); // Saltar fila de encabezados
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Google Sheets API ${res.status}: ${text || res.statusText}`);
+  }
+
+  if (res.status === 204) return {} as T;
+  return (await res.json()) as T;
+}
+
+async function valuesGet(spreadsheetId: string, accessToken: string, range: string, withDateTime = false): Promise<ValuesResponse> {
+  const params = new URLSearchParams({
+    range,
+    valueRenderOption: "UNFORMATTED_VALUE",
+  });
+  if (withDateTime) params.set("dateTimeRenderOption", "FORMATTED_STRING");
+  return sheetsRequest<ValuesResponse>(spreadsheetId, accessToken, `/values/${encodeURIComponent(range)}?${params.toString()}`);
+}
+
+async function valuesUpdate(
+  spreadsheetId: string,
+  accessToken: string,
+  range: string,
+  values: Primitive[][],
+  valueInputOption: "RAW" | "USER_ENTERED" = "USER_ENTERED",
+): Promise<void> {
+  const params = new URLSearchParams({ valueInputOption });
+  await sheetsRequest(spreadsheetId, accessToken, `/values/${encodeURIComponent(range)}?${params.toString()}`, {
+    method: "PUT",
+    body: JSON.stringify({ values }),
+  });
+}
+
+async function valuesAppend(
+  spreadsheetId: string,
+  accessToken: string,
+  range: string,
+  values: Primitive[][],
+  valueInputOption: "RAW" | "USER_ENTERED" = "USER_ENTERED",
+  insertDataOption: "INSERT_ROWS" | "OVERWRITE" = "INSERT_ROWS",
+): Promise<void> {
+  const params = new URLSearchParams({ valueInputOption, insertDataOption });
+  await sheetsRequest(spreadsheetId, accessToken, `/values/${encodeURIComponent(range)}:append?${params.toString()}`, {
+    method: "POST",
+    body: JSON.stringify({ values }),
+  });
+}
+
+async function valuesClear(spreadsheetId: string, accessToken: string, range: string): Promise<void> {
+  await sheetsRequest(spreadsheetId, accessToken, `/values/${encodeURIComponent(range)}:clear`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+}
+
+async function spreadsheetGet(spreadsheetId: string, accessToken: string, fields?: string): Promise<SheetsGetResponse> {
+  const q = fields ? `?${new URLSearchParams({ fields }).toString()}` : "";
+  return sheetsRequest<SheetsGetResponse>(spreadsheetId, accessToken, q);
+}
+
+async function spreadsheetBatchUpdate(
+  spreadsheetId: string,
+  accessToken: string,
+  requests: Array<Record<string, unknown>>,
+): Promise<void> {
+  await sheetsRequest(spreadsheetId, accessToken, `:batchUpdate`, {
+    method: "POST",
+    body: JSON.stringify({ requests }),
+  });
+}
+
+export async function getSheetRows(spreadsheetId: string, accessToken: string, range: string): Promise<string[][]> {
+  if (accessToken === LOCAL_DEV_ACCESS_TOKEN) return getLocalRows(range);
+  const res = await valuesGet(spreadsheetId, accessToken, range, true);
+  const rows = (res.values ?? []) as string[][];
+  return rows.slice(1);
 }
 
 export function mergeSheetHeaders(current: unknown[], expected: readonly string[]): string[] {
@@ -55,22 +129,12 @@ export async function ensureSheetHeaders(
   expectedHeaders: readonly string[],
 ): Promise<void> {
   if (accessToken === LOCAL_DEV_ACCESS_TOKEN) return;
-  const sheets = createSheetsClient(accessToken);
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId,
-    range: `${sheetName}!1:1`,
-    valueRenderOption: "UNFORMATTED_VALUE",
-  });
-  const current = res.data.values?.[0] ?? [];
+  const res = await valuesGet(spreadsheetId, accessToken, `${sheetName}!1:1`);
+  const current = (res.values?.[0] ?? []) as unknown[];
   const merged = mergeSheetHeaders(current, expectedHeaders);
   const needsUpdate = merged.length !== current.length || merged.some((value, index) => value !== String(current[index] ?? ""));
   if (!needsUpdate) return;
-  await sheets.spreadsheets.values.update({
-    spreadsheetId,
-    range: `${sheetName}!A1`,
-    valueInputOption: "RAW",
-    requestBody: { values: [merged] },
-  });
+  await valuesUpdate(spreadsheetId, accessToken, `${sheetName}!A1`, [merged], "RAW");
 }
 
 export async function ensureRegistroHorasHeaders(spreadsheetId: string, accessToken: string): Promise<void> {
@@ -81,39 +145,23 @@ export async function ensureRegistroHorasHeaders(spreadsheetId: string, accessTo
   }
 }
 
-export async function getSheetRowsWithHeaders(
-  spreadsheetId: string,
-  accessToken: string,
-  range: string
-): Promise<string[][]> {
+export async function getSheetRowsWithHeaders(spreadsheetId: string, accessToken: string, range: string): Promise<string[][]> {
   if (accessToken === LOCAL_DEV_ACCESS_TOKEN) return getLocalRows(range);
-  const sheets = createSheetsClient(accessToken);
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId,
-    range,
-    valueRenderOption: "UNFORMATTED_VALUE",
-  });
-  return res.data.values ?? [];
+  const res = await valuesGet(spreadsheetId, accessToken, range);
+  return (res.values ?? []) as string[][];
 }
 
 export async function appendSheetRow(
   spreadsheetId: string,
   accessToken: string,
   range: string,
-  values: (string | number | boolean)[]
+  values: Primitive[],
 ): Promise<void> {
   if (accessToken === LOCAL_DEV_ACCESS_TOKEN) {
     appendLocalRow(range, values);
     return;
   }
-  const sheets = createSheetsClient(accessToken);
-  await sheets.spreadsheets.values.append({
-    spreadsheetId,
-    range,
-    valueInputOption: "USER_ENTERED",
-    insertDataOption: "INSERT_ROWS",
-    requestBody: { values: [values] },
-  });
+  await valuesAppend(spreadsheetId, accessToken, range, [values], "USER_ENTERED", "INSERT_ROWS");
 }
 
 export async function updateSheetRow(
@@ -121,84 +169,59 @@ export async function updateSheetRow(
   accessToken: string,
   sheetName: string,
   rowNumber: number,
-  values: (string | number | boolean)[]
+  values: Primitive[],
 ): Promise<void> {
   if (accessToken === LOCAL_DEV_ACCESS_TOKEN) {
     updateLocalRow(sheetName, rowNumber, values);
     return;
   }
-  const sheets = createSheetsClient(accessToken);
-  await sheets.spreadsheets.values.update({
-    spreadsheetId,
-    range:            `${sheetName}!A${rowNumber}`,
-    valueInputOption: "USER_ENTERED",
-    requestBody: { values: [values] },
-  });
+  await valuesUpdate(spreadsheetId, accessToken, `${sheetName}!A${rowNumber}`, [values], "USER_ENTERED");
 }
 
 export async function clearSheetRow(
   spreadsheetId: string,
   accessToken: string,
   sheetName: string,
-  rowNumber: number
+  rowNumber: number,
 ): Promise<void> {
   if (accessToken === LOCAL_DEV_ACCESS_TOKEN) {
     clearLocalRow(sheetName, rowNumber);
     return;
   }
-  const sheets = createSheetsClient(accessToken);
-  await sheets.spreadsheets.values.clear({
-    spreadsheetId,
-    range: `${sheetName}!A${rowNumber}:Z${rowNumber}`,
-  });
+  await valuesClear(spreadsheetId, accessToken, `${sheetName}!A${rowNumber}:Z${rowNumber}`);
 }
 
-/**
- * Verifica que el spreadsheet existe y es accesible con el token dado.
- * Usado en el setup inicial para validar el Sheet ID.
- */
 export async function validateSpreadsheet(
   spreadsheetId: string,
-  accessToken: string
+  accessToken: string,
 ): Promise<{ valid: boolean; title?: string; error?: string }> {
   try {
     if (accessToken === LOCAL_DEV_ACCESS_TOKEN) return { valid: true, title: "Ptime Local" };
-    const sheets = createSheetsClient(accessToken);
-    const res = await sheets.spreadsheets.get({
-      spreadsheetId,
-      fields: "properties.title",
-    });
-    return { valid: true, title: res.data.properties?.title ?? "Sin título" };
+    const res = await spreadsheetGet(spreadsheetId, accessToken, "properties.title");
+    return { valid: true, title: res.properties?.title ?? "Sin título" };
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Error desconocido";
     return { valid: false, error: msg };
   }
 }
 
-/**
- * Crea las 5 hojas requeridas en el spreadsheet si no existen.
- */
-export async function initializeSpreadsheet(
-  spreadsheetId: string,
-  accessToken: string
-): Promise<void> {
+export async function initializeSpreadsheet(spreadsheetId: string, accessToken: string): Promise<void> {
   if (accessToken === LOCAL_DEV_ACCESS_TOKEN) return;
-  const sheets  = createSheetsClient(accessToken);
-  const headers = {
+
+  const headers: Record<string, readonly string[]> = {
     Registros_Horas: SHEET_HEADERS.REGISTROS_HORAS,
-    Proyectos:       SHEET_HEADERS.PROYECTOS,
-    Clientes:        SHEET_HEADERS.CLIENTES,
-    Tareas:          SHEET_HEADERS.TAREAS,
+    Proyectos: SHEET_HEADERS.PROYECTOS,
+    Clientes: SHEET_HEADERS.CLIENTES,
+    Tareas: SHEET_HEADERS.TAREAS,
     Configuraciones: SHEET_HEADERS.CONFIGURACIONES,
-    Usuarios:        ["id","nombre","email","rol","activo","ultimo_acceso","sheet_id"],
-    Workspace_Members: ["email","sheet_id","rol","invited_by","created_at","updated_at"],
+    Usuarios: ["id", "nombre", "email", "rol", "activo", "ultimo_acceso", "sheet_id"],
+    Workspace_Members: ["email", "sheet_id", "rol", "invited_by", "created_at", "updated_at"],
   };
 
-  // Obtener hojas existentes
-  const meta = await sheets.spreadsheets.get({ spreadsheetId, fields: "sheets.properties.title" });
-  const existentes = new Set((meta.data.sheets ?? []).map((s) => s.properties?.title ?? ""));
+  const meta = await spreadsheetGet(spreadsheetId, accessToken, "sheets.properties.title");
+  const existentes = new Set((meta.sheets ?? []).map((s) => s.properties?.title ?? ""));
 
-  const requests: sheets_v4.Schema$Request[] = [];
+  const requests: Array<Record<string, unknown>> = [];
   const nuevas: string[] = [];
 
   for (const nombre of Object.keys(headers)) {
@@ -209,37 +232,26 @@ export async function initializeSpreadsheet(
   }
 
   if (requests.length > 0) {
-    await sheets.spreadsheets.batchUpdate({ spreadsheetId, requestBody: { requests } });
+    await spreadsheetBatchUpdate(spreadsheetId, accessToken, requests);
   }
 
-  // Escribir encabezados en hojas nuevas (o vacías)
   for (const [nombre, cols] of Object.entries(headers)) {
     if (nuevas.includes(nombre) || !existentes.has(nombre)) {
-      await sheets.spreadsheets.values.update({
-        spreadsheetId,
-        range:            `${nombre}!A1`,
-        valueInputOption: "RAW",
-        requestBody: { values: [[...cols]] },
-      });
+      await valuesUpdate(spreadsheetId, accessToken, `${nombre}!A1`, [Array.from(cols)], "RAW");
     } else {
       await ensureSheetHeaders(spreadsheetId, accessToken, nombre, cols);
     }
   }
 
-  // Insertar configuración por defecto
   if (nuevas.includes("Configuraciones")) {
-    const defaults = [
-      ["precio_base_global",  "35",    new Date().toISOString()],
-      ["precio_alto_global",  "45",    new Date().toISOString()],
-      ["umbral_horas_global", "20",    new Date().toISOString()],
-      ["moneda",              "USD",   new Date().toISOString()],
-      ["nombre_empresa",      "Ptime", new Date().toISOString()],
+    const now = new Date().toISOString();
+    const defaults: Primitive[][] = [
+      ["precio_base_global", "35", now],
+      ["precio_alto_global", "45", now],
+      ["umbral_horas_global", "20", now],
+      ["moneda", "USD", now],
+      ["nombre_empresa", "Ptime", now],
     ];
-    await sheets.spreadsheets.values.append({
-      spreadsheetId,
-      range:            "Configuraciones!A2",
-      valueInputOption: "RAW",
-      requestBody: { values: defaults },
-    });
+    await valuesAppend(spreadsheetId, accessToken, "Configuraciones!A2", defaults, "RAW", "INSERT_ROWS");
   }
 }
