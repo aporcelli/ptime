@@ -5,6 +5,26 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.6] — 2026-05-18
+
+### 🔐 Hardening de auth y actualización legal
+
+#### Agregado
+- **Hardening multi-tenant en `/api/horas`**: el `sheetId` del body ya no puede sobreescribir el contexto confiable (JWT/cookie).
+- **Control de mismatch**: nuevo error `SHEET_CONTEXT_MISMATCH` con respuesta `403` cuando el `sheetId` enviado no coincide con el contexto autenticado.
+- **Documentación legal ampliada**: `/privacy` y `/terms` reescritas con contenido completo y metadata.
+
+#### Modificado / Mejorado
+- **Resolución de contexto en páginas** (`getPageCtx`): redirecciones más precisas (`/login`, `/login?error=TokenExpired`, `/setup`).
+- **Middleware API unificado**: `/api/horas` deja de bypass-ear middleware y usa validación homogénea para auth/sheet.
+- **Avatar auth proxy cache**: `Cache-Control` optimizado (`private, max-age=600, stale-while-revalidate=3600`).
+- **Versionado sincronizado**: `package.json` y `package-lock.json` en **v1.2.6**.
+
+#### Verificación
+- `vitest` smoke: `lib/env/dev-access.test.ts` y `lib/utils/safe-callback-url.test.ts` pasando.
+
+---
+
 ## [1.2.5] — 2026-04-28
 
 ### 🚀 Facturación, desarrollo local y reportes
