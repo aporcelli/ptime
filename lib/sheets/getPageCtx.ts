@@ -17,17 +17,27 @@ export async function getPageCtx(): Promise<SheetCtx> {
   const session     = await auth();
   const cookieStore = cookies();
 
+  // Sin sesión → login
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  // Token expirado o sin access token → re-login con mensaje claro
+  if (session.error === "RefreshTokenError" || !session.user.accessToken) {
+    redirect("/login?error=TokenExpired");
+  }
+
   // Cada usuario tiene su propio Sheet — preferimos el JWT (persistente cross-device),
   // luego cookie como fallback.
-  const sheetId     = (session?.user as { sheetId?: string })?.sheetId
+  const sheetId     = (session.user as { sheetId?: string })?.sheetId
                    ?? cookieStore.get("ptime-sheet-id")?.value
                    ?? undefined;
 
-  const accessToken = session?.user?.accessToken;
-
-  if (!session?.user || !accessToken || !sheetId) {
+  if (!sheetId) {
     redirect("/setup");
   }
+
+  const accessToken = session.user.accessToken;
 
   return { sheetId, accessToken };
 }

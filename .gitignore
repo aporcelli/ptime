@@ -36,3 +36,5 @@ next-env.d.ts
 bin/
 SA/
 build.log
+# Local Pi runtime state
+.atl/
