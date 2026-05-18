@@ -8,11 +8,16 @@ export const maxDuration = 30;
 function getErrorStatus(error: unknown): number {
   if (error instanceof Error && error.message === "NO_SESSION") return 401;
   if (error instanceof Error && error.message === "NO_SHEET_CONFIGURED") return 428;
+  if (error instanceof Error && error.message === "SHEET_CONTEXT_MISMATCH") return 403;
   return 500;
 }
 
 function getPublicError(error: unknown, fallback: string): string {
-  if (error instanceof Error && (error.message === "NO_SESSION" || error.message === "NO_SHEET_CONFIGURED")) {
+  if (error instanceof Error && (
+    error.message === "NO_SESSION" ||
+    error.message === "NO_SHEET_CONFIGURED" ||
+    error.message === "SHEET_CONTEXT_MISMATCH"
+  )) {
     return error.message;
   }
   return fallback;
@@ -24,10 +29,17 @@ function buildSheetCtxFromRequest(session: any, req: NextRequest, sheetIdFromBod
 
   const jwtSheetId = (session?.user as { sheetId?: string } | undefined)?.sheetId;
   const cookieSheetId = req.cookies.get("ptime-sheet-id")?.value;
-  const sheetId = (sheetIdFromBody || "").trim() || jwtSheetId || cookieSheetId;
-  if (!sheetId) throw new Error("NO_SHEET_CONFIGURED");
+  const trustedSheetId = jwtSheetId || cookieSheetId;
+  const bodySheetId = (sheetIdFromBody || "").trim() || undefined;
 
-  return { sheetId, accessToken };
+  if (!trustedSheetId) throw new Error("NO_SHEET_CONFIGURED");
+
+  // Hardening: nunca permitir que el body cambie el contexto de tenant.
+  if (bodySheetId && bodySheetId !== trustedSheetId) {
+    throw new Error("SHEET_CONTEXT_MISMATCH");
+  }
+
+  return { sheetId: trustedSheetId, accessToken };
 }
 
 export async function GET() {

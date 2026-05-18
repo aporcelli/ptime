@@ -38,7 +38,7 @@ export async function GET() {
       status: 200,
       headers: {
         "Content-Type": contentType,
-        "Cache-Control": "private, max-age=120",
+        "Cache-Control": "private, max-age=600, stale-while-revalidate=3600",
       },
     });
   } catch {
