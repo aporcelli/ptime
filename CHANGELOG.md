@@ -18,7 +18,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 - **Resolución de contexto en páginas** (`getPageCtx`): redirecciones más precisas (`/login`, `/login?error=TokenExpired`, `/setup`).
 - **Middleware API unificado**: `/api/horas` deja de bypass-ear middleware y usa validación homogénea para auth/sheet.
 - **Avatar auth proxy cache**: `Cache-Control` optimizado (`private, max-age=600, stale-while-revalidate=3600`).
-- **Versionado sincronizado**: `package.json` y `package-lock.json` en **v1.2.6**.
+- **Versionado sincronizado**: `package.json` y `package-lock.json` en **v1.2.6**; versión visible en Sidebar **v1.2.6-dev.20260518-1504**.
 
 #### Verificación
 - `vitest` smoke: `lib/env/dev-access.test.ts` y `lib/utils/safe-callback-url.test.ts` pasando.
