@@ -5,6 +5,39 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.8] — 2026-05-20
+
+### 📊 Modernización Reportes (fases 1–5): visual, filtros, charts, accesibilidad
+
+#### Agregado
+- **Tokens semánticos de charts** en `globals.css` para ambos temas (`--chart-1..6`, `--chart-grid`) y estilo reutilizable `.chart-tooltip`.
+- **Semántica accesible en gráficos**: wrappers con `role="img"` + `aria-label` descriptivo para tendencia, proyectos y tareas.
+- **Accesibilidad en tablas de reportes**: `caption` oculto para SR y `scope="col"` en encabezados.
+
+#### Modificado / Mejorado
+- **Dark/Light bugs corregidos en charts**: se eliminaron referencias a variables inexistentes (`--border-light`, `--text-muted`) y se migró a paleta semántica `hsl(var(--...))`.
+- **Charts modernizados**:
+  - Tendencia de ingresos: `ComposedChart` con área degradada + línea + referencia promedio.
+  - Horas por proyecto: barras horizontales (top 8) para mejor legibilidad de nombres largos.
+  - Tareas: donut con total central y leyenda enriquecida con porcentajes.
+- **Filtros de Reportes rediseñados**:
+  - Layout responsive por bloques.
+  - Clientes/proyectos en orden alfabético.
+  - Chips de filtros activos con remove individual.
+  - Reseteo automático de proyecto inválido al cambiar cliente.
+  - Estado `rechazado` agregado al selector.
+- **Polish de interacción**:
+  - Animaciones `framer-motion` en panel de filtros y acordeón PDF.
+  - Botones rápidos con estado activo visible.
+  - Hover/focus states refinados en cards y controles (`focus-visible`).
+- **Versionado sincronizado**: `package.json` y `package-lock.json` en **v1.2.8**; versión visible en Sidebar **v1.2.8-dev.20260520-1802**.
+
+#### Verificación
+- `next lint` sobre archivos tocados de Reportes/Charts/UI sin warnings ni errores.
+- `vitest`: `lib/hours/monthly.test.ts` pasando.
+
+---
+
 ## [1.2.7] — 2026-05-20
 
 ### 🧭 Ordenamiento de carga de horas y listado en Mis Horas

@@ -181,10 +181,11 @@ export default async function ReportesPage({
       <SectionCard title="Detalle por mes">
         <DataPanel>
           <table className="w-full text-sm">
+            <caption className="sr-only">Detalle mensual de horas e ingresos para el período seleccionado</caption>
             <thead>
               <tr className="bg-surface-high">
                 {["Mes", "Horas", "Ingresos", "% del total"].map((h, i) => (
-                  <th key={h} className={`p-3 text-xs font-semibold uppercase tracking-wide text-on-surface-variant ${i === 0 ? "text-left" : "text-right"}`}>
+                  <th scope="col" key={h} className={`p-3 text-xs font-semibold uppercase tracking-wide text-on-surface-variant ${i === 0 ? "text-left" : "text-right"}`}>
                     {h}
                   </th>
                 ))}
@@ -213,10 +214,11 @@ export default async function ReportesPage({
       <SectionCard title="Detalle por proyecto">
         <DataPanel>
           <table className="w-full text-sm">
+            <caption className="sr-only">Detalle por proyecto de horas e ingresos del período seleccionado</caption>
             <thead>
               <tr className="bg-surface-high">
                 {["Proyecto", "Horas", "Ingresos"].map((h, i) => (
-                  <th key={h} className={`p-3 text-xs font-semibold uppercase tracking-wide text-on-surface-variant ${i === 0 ? "text-left" : "text-right"}`}>
+                  <th scope="col" key={h} className={`p-3 text-xs font-semibold uppercase tracking-wide text-on-surface-variant ${i === 0 ? "text-left" : "text-right"}`}>
                     {h}
                   </th>
                 ))}
