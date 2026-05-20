@@ -3,9 +3,16 @@
 "use client";
 
 import {
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+    Legend,
 } from "recharts";
-import { CHART_COLORS } from "@/lib/utils/chart-colors";
+import { CHART_COLORS, CHART_GRID_COLOR, CHART_TICK_COLOR } from "@/lib/utils/chart-colors";
 
 interface DataPoint {
     nombre: string;
@@ -43,23 +50,47 @@ export default function HorasPorProyecto({ data, moneda = "USD" }: Props) {
         );
     }
 
+    const topData = data.slice(0, 8);
+
     return (
-        <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 40 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
-                <XAxis
+        <div role="img" aria-label="Comparación de horas e ingresos por proyecto" className="h-[320px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+                data={topData}
+                layout="vertical"
+                margin={{ top: 8, right: 12, left: 0, bottom: 8 }}
+                barCategoryGap={10}
+            >
+                <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_COLOR} horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 11, fill: CHART_TICK_COLOR }} axisLine={false} tickLine={false} />
+                <YAxis
+                    type="category"
                     dataKey="nombre"
-                    tick={{ fontSize: 11, fill: "var(--text-muted)" }}
-                    angle={-30}
-                    textAnchor="end"
-                    interval={0}
+                    tick={{ fontSize: 11, fill: CHART_TICK_COLOR }}
+                    axisLine={false}
+                    tickLine={false}
+                    width={128}
                 />
-                <YAxis tick={{ fontSize: 11, fill: "var(--text-muted)" }} />
                 <Tooltip content={<CustomTooltip moneda={moneda} />} />
                 <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
-                <Bar dataKey="horas" name="Horas" fill={CHART_COLORS[0]} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="ingresos" name="Ingresos" fill={CHART_COLORS[1]} radius={[4, 4, 0, 0]} />
+                <Bar
+                    dataKey="horas"
+                    name="Horas"
+                    fill={CHART_COLORS[3]}
+                    radius={[0, 6, 6, 0]}
+                    isAnimationActive
+                    animationDuration={500}
+                />
+                <Bar
+                    dataKey="ingresos"
+                    name="Ingresos"
+                    fill={CHART_COLORS[1]}
+                    radius={[0, 6, 6, 0]}
+                    isAnimationActive
+                    animationDuration={650}
+                />
             </BarChart>
         </ResponsiveContainer>
+        </div>
     );
 }

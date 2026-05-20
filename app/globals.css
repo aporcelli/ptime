@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* ═══════════════════════════════════════════════════════════
-   PTIME — Design Tokens
+   PTIME - Design Tokens
    Un único sistema de variables. Sin duplicados.
    ═══════════════════════════════════════════════════════════ */
 
@@ -52,6 +52,15 @@
     --color-on-surface-variant: #6f7b88;
     --color-outline-variant:    #c4c6cd;
     --shadow-ambient:   0 1px 3px rgba(0,0,0,0.07), 0 8px 24px rgba(0,0,0,0.04);
+
+    /* ── Chart palette (LIGHT) ── */
+    --chart-1: 221 83% 53%;   /* primary blue */
+    --chart-2: 160 84% 39%;   /* emerald */
+    --chart-3: 34 94% 52%;    /* amber */
+    --chart-4: 262 83% 58%;   /* violet */
+    --chart-5: 188 94% 43%;   /* cyan */
+    --chart-6: 0 84% 60%;     /* red */
+    --chart-grid: 220 13% 82%;
   }
 
   .dark {
@@ -97,6 +106,15 @@
     --color-outline-variant:    #2e3740;
     --shadow-ambient:   0 1px 3px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.25);
 
+    /* ── Chart palette (DARK) ── */
+    --chart-1: 213 94% 68%;   /* blue */
+    --chart-2: 157 74% 52%;   /* emerald */
+    --chart-3: 38 92% 62%;    /* amber */
+    --chart-4: 263 83% 72%;   /* violet */
+    --chart-5: 187 85% 58%;   /* cyan */
+    --chart-6: 0 91% 71%;     /* red */
+    --chart-grid: 220 10% 30%;
+ 
     color-scheme: dark;
   }
 
@@ -203,6 +221,14 @@
     @apply rounded-xl p-4 flex gap-3 items-start;
     background: hsl(38 92% 50% / 0.1);
     border: 1px solid hsl(38 92% 50% / 0.3);
+  }
+
+  /* ── Chart tooltip ── */
+  .chart-tooltip {
+    @apply rounded-lg px-3 py-2 text-xs shadow-md;
+    background-color: hsl(var(--popover));
+    color: hsl(var(--popover-foreground));
+    border: 1px solid hsl(var(--border));
   }
 
   /* ── Glass effect ── */

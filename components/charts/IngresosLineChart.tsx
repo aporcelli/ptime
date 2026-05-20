@@ -3,9 +3,17 @@
 "use client";
 
 import {
-    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine
+    ComposedChart,
+    Area,
+    Line,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+    ReferenceLine,
 } from "recharts";
-import { CHART_COLORS } from "@/lib/utils/chart-colors";
+import { CHART_COLORS, CHART_GRID_COLOR, CHART_TICK_COLOR } from "@/lib/utils/chart-colors";
 
 interface DataPoint {
     mes: string;    // "2026-03"
@@ -49,28 +57,75 @@ export default function IngresosLineChart({ data, moneda = "USD", showHoras = fa
         : 0;
 
     return (
-        <ResponsiveContainer width="100%" height={240}>
-            <LineChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 4 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
-                <XAxis dataKey="mes" tick={{ fontSize: 11, fill: "var(--text-muted)" }} />
-                <YAxis tick={{ fontSize: 11, fill: "var(--text-muted)" }} />
-                <Tooltip content={<CustomTooltip moneda={moneda} />} />
-                {avg > 0 && (
-                    <ReferenceLine y={avg} stroke="#F59E0B" strokeDasharray="5 5"
-                        label={{ value: "Prom.", position: "insideTopRight", fontSize: 10, fill: "#F59E0B" }} />
-                )}
-                <Line
-                    type="monotone" dataKey="ingresos" name="Ingresos"
-                    stroke={CHART_COLORS[0]} strokeWidth={2.5} dot={{ r: 4, fill: CHART_COLORS[0] }}
-                    activeDot={{ r: 6 }}
+        <div role="img" aria-label="Tendencia de ingresos y horas por mes" className="h-[260px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
+                <defs>
+                    <linearGradient id="ingresos-gradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={CHART_COLORS[0]} stopOpacity={0.28} />
+                        <stop offset="100%" stopColor={CHART_COLORS[0]} stopOpacity={0.03} />
+                    </linearGradient>
+                </defs>
+
+                <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_COLOR} />
+                <XAxis
+                    dataKey="mes"
+                    tick={{ fontSize: 11, fill: CHART_TICK_COLOR }}
+                    axisLine={false}
+                    tickLine={false}
                 />
-                {showHoras && (
-                    <Line
-                        type="monotone" dataKey="horas" name="Horas"
-                        stroke={CHART_COLORS[2]} strokeWidth={1.5} strokeDasharray="4 4" dot={false}
+                <YAxis
+                    tick={{ fontSize: 11, fill: CHART_TICK_COLOR }}
+                    axisLine={false}
+                    tickLine={false}
+                />
+                <Tooltip content={<CustomTooltip moneda={moneda} />} />
+
+                {avg > 0 && (
+                    <ReferenceLine
+                        y={avg}
+                        stroke={CHART_COLORS[2]}
+                        strokeDasharray="5 5"
+                        label={{ value: "Prom.", position: "insideTopRight", fontSize: 10, fill: CHART_COLORS[2] }}
                     />
                 )}
-            </LineChart>
+
+                <Area
+                    type="monotone"
+                    dataKey="ingresos"
+                    fill="url(#ingresos-gradient)"
+                    stroke="none"
+                    isAnimationActive
+                    animationDuration={500}
+                />
+
+                <Line
+                    type="monotone"
+                    dataKey="ingresos"
+                    name="Ingresos"
+                    stroke={CHART_COLORS[0]}
+                    strokeWidth={2.5}
+                    dot={{ r: 3.5, fill: CHART_COLORS[0], strokeWidth: 0 }}
+                    activeDot={{ r: 6 }}
+                    isAnimationActive
+                    animationDuration={650}
+                />
+
+                {showHoras && (
+                    <Line
+                        type="monotone"
+                        dataKey="horas"
+                        name="Horas"
+                        stroke={CHART_COLORS[3]}
+                        strokeWidth={1.7}
+                        strokeDasharray="4 4"
+                        dot={false}
+                        isAnimationActive
+                        animationDuration={650}
+                    />
+                )}
+            </ComposedChart>
         </ResponsiveContainer>
+        </div>
     );
 }
