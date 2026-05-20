@@ -77,7 +77,7 @@ export default function Sidebar({ role, onNavClick }: SidebarProps) {
             />
           </div>
         </a>
-        <p className="text-muted-foreground opacity-50 text-[10px] text-center">Ptime v1.2.10-dev.20260520-1828</p>
+        <p className="text-muted-foreground opacity-50 text-[10px] text-center">Ptime v1.2.11-dev.20260520-1842</p>
       </div>
     </aside>
   );

@@ -189,7 +189,7 @@ export default async function ReportesPage({
           <TareasPieChart data={tareasData} />
         </SectionCard>
 
-        <SectionCard title="Actividad diaria (horas)">
+        <SectionCard title="Actividad diaria · ritmo y tendencia">
           <ActividadHeatmap data={actividadDiariaData} />
         </SectionCard>
       </div>

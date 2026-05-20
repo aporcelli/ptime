@@ -5,6 +5,32 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.11] — 2026-05-20
+
+### 🎯 Rediseño 180° de actividad diaria + tendencia de ingresos premium
+
+#### Corregido / Mejorado
+- **Actividad diaria**: se reemplaza el heatmap tipo grilla por un visual de ritmo diario más informativo:
+  - barras de horas por día,
+  - línea de promedio móvil 7 días,
+  - línea de objetivo diario,
+  - tooltip enriquecido con horas, promedio 7d e ingresos.
+- **KPIs de actividad integrados**: días activos, racha actual, promedio por día activo, pico diario con fecha.
+- **Tendencia de ingresos**: visual más denso y menos vacío:
+  - área con gradiente fuerte y glow en línea,
+  - `markLine` de promedio,
+  - `markPoint` de pico,
+  - tooltip con variación vs período anterior,
+  - mini-KPIs arriba del gráfico (total, promedio, tendencia, pico).
+- **Ajustes de lectura ejecutiva**: ejes compactos, mejor legibilidad dark/light y mayor señal visual por panel.
+- **Versionado sincronizado**: `package.json` y `package-lock.json` en **v1.2.11**; versión visible en Sidebar **v1.2.11-dev.20260520-1842**.
+
+#### Verificación
+- `next lint` en archivos tocados: OK.
+- `npm run build`: OK (incluye type-check y generación de rutas).
+
+---
+
 ## [1.2.10] — 2026-05-20
 
 ### 🛠️ Fix de build en Vercel (tipado ECharts)
