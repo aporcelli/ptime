@@ -1,96 +1,87 @@
-// components/charts/HorasPorProyecto.tsx
-// BarChart de horas/ingresos por proyecto usando Recharts
 "use client";
 
-import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    Legend,
-} from "recharts";
-import { CHART_COLORS, CHART_GRID_COLOR, CHART_TICK_COLOR } from "@/lib/utils/chart-colors";
+import { useMemo } from "react";
+import { useTheme } from "next-themes";
+import type { EChartsOption } from "echarts";
+import EChart from "@/components/charts/EChart";
+import { getEchartsTheme } from "@/lib/utils/echarts-theme";
 
 interface DataPoint {
-    nombre: string;
-    horas: number;
-    ingresos: number;
+  nombre: string;
+  horas: number;
+  ingresos: number;
 }
 
 interface Props {
-    data: DataPoint[];
-    moneda?: string;
+  data: DataPoint[];
+  moneda?: string;
 }
 
-const CustomTooltip = ({ active, payload, label, moneda }: any) => {
-    if (!active || !payload?.length) return null;
-    return (
-        <div className="chart-tooltip">
-            <p className="font-semibold text-heading mb-1 truncate max-w-[180px]">{label}</p>
-            {payload.map((entry: any) => (
-                <p key={entry.dataKey} style={{ color: entry.fill }} className="font-mono">
-                    {entry.dataKey === "horas"
-                        ? `${entry.value}h`
-                        : `${moneda ?? "USD"} ${entry.value.toFixed(2)}`}
-                </p>
-            ))}
-        </div>
-    );
-};
-
 export default function HorasPorProyecto({ data, moneda = "USD" }: Props) {
-    if (!data?.length) {
-        return (
-            <div className="flex items-center justify-center h-48 text-sub text-sm">
-                Sin datos para mostrar
-            </div>
-        );
-    }
+  const { resolvedTheme } = useTheme();
+  const theme = getEchartsTheme(resolvedTheme === "dark" ? "dark" : "light");
 
-    const topData = data.slice(0, 8);
+  const option: EChartsOption = useMemo(() => {
+    const topData = data.slice(0, 10).reverse();
+    return {
+      color: [theme.palette[3], theme.palette[1]],
+      animationDuration: 650,
+      animationDurationUpdate: 500,
+      tooltip: {
+        trigger: "axis",
+        axisPointer: { type: "shadow" },
+        backgroundColor: theme.tooltipBg,
+        borderColor: theme.tooltipBorder,
+        borderWidth: 1,
+        textStyle: { color: theme.text },
+        formatter: (params: any) => {
+          const rows = Array.isArray(params) ? params : [params];
+          const name = rows[0]?.name ?? "";
+          const horas = rows.find((r: any) => r.seriesName === "Horas")?.value ?? 0;
+          const ingresos = rows.find((r: any) => r.seriesName === "Ingresos")?.value ?? 0;
+          return `${name}<br/>Horas: <b>${horas}h</b><br/>Ingresos: <b>${moneda} ${Number(ingresos).toFixed(2)}</b>`;
+        },
+      },
+      grid: { left: 8, right: 16, top: 12, bottom: 18, containLabel: true },
+      legend: {
+        top: 0,
+        textStyle: { color: theme.muted, fontSize: 11 },
+      },
+      xAxis: {
+        type: "value",
+        axisLabel: { color: theme.muted, fontSize: 11 },
+        splitLine: { lineStyle: { color: theme.grid, type: "dashed" } },
+      },
+      yAxis: {
+        type: "category",
+        data: topData.map((d) => d.nombre),
+        axisLabel: { color: theme.muted, fontSize: 11 },
+        axisLine: { lineStyle: { color: theme.axisLine } },
+      },
+      series: [
+        {
+          name: "Horas",
+          type: "bar",
+          data: topData.map((d) => Number(d.horas.toFixed(2))),
+          barMaxWidth: 14,
+          emphasis: { focus: "series" },
+          itemStyle: { borderRadius: 8 },
+        },
+        {
+          name: "Ingresos",
+          type: "bar",
+          data: topData.map((d) => Number(d.ingresos.toFixed(2))),
+          barMaxWidth: 14,
+          emphasis: { focus: "series" },
+          itemStyle: { borderRadius: 8 },
+        },
+      ],
+    };
+  }, [data, moneda, theme]);
 
-    return (
-        <div role="img" aria-label="Comparación de horas e ingresos por proyecto" className="h-[320px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-                data={topData}
-                layout="vertical"
-                margin={{ top: 8, right: 12, left: 0, bottom: 8 }}
-                barCategoryGap={10}
-            >
-                <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_COLOR} horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 11, fill: CHART_TICK_COLOR }} axisLine={false} tickLine={false} />
-                <YAxis
-                    type="category"
-                    dataKey="nombre"
-                    tick={{ fontSize: 11, fill: CHART_TICK_COLOR }}
-                    axisLine={false}
-                    tickLine={false}
-                    width={128}
-                />
-                <Tooltip content={<CustomTooltip moneda={moneda} />} />
-                <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
-                <Bar
-                    dataKey="horas"
-                    name="Horas"
-                    fill={CHART_COLORS[3]}
-                    radius={[0, 6, 6, 0]}
-                    isAnimationActive
-                    animationDuration={500}
-                />
-                <Bar
-                    dataKey="ingresos"
-                    name="Ingresos"
-                    fill={CHART_COLORS[1]}
-                    radius={[0, 6, 6, 0]}
-                    isAnimationActive
-                    animationDuration={650}
-                />
-            </BarChart>
-        </ResponsiveContainer>
-        </div>
-    );
+  if (!data.length) {
+    return <div className="flex h-[320px] items-center justify-center text-sm text-sub">Sin datos para mostrar</div>;
+  }
+
+  return <EChart option={option} height={340} />;
 }

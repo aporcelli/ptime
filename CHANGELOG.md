@@ -5,6 +5,29 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.9] — 2026-05-20
+
+### ⚡ Migración a Apache ECharts y dashboard iterativo (4 charts)
+
+#### Agregado
+- **Apache ECharts** integrado (`echarts`, `echarts-for-react`) como nuevo motor de visualización para Reportes.
+- **Wrapper reusable** `components/charts/EChart.tsx` (SSR-safe con dynamic import).
+- **Tema de gráficos centralizado** `lib/utils/echarts-theme.ts` para coherencia dark/light.
+- **Nuevo 4.º gráfico**: `ActividadHeatmap` (heatmap calendario de horas por día).
+
+#### Modificado / Mejorado
+- **Tendencia de ingresos** migrada a ECharts con línea suave + área, referencia promedio y zoom interactivo.
+- **Horas por proyecto** migrada a barras horizontales en ECharts (top 10, mejor lectura comparativa).
+- **Distribución por tarea** migrada a donut ECharts con total central y énfasis interactivo.
+- **Layout de charts** en Reportes actualizado a grid de 4 paneles para lectura ejecutiva más completa.
+- **Versionado sincronizado**: `package.json` y `package-lock.json` en **v1.2.9**; versión visible en Sidebar **v1.2.9-dev.20260520-1820**.
+
+#### Verificación
+- `next lint` en archivos tocados de Reportes/Charts/UI sin warnings ni errores.
+- `vitest`: `lib/hours/monthly.test.ts` pasando.
+
+---
+
 ## [1.2.8] — 2026-05-20
 
 ### 📊 Modernización Reportes (fases 1–5): visual, filtros, charts, accesibilidad

@@ -6,6 +6,7 @@ import { format, startOfMonth } from "date-fns";
 import IngresosLineChart from "@/components/charts/IngresosLineChart";
 import HorasPorProyecto from "@/components/charts/HorasPorProyecto";
 import TareasPieChart from "@/components/charts/TareasPieChart";
+import ActividadHeatmap from "@/components/charts/ActividadHeatmap";
 import { BarChart3, TrendingUp, Clock } from "lucide-react";
 import type { ReportData } from "@/types/api";
 import { ReportesFiltersClient } from "./ReportesFiltersClient";
@@ -83,6 +84,16 @@ export default async function ReportesPage({
     return acc;
   }, {});
 
+  // ── Actividad diaria para heatmap
+  const actividadDiariaMap = registrosRepriced.reduce<Record<string, { horas: number; ingresos: number }>>((acc, r) => {
+    const fecha = r.fecha.slice(0, 10);
+    const horasFact = r.horas_a_cobrar ?? r.horas;
+    if (!acc[fecha]) acc[fecha] = { horas: 0, ingresos: 0 };
+    acc[fecha].horas += horasFact;
+    acc[fecha].ingresos += r.monto_total;
+    return acc;
+  }, {});
+
   const totalHoras    = registrosRepriced.reduce((s, r) => s + (r.horas_a_cobrar ?? r.horas), 0);
   const totalIngresos = registrosRepriced.reduce((s, r) => s + r.monto_total, 0);
   const proyectosEnPeriodo = new Set(registrosRepriced.map((r) => r.proyecto_id)).size;
@@ -97,6 +108,10 @@ export default async function ReportesPage({
     ...t,
     porcentaje: totalHoras > 0 ? Math.round((t.horas / totalHoras) * 100) : 0,
   }));
+
+  const actividadDiariaData = Object.entries(actividadDiariaMap)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([fecha, d]) => ({ fecha, ...d }));
 
   const mesesOrdenados = Object.entries(porMesMap).sort(([a], [b]) => b.localeCompare(a));
 
@@ -160,22 +175,24 @@ export default async function ReportesPage({
         <MetricCard label="Precio promedio/h" value={formatCurrency(totalHoras > 0 ? totalIngresos / totalHoras : 0, config.moneda)} icon={<BarChart3 size={16} />} tone="warning" />
       </div>
 
-      {/* ── Charts ── */}
+      {/* ── Charts (ECharts, 4-panel) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <SectionCard title="Tendencia de ingresos" icon={<TrendingUp size={16} className="text-primary" />}>
           <IngresosLineChart data={mesesData} moneda={config.moneda} showHoras />
         </SectionCard>
 
-        <SectionCard title="Horas por proyecto" icon={<BarChart3 size={16} className="text-primary" />}>
+        <SectionCard title="Horas e ingresos por proyecto" icon={<BarChart3 size={16} className="text-primary" />}>
           <HorasPorProyecto data={proyectosData} moneda={config.moneda} />
         </SectionCard>
-      </div>
 
-      <SectionCard title="Distribución por tarea">
-        <div className="max-w-md mx-auto">
+        <SectionCard title="Distribución por tarea">
           <TareasPieChart data={tareasData} />
-        </div>
-      </SectionCard>
+        </SectionCard>
+
+        <SectionCard title="Actividad diaria (horas)">
+          <ActividadHeatmap data={actividadDiariaData} />
+        </SectionCard>
+      </div>
 
       {/* ── Tabla por mes ── */}
       <SectionCard title="Detalle por mes">
