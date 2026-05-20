@@ -5,6 +5,21 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.7] — 2026-05-20
+
+### 🧭 Ordenamiento de carga de horas y listado en Mis Horas
+
+#### Modificado / Mejorado
+- **Carga de horas**: combos de **Clientes**, **Proyectos** y **Tareas** ordenados alfabéticamente.
+- **Mis Horas (vista default)**: tabla/listado ordenado explícitamente de **fecha más reciente a más antigua**.
+- **Versionado sincronizado**: `package.json` y `package-lock.json` en **v1.2.7**; versión visible en Sidebar **v1.2.7-dev.20260520-1651**.
+
+#### Verificación
+- `vitest`: `lib/hours/monthly.test.ts` pasando.
+- Nota: `app/actions/hours.test.ts` mantiene falla preexistente de `revalidatePath` (no relacionada con este cambio de ordenamiento UI).
+
+---
+
 ## [1.2.6] — 2026-05-18
 
 ### 🔐 Hardening de auth y actualización legal

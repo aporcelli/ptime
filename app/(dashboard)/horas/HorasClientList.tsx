@@ -35,6 +35,16 @@ const ESTADO_VARIANT: Record<string, "default" | "secondary" | "outline" | "dest
 
 const DOLAR_RATE_STORAGE_KEY = "ptime-dolar-rate-ars";
 const ESTADOS = ["borrador", "confirmado", "facturado", "rechazado"] as const;
+
+function sortByRecentDate<T extends Pick<RegistroHoras, "fecha" | "created_at" | "id">>(items: T[]): T[] {
+  return [...items].sort((a, b) => {
+    const byDate = b.fecha.localeCompare(a.fecha);
+    if (byDate !== 0) return byDate;
+    const byCreated = (b.created_at ?? "").localeCompare(a.created_at ?? "");
+    if (byCreated !== 0) return byCreated;
+    return b.id.localeCompare(a.id);
+  });
+}
 type Estado = (typeof ESTADOS)[number];
 
 interface Props {
@@ -77,8 +87,12 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
   );
 
   const filtrados = useMemo(() => {
-    if (!filtroEstado) return baseFiltered;
-    return baseFiltered.filter((r) => r.estado === filtroEstado);
+    const filtered = !filtroEstado
+      ? baseFiltered
+      : baseFiltered.filter((r) => r.estado === filtroEstado);
+
+    // Vista default/tabla: siempre mostrar de más reciente a más antigua
+    return sortByRecentDate(filtered);
   }, [baseFiltered, filtroEstado]);
 
   const canInvoiceMonth = monthFilter !== "all" && clientFilter === "all" && !!invoiceSummary && invoiceSummary.eligibleCount > 0;

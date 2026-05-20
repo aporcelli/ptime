@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -88,12 +88,22 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
   const watchedTareaId    = watch("tarea_id");
   const watchedHoras      = watch("horas");
 
+  const sortByNombre = <T extends { nombre: string }>(items: T[]) =>
+    [...items].sort((a, b) => a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" }));
+
+  const clientesOrdenados = useMemo(() => sortByNombre(clientes), [clientes]);
+  const tareasOrdenadas = useMemo(() => sortByNombre(tareas), [tareas]);
+
   // Si el proyecto no tiene cliente_id asignado en el Sheet, lo mostramos igual
   // (cliente_id vacío = proyecto "global" accesible desde cualquier cliente)
-  const proyectosFiltrados = proyectos.filter(p => {
-    const pid = p.cliente_id.trim();
-    return !watchedClienteId || pid === "" || pid.toLowerCase() === watchedClienteId.trim().toLowerCase();
-  });
+  const proyectosFiltrados = useMemo(() => (
+    sortByNombre(
+      proyectos.filter((p) => {
+        const pid = p.cliente_id.trim();
+        return !watchedClienteId || pid === "" || pid.toLowerCase() === watchedClienteId.trim().toLowerCase();
+      })
+    )
+  ), [proyectos, watchedClienteId]);
 
   // Resetear proyecto_id si cambia de cliente y el proyecto no le pertenece
   useEffect(() => {
@@ -306,7 +316,7 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
             control={control}
             render={({ field }) => (
               <Combobox
-                options={clientes.map(c => ({ value: c.id, label: c.nombre }))}
+                options={clientesOrdenados.map(c => ({ value: c.id, label: c.nombre }))}
                 value={field.value}
                 onValueChange={field.onChange}
                 placeholder="Seleccionar cliente..."
@@ -353,7 +363,7 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
             control={control}
             render={({ field }) => (
               <Combobox
-                options={tareas.map(t => ({ value: t.id, label: t.nombre + (t.categoria ? ` (${t.categoria})` : "") }))}
+                options={tareasOrdenadas.map(t => ({ value: t.id, label: t.nombre + (t.categoria ? ` (${t.categoria})` : "") }))}
                 value={field.value}
                 onValueChange={field.onChange}
                 placeholder="Seleccionar tarea..."
