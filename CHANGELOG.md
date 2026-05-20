@@ -5,6 +5,24 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.10] — 2026-05-20
+
+### 🛠️ Fix de build en Vercel (tipado ECharts)
+
+#### Corregido
+- **Error de tipado en `IngresosLineChart`** al construir en Vercel/TypeScript:
+  - `series` en ECharts se normaliza con literales estrictos (`type: "line" as const`, `symbol: "none" as const`, `lineStyle.type: "dashed" as const`).
+  - Se tipa explícitamente `series` como `NonNullable<EChartsOption["series"]>` para evitar widening a `string`.
+- **Impacto**: se resuelve el fallo `Type 'string' is not assignable to type '"line"'` durante `next build`.
+- **Versionado sincronizado**: `package.json` y `package-lock.json` en **v1.2.10**; versión visible en Sidebar **v1.2.10-dev.20260520-1828**.
+
+#### Verificación
+- `npm run build`: OK (compila y genera rutas correctamente).
+- `next lint` archivos tocados: OK.
+- `vitest`: `lib/hours/monthly.test.ts` pasando.
+
+---
+
 ## [1.2.9] — 2026-05-20
 
 ### ⚡ Migración a Apache ECharts y dashboard iterativo (4 charts)
