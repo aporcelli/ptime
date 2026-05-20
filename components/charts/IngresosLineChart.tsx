@@ -26,6 +26,39 @@ export default function IngresosLineChart({ data, moneda = "USD", showHoras = fa
     const hasManyPoints = data.length > 8;
     const avg = data.length ? data.reduce((s, d) => s + d.ingresos, 0) / data.length : 0;
 
+    const series = [
+      {
+        name: "Ingresos",
+        type: "line" as const,
+        smooth: true,
+        data: data.map((d) => d.ingresos),
+        lineStyle: { width: 3 },
+        symbolSize: 7,
+        areaStyle: { opacity: 0.18 },
+        markLine: avg
+          ? {
+              symbol: "none" as const,
+              lineStyle: { type: "dashed" as const, color: theme.palette[2] },
+              label: { formatter: "Prom.", color: theme.palette[2] },
+              data: [{ yAxis: avg }],
+            }
+          : undefined,
+      },
+      ...(showHoras
+        ? [
+            {
+              name: "Horas",
+              type: "line" as const,
+              smooth: true,
+              data: data.map((d) => d.horas),
+              lineStyle: { width: 2, type: "dashed" as const },
+              symbol: "none" as const,
+              yAxisIndex: 0,
+            },
+          ]
+        : []),
+    ] as NonNullable<EChartsOption["series"]>;
+
     return {
       color: theme.palette,
       animationDuration: 600,
@@ -62,38 +95,7 @@ export default function IngresosLineChart({ data, moneda = "USD", showHoras = fa
             { type: "slider", xAxisIndex: 0, height: 18, bottom: 8 },
           ]
         : undefined,
-      series: [
-        {
-          name: "Ingresos",
-          type: "line",
-          smooth: true,
-          data: data.map((d) => d.ingresos),
-          lineStyle: { width: 3 },
-          symbolSize: 7,
-          areaStyle: { opacity: 0.18 },
-          markLine: avg
-            ? {
-                symbol: "none",
-                lineStyle: { type: "dashed", color: theme.palette[2] },
-                label: { formatter: "Prom.", color: theme.palette[2] },
-                data: [{ yAxis: avg }],
-              }
-            : undefined,
-        },
-        ...(showHoras
-          ? [
-              {
-                name: "Horas",
-                type: "line",
-                smooth: true,
-                data: data.map((d) => d.horas),
-                lineStyle: { width: 2, type: "dashed" },
-                symbol: "none",
-                yAxisIndex: 0,
-              },
-            ]
-          : []),
-      ],
+      series,
     };
   }, [data, moneda, showHoras, theme]);
 
