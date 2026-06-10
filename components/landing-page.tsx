@@ -203,18 +203,22 @@ export default function LandingPage({ serverLoggedIn }: { serverLoggedIn: boolea
   const isLoggedIn = mounted ? !!session?.user : serverLoggedIn;
 
   return (
-    <main className="dark min-h-screen bg-transparent text-foreground font-sans antialiased relative overflow-hidden">
-      {/* Professional background layer: image + gradient overlay */}
-      <div
-        aria-hidden
-        className="fixed inset-0 pointer-events-none"
-        style={{
-          background: [
-            "linear-gradient(180deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.82) 50%, rgba(0,0,0,0.88) 100%)",
-            "url('/bg-landing.jpg') center/cover no-repeat",
-          ].join(", "),
-        }}
-      />
+    <main className={`${theme === "dark" ? "dark" : ""} min-h-screen text-foreground font-sans antialiased relative overflow-hidden`}
+      style={{ backgroundColor: theme === "dark" ? "transparent" : "hsl(var(--background))" }}
+    >
+      {/* Dark mode: atmospheric background image + gradient overlay */}
+      {theme === "dark" && (
+        <div
+          aria-hidden
+          className="fixed inset-0 pointer-events-none"
+          style={{
+            background: [
+              "linear-gradient(180deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.82) 50%, rgba(0,0,0,0.88) 100%)",
+              "url('/bg-landing.jpg') center/cover no-repeat",
+            ].join(", "),
+          }}
+        />
+      )}
 
       {/* Blobs decorativos */}
       <div aria-hidden className="fixed top-[-10%] right-[-5%] w-[600px] h-[600px] rounded-full bg-brand-600/10 blur-[140px] pointer-events-none" />
