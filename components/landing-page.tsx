@@ -89,31 +89,10 @@ function LangToggle({ locale, onChange }: { locale: Locale; onChange: (l: Locale
 
 // ── Theme Toggle Button ─────────────────────────────────────────────────────
 
-function ThemeToggle() {
-  const [mounted, setMounted] = useState(false);
-  const [theme, setTheme] = useState<"light" | "dark">("light");
-
-  useEffect(() => {
-    setMounted(true);
-    const stored = localStorage.getItem("theme");
-    if (stored === "dark" || (!stored && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
-      setTheme("dark");
-      document.documentElement.classList.add("dark");
-    }
-  }, []);
-
-  const toggle = useCallback(() => {
-    const next = theme === "light" ? "dark" : "light";
-    setTheme(next);
-    document.documentElement.classList.toggle("dark", next === "dark");
-    localStorage.setItem("theme", next);
-  }, [theme]);
-
-  if (!mounted) return <div className="w-8" />;
-
+function ThemeToggle({ theme, onChange }: { theme: "light" | "dark"; onChange: (t: "light" | "dark") => void }) {
   return (
     <button
-      onClick={toggle}
+      onClick={() => onChange(theme === "light" ? "dark" : "light")}
       className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card/60 text-muted-foreground transition-all hover:border-brand-500/40 hover:text-foreground"
       aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
     >
@@ -190,13 +169,21 @@ function SignInButton({
 
 export default function LandingPage({ serverLoggedIn }: { serverLoggedIn: boolean }) {
   const [locale, setLocale] = useState<Locale>("en");
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [mounted, setMounted] = useState(false);
   const { data: session } = useSession();
 
   useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem("landing-locale") as Locale | null;
-    if (saved === "en" || saved === "es") setLocale(saved);
+    const savedLocale = localStorage.getItem("landing-locale") as Locale | null;
+    if (savedLocale === "en" || savedLocale === "es") setLocale(savedLocale);
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "light") {
+      setTheme("light");
+      document.documentElement.classList.remove("dark");
+    } else {
+      document.documentElement.classList.add("dark");
+    }
   }, []);
 
   const t = tAll[locale];
@@ -206,12 +193,18 @@ export default function LandingPage({ serverLoggedIn }: { serverLoggedIn: boolea
     localStorage.setItem("landing-locale", l);
   }, []);
 
+  const changeTheme = useCallback((next: "light" | "dark") => {
+    setTheme(next);
+    document.documentElement.classList.toggle("dark", next === "dark");
+    localStorage.setItem("theme", next);
+  }, []);
+
   // Use server-side logged-in state until client session hydrates
   const isLoggedIn = mounted ? !!session?.user : serverLoggedIn;
 
   return (
     <main className="dark min-h-screen bg-transparent text-foreground font-sans antialiased relative overflow-hidden">
-      {/* Professional background layer: image + dark gradient overlay for contrast */}
+      {/* Professional background layer: image + gradient overlay */}
       <div
         aria-hidden
         className="fixed inset-0 pointer-events-none"
@@ -253,7 +246,7 @@ export default function LandingPage({ serverLoggedIn }: { serverLoggedIn: boolea
                 <LangToggle locale={locale} onChange={changeLocale} />
               </motion.div>
             </AnimatePresence>
-            <ThemeToggle />
+            <ThemeToggle theme={theme} onChange={changeTheme} />
           </div>
         </motion.header>
 
