@@ -10,7 +10,7 @@ export default auth((req) => {
   if (isLocalDevAccessEnabled(req.url)) return NextResponse.next();
 
   // Rutas siempre públicas
-  const isPublic = ["/login", "/api/auth", "/setup", "/privacy", "/terms"].some((p) => pathname.startsWith(p));
+  const isPublic = ["/", "/login", "/api/auth", "/setup", "/privacy", "/terms"].some((p) => pathname.startsWith(p));
   const bypassForPwaAssets = pathname === "/sw.js" || pathname === "/manifest.webmanifest";
   if (isPublic || bypassForPwaAssets) return NextResponse.next();
 
