@@ -22,7 +22,7 @@ export default function PrivacyPage() {
           Política de Privacidad
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Última actualización: 18 de mayo de 2026
+          Última actualización: 22 de junio de 2026
         </p>
 
         <div className="mt-10 space-y-8 text-[15px] leading-relaxed text-foreground/85">
@@ -116,7 +116,52 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="font-display text-xl font-semibold text-foreground mb-3">
-              5. Terceros
+              5. Protección de datos y seguridad
+            </h2>
+            <ul className="list-disc pl-5 space-y-1.5">
+              <li>
+                <strong>Cifrado en tránsito:</strong> toda la comunicación entre tu navegador, Ptime y las APIs de Google
+                se realiza mediante HTTPS con TLS 1.2 o superior. Ningún dato viaja sin cifrar.
+              </li>
+              <li>
+                <strong>Tokens de acceso seguros:</strong> los tokens de autenticación OAuth (access token y refresh token)
+                se almacenan como JWT firmados dentro de cookies con flags <code>httpOnly</code>, <code>secure</code> y
+                <code>sameSite=lax</code>, lo que previene acceso desde JavaScript y ataques CSRF.
+              </li>
+              <li>
+                <strong>Datos en Google Sheets:</strong> todos los datos de horas, proyectos, clientes y facturación
+                residen exclusivamente en tu Google Sheets, protegidos por los controles de seguridad de Google Workspace
+                (cifrado en reposo, control de acceso basado en tu cuenta de Google, y registro de auditoría).
+                Ptime no mantiene una copia separada de estos datos en servidores propios.
+              </li>
+              <li>
+                <strong>Acceso mínimo:</strong> Ptime solo accede a la hoja de cálculo específica que vos configurás
+                durante el setup. No listamos, exploramos ni accedemos a otros documentos de tu Google Drive.
+                El token de acceso se usa exclusivamente contra el spreadsheet ID que vos proveíste.
+              </li>
+              <li>
+                <strong>Revocación inmediata:</strong> podés revocar el acceso de Ptime a tu cuenta de Google
+                en cualquier momento desde{" "}
+                <a
+                  href="https://myaccount.google.com/permissions"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline underline-offset-2 hover:text-primary/80"
+                >
+                  myaccount.google.com/permissions
+                </a>. Al revocar, Ptime deja de poder leer o escribir en tu hoja de cálculo de inmediato.
+              </li>
+              <li>
+                <strong>No almacenamos tus datos de Sheets:</strong> los únicos datos que Ptime retiene en sus
+                servidores son tu información de perfil (nombre, email, foto) durante la sesión activa.
+                No almacenamos, copiamos ni respaldamos el contenido de tus hojas de cálculo.
+              </li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="font-display text-xl font-semibold text-foreground mb-3">
+              6. Terceros
             </h2>
             <p>
               No vendemos, intercambiamos ni transferimos tu información personal a terceros.
@@ -128,7 +173,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="font-display text-xl font-semibold text-foreground mb-3">
-              6. Tus derechos
+              7. Tus derechos
             </h2>
             <p>Tenés derecho a:</p>
             <ul className="list-disc pl-5 space-y-1.5 mt-2">
@@ -150,7 +195,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="font-display text-xl font-semibold text-foreground mb-3">
-              7. Cambios en esta política
+              8. Cambios en esta política
             </h2>
             <p>
               Podemos actualizar esta política periódicamente. Los cambios importantes se notificarán
@@ -161,7 +206,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="font-display text-xl font-semibold text-foreground mb-3">
-              8. Contacto
+              9. Contacto
             </h2>
             <p>
               Si tenés preguntas sobre esta política, escribinos a:{" "}
