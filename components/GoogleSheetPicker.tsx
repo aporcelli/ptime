@@ -1,22 +1,9 @@
 // components/GoogleSheetPicker.tsx
-// Google Picker integration for selecting a Google Sheet
+// Google Picker integration — gapi loaded in root layout
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useSession } from "next-auth/react";
-
-let gapiLoadPromise: Promise<void> | null = null;
-
-function loadGapi(): Promise<void> {
-  if (gapiLoadPromise) return gapiLoadPromise;
-  gapiLoadPromise = new Promise((resolve) => {
-    const script = document.createElement("script");
-    script.src = "https://apis.google.com/js/api.js";
-    script.onload = () => resolve();
-    document.head.appendChild(script);
-  });
-  return gapiLoadPromise;
-}
 
 function loadPicker(): Promise<void> {
   return new Promise((resolve) => {
@@ -51,20 +38,16 @@ export default function GoogleSheetPicker({ onSelect, disabled }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pickerReady, setPickerReady] = useState(false);
-  const pickerReadyRef = useRef(false);
 
-  // Load gapi + picker on mount with timeout
+  // Load Picker module (gapi already loaded in layout)
   useEffect(() => {
     let cancelled = false;
     const timer = setTimeout(() => {
-      if (!pickerReadyRef.current && !cancelled) {
-        setError("Google Picker failed to load. Use the URL paste option below.");
-      }
-    }, 8000);
+      if (!cancelled) setError("Google Picker failed to load. Use the URL paste option below.");
+    }, 6000);
 
-    loadGapi()
-      .then(() => loadPicker())
-      .then(() => { if (!cancelled) { pickerReadyRef.current = true; setPickerReady(true); clearTimeout(timer); } })
+    loadPicker()
+      .then(() => { if (!cancelled) { setPickerReady(true); clearTimeout(timer); } })
       .catch(() => { if (!cancelled) { setError("Google Picker failed to load. Use the URL paste option below."); clearTimeout(timer); } });
 
     return () => { cancelled = true; clearTimeout(timer); };

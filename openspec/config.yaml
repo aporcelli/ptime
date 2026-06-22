@@ -1,0 +1,57 @@
+strict_tdd: true
+context: |
+  ptime is a Node.js/TypeScript, React, Next.js project.
+  Detected markers: package.json, tsconfig.json, npm package manager, GitHub Actions.
+  Package managers: npm.
+  Additional evidence: Test-like files detected (15); examples: app/actions/clients.test.ts, app/actions/hours.test.ts, components/ui/structure.test.ts, lib/actions/result.test.ts, lib/bna-dolar.test.ts.
+  Primary test command: npm run test:run.
+  Unit tests: Vitest (npm run test:run).
+  Integration tests: none.
+  E2E tests: none.
+rules:
+  proposal:
+    require_problem_statement: true
+  spec:
+    require_acceptance_criteria: true
+  design:
+    require_tradeoffs: true
+  tasks:
+    protect_review_workload: true
+  apply:
+    test_command: "npm run test:run"
+  verify:
+    test_command: "npm run test:run"
+testing:
+  detected: "2026-05-17"
+  runner:
+    command: "npm run test:run"
+    framework: "Vitest"
+  layers:
+    unit: "Vitest"
+    integration: ""
+    e2e: ""
+  commands:
+    unit:
+      - scope: "."
+        command: "npm run test:run"
+        framework: "Vitest"
+    integration:
+      []
+    e2e:
+      []
+  coverage:
+    command: ""
+    commands:
+      []
+quality:
+  lint: "npm run lint"
+  lint_commands:
+    - scope: "."
+      command: "npm run lint"
+      framework: "linter"
+  typecheck: ""
+  typecheck_commands:
+    []
+  format: ""
+  format_commands:
+    []
