@@ -1,11 +1,9 @@
 // components/GoogleSheetPicker.tsx
-// Google Picker — single-responsibility, robust loading
+// Google Picker with global postMessage listener as fallback
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
-
-// ── Icons ────────────────────────────────────────────────────────────────────
 
 function DriveIcon() {
   return (
@@ -20,26 +18,6 @@ function DriveIcon() {
   );
 }
 
-// ── Ensure gapi is loaded (retry up to 20 seconds) ───────────────────────────
-
-function waitForGapi(timeoutMs = 20000): Promise<void> {
-  const start = Date.now();
-  return new Promise((resolve, reject) => {
-    function check() {
-      if (typeof window !== "undefined" && window.gapi && typeof window.gapi.load === "function") {
-        return resolve();
-      }
-      if (Date.now() - start > timeoutMs) {
-        return reject(new Error("gapi did not load within timeout"));
-      }
-      setTimeout(check, 200);
-    }
-    check();
-  });
-}
-
-// ── Props ────────────────────────────────────────────────────────────────────
-
 interface Props {
   onSelect: (fileId: string, fileName: string) => void;
   disabled?: boolean;
@@ -50,35 +28,69 @@ export default function GoogleSheetPicker({ onSelect, disabled }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const onSelectRef = useRef(onSelect);
+  onSelectRef.current = onSelect; // always fresh
 
-  // Load picker module when gapi becomes available
+  // Load gapi script
   useEffect(() => {
-    let cancelled = false;
+    if (document.querySelector('script[src*="apis.google.com/js/api.js"]')) {
+      waitForGapiAndPicker();
+      return;
+    }
+    const s = document.createElement("script");
+    s.src = "https://apis.google.com/js/api.js";
+    s.onload = () => waitForGapiAndPicker();
+    s.onerror = () => setError("Failed to load Google API.");
+    document.head.appendChild(s);
+  }, []);
 
-    waitForGapi(15000)
-      .then(() => {
-        if (cancelled) return;
-        return new Promise<void>((res) => window.gapi.load("picker", { callback: res }));
-      })
-      .then(() => {
-        if (!cancelled) setReady(true);
-      })
-      .catch(() => {
-        if (!cancelled)
-          setError("Google Picker failed to load. Use the URL paste option below.");
-      });
+  function waitForGapiAndPicker() {
+    let attempts = 0;
+    const check = setInterval(() => {
+      attempts++;
+      if (window.gapi?.load) {
+        clearInterval(check);
+        window.gapi.load("picker", () => {
+          if (window.google?.picker) setReady(true);
+          else setError("Picker module failed to load.");
+        });
+      } else if (attempts > 100) { // 20s
+        clearInterval(check);
+        setError("Google API failed to load. Use URL paste below.");
+      }
+    }, 200);
+  }
 
-    return () => {
-      cancelled = true;
-    };
+  // Global postMessage listener — captures Picker result
+  useEffect(() => {
+    function handleMessage(e: MessageEvent) {
+      if (e.origin !== "https://docs.google.com") return;
+      if (!e.data || typeof e.data !== "object") return;
+
+      // Try to extract selected file from RPC response
+      const data = e.data;
+      if (data.params?.docs?.[0]) {
+        const doc = data.params.docs[0];
+        onSelectRef.current(doc.id, doc.name || "Untitled");
+        setLoading(false);
+      } else if (data.params?.action === "picked" || data.action === "picked") {
+        const doc = data.params?.docs?.[0] || data.docs?.[0];
+        if (doc) {
+          onSelectRef.current(doc.id, doc.name || "Untitled");
+          setLoading(false);
+        }
+      }
+    }
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
   }, []);
 
   const openPicker = useCallback(() => {
     if (!ready || !session?.user?.accessToken) {
-      setError("Please wait for Picker to load or re-login.");
+      setError("Picker not ready. Please wait or re-login.");
       return;
     }
-
     setLoading(true);
     setError(null);
 
@@ -94,51 +106,43 @@ export default function GoogleSheetPicker({ onSelect, disabled }: Props) {
         .setDeveloperKey(process.env.NEXT_PUBLIC_GOOGLE_API_KEY ?? "")
         .setOrigin(window.location.origin)
         .setCallback((data: any) => {
+          console.log("[Picker callback]", data);
           if (data.action === g.picker.Action.PICKED && data.docs?.[0]) {
-            const doc = data.docs[0];
-            onSelect(doc.id, doc.name || "Untitled");
+            onSelectRef.current(data.docs[0].id, data.docs[0].name || "Untitled");
           }
-          // Ensure loading state resets even if action is CANCEL or error
           setLoading(false);
         })
         .build();
 
       picker.setVisible(true);
     } catch (e: any) {
-      setError(e?.message ?? "Failed to open Google Picker");
+      setError(e?.message ?? "Failed to open Picker");
       setLoading(false);
     }
-  }, [ready, session?.user?.accessToken, onSelect]);
-
-  if (error) {
-    return (
-      <div className="flex flex-col items-center gap-2 py-3">
-        <p className="text-xs text-destructive">{error}</p>
-        <p className="text-xs text-muted-foreground">
-          Paste your Google Sheet URL below instead.
-        </p>
-      </div>
-    );
-  }
-
-  if (!ready) {
-    return (
-      <div className="flex items-center justify-center gap-2 py-4 text-sm text-muted-foreground">
-        <div className="w-5 h-5 border-2 border-muted-foreground/30 border-t-primary rounded-full animate-spin" />
-        Loading Google Picker…
-      </div>
-    );
-  }
+  }, [ready, session?.user?.accessToken]);
 
   return (
-    <button
-      type="button"
-      onClick={openPicker}
-      disabled={disabled || loading}
-      className="flex items-center gap-2.5 px-5 py-3 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-semibold text-sm shadow-sm border border-slate-200 transition-colors disabled:opacity-50"
-    >
-      <DriveIcon />
-      {loading ? "Choose a Google Sheet" : "Choose a Google Sheet"}
-    </button>
+    <div className="flex flex-col items-center gap-3">
+      {!ready && !error && (
+        <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
+          <div className="w-5 h-5 border-2 border-muted-foreground/30 border-t-primary rounded-full animate-spin" />
+          Loading Google Picker…
+        </div>
+      )}
+      {error && (
+        <p className="text-xs text-destructive py-2">{error}</p>
+      )}
+      {ready && (
+        <button
+          type="button"
+          onClick={openPicker}
+          disabled={disabled || loading}
+          className="flex items-center gap-2.5 px-5 py-3 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-semibold text-sm shadow-sm border border-slate-200 transition-colors disabled:opacity-50"
+        >
+          <DriveIcon />
+          Choose a Google Sheet
+        </button>
+      )}
+    </div>
   );
 }
