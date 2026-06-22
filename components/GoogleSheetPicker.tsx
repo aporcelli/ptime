@@ -90,10 +90,16 @@ export default function GoogleSheetPicker({ onSelect, disabled }: Props) {
         .setOAuthToken(session.user.accessToken)
         .setDeveloperKey(process.env.NEXT_PUBLIC_GOOGLE_API_KEY ?? "")
         .setCallback((data: any) => {
-          if (data.action === g.picker.Action.PICKED) {
-            const doc = data.docs[0];
-            onSelect(doc.id, doc.name);
+          console.log("[Picker callback]", data.action, data);
+          if (data.action === "picked" || data.action === g.picker.Action.PICKED) {
+            const doc = data.docs?.[0];
+            if (doc) {
+              console.log("[Picker] selected:", doc.id, doc.name);
+              onSelect(doc.id, doc.name || "Untitled");
+              return;
+            }
           }
+          console.log("[Picker] cancelled or no doc");
           setLoading(false);
         })
         .build();
