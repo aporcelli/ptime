@@ -52,7 +52,7 @@ export default function RootLayout({
       className={`${manrope.variable} ${inter.variable}`}
     >
       <head>
-        <Script src="https://apis.google.com/js/api.js" strategy="beforeInteractive" />
+        <Script src="https://apis.google.com/js/api.js" strategy="afterInteractive" />
       </head>
       <body className="min-h-screen bg-background text-foreground font-sans antialiased">
         <SessionProvider>
