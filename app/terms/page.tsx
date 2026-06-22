@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Términos de Servicio | Ptime",
-  description: "Términos de servicio de Ptime — condiciones de uso, responsabilidades, y política de uso aceptable.",
+  title: "Terms of Service | Ptime",
+  description: "Ptime Terms of Service — conditions of use, responsibilities, and acceptable use policy.",
   robots: { index: true, follow: true },
 };
 
@@ -11,123 +11,122 @@ export default function TermsPage() {
   return (
     <main className="min-h-screen bg-background text-foreground font-sans antialiased">
       <div className="mx-auto max-w-2xl px-6 py-16 sm:px-8 sm:py-24">
-        {/* Header */}
         <Link
           href="/"
           className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-8 inline-block"
         >
-          ← Volver a Ptime
+          ← Back to Ptime
         </Link>
         <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
-          Términos de Servicio
+          Terms of Service
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Última actualización: 18 de mayo de 2026
+          Last updated: June 22, 2026
         </p>
 
         <div className="mt-10 space-y-8 text-[15px] leading-relaxed text-foreground/85">
           <section>
             <p>
-              Bienvenido a <strong>Ptime</strong> (operado por <strong>TuCloud.pro</strong>).
-              Al usar este servicio, aceptás los siguientes términos y condiciones.
-              Si no estás de acuerdo, por favor no uses la aplicación.
+              Welcome to <strong>Ptime</strong> (operated by <strong>TuCloud.pro</strong>).
+              By using this service, you agree to the following terms and conditions.
+              If you do not agree, please do not use the application.
             </p>
           </section>
 
           <section>
             <h2 className="font-display text-xl font-semibold text-foreground mb-3">
-              1. Descripción del servicio
+              1. Service description
             </h2>
             <p>
-              Ptime es una herramienta de registro de horas y facturación que utiliza
-              Google Sheets como base de datos. Los usuarios pueden cargar horas trabajadas,
-              gestionar proyectos y clientes, y generar reportes. Toda la información se almacena
-              en la hoja de cálculo que el usuario configura.
+              Ptime is a time-tracking and invoicing tool that uses
+              Google Sheets as its database. Users can log hours worked,
+              manage projects and clients, and generate reports. All information is stored
+              in the spreadsheet that the user configures.
             </p>
           </section>
 
           <section>
             <h2 className="font-display text-xl font-semibold text-foreground mb-3">
-              2. Cuentas y responsabilidades
+              2. Accounts and responsibilities
             </h2>
             <ul className="list-disc pl-5 space-y-1.5">
               <li>
-                <strong>Autenticación:</strong> usamos Google OAuth 2.0 para identificar a los usuarios.
-                Sos responsable de mantener la seguridad de tu cuenta de Google.
+                <strong>Authentication:</strong> we use Google OAuth 2.0 to identify users.
+                You are responsible for maintaining the security of your Google account.
               </li>
               <li>
-                <strong>Edad mínima:</strong> debés tener al menos 13 años (o la edad mínima requerida
-                en tu país) para usar este servicio.
+                <strong>Minimum age:</strong> you must be at least 13 years old (or the minimum age required
+                in your country) to use this service.
               </li>
               <li>
-                <strong>Precisión de datos:</strong> los datos que cargás en Ptime (horas, proyectos,
-                clientes) son tu responsabilidad. No verificamos la exactitud de la información ingresada.
+                <strong>Data accuracy:</strong> the data you enter in Ptime (hours, projects,
+                clients) is your responsibility. We do not verify the accuracy of the entered information.
               </li>
               <li>
-                <strong>Uso aceptable:</strong> aceptás no usar Ptime para actividades ilegales,
-                fraudulentas, o que violen los términos de Google Workspace/Google APIs.
+                <strong>Acceptable use:</strong> you agree not to use Ptime for illegal,
+                fraudulent activities, or activities that violate Google Workspace/Google APIs terms.
               </li>
             </ul>
           </section>
 
           <section>
             <h2 className="font-display text-xl font-semibold text-foreground mb-3">
-              3. Privacidad y datos
+              3. Privacy and data
             </h2>
             <p>
-              El manejo de tus datos personales se rige por nuestra{" "}
+              The handling of your personal data is governed by our{" "}
               <Link href="/privacy" className="text-primary underline underline-offset-2 hover:text-primary/80">
-                Política de Privacidad
+                Privacy Policy
               </Link>.
-              Al usar Ptime, también aceptás los{" "}
+              By using Ptime, you also agree to the{" "}
               <a
                 href="https://developers.google.com/terms"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary underline underline-offset-2 hover:text-primary/80"
               >
-                Términos de Servicio de Google APIs
+                Google APIs Terms of Service
               </a>.
             </p>
           </section>
 
           <section>
             <h2 className="font-display text-xl font-semibold text-foreground mb-3">
-              4. Propiedad intelectual
+              4. Intellectual property
             </h2>
             <p>
-              Ptime y su código, diseño, marca y contenido son propiedad de TuCloud.pro.
-              Los datos que cargás en la aplicación (horas, proyectos, clientes) siguen siendo
-              de tu propiedad.
+              Ptime and its code, design, brand, and content are the property of TuCloud.pro.
+              The data you enter into the application (hours, projects, clients) remains
+              your property.
             </p>
           </section>
 
           <section>
             <h2 className="font-display text-xl font-semibold text-foreground mb-3">
-              5. Limitación de responsabilidad
+              5. Limitation of liability
             </h2>
             <p>
-              Ptime se proporciona &quot;tal cual&quot; y &quot;según disponibilidad&quot;.
-              TuCloud.pro no garantiza que el servicio sea ininterrumpido, libre de errores,
-              o que cumpla con requisitos específicos de cada usuario.
+              Ptime is provided &quot;as is&quot; and &quot;as available&quot;.
+              TuCloud.pro does not guarantee that the service will be uninterrupted, error-free,
+              or that it will meet specific user requirements.
             </p>
             <p className="mt-2">
-              En ningún caso TuCloud.pro será responsable por:
+              Under no circumstances shall TuCloud.pro be liable for:
             </p>
             <ul className="list-disc pl-5 space-y-1.5 mt-2">
-              <li>Pérdida de datos (tus datos están en tu Google Sheets).</li>
-              <li>Interrupciones del servicio causadas por Google, Vercel, o terceros.</li>
-              <li>Daños directos o indirectos derivados del uso o la imposibilidad de usar el servicio.</li>
+              <li>Loss of data (your data is in your Google Sheets).</li>
+              <li>Service interruptions caused by Google, Vercel, or third parties.</li>
+              <li>Direct or indirect damages arising from the use or inability to use the service.</li>
             </ul>
           </section>
 
           <section>
             <h2 className="font-display text-xl font-semibold text-foreground mb-3">
-              6. Cancelación y suspensión
+              6. Cancellation and suspension
             </h2>
             <p>
-              Podés dejar de usar Ptime en cualquier momento. Para revocar el acceso de Ptime
-              a tu cuenta de Google, visitá{" "}
+              You may stop using Ptime at any time. To revoke Ptime&apos;s access
+              to your Google account, visit{" "}
               <a
                 href="https://myaccount.google.com/permissions"
                 target="_blank"
@@ -138,45 +137,45 @@ export default function TermsPage() {
               </a>.
             </p>
             <p className="mt-2">
-              Nos reservamos el derecho de suspender o cancelar el acceso a usuarios que violen
-              estos términos, sin previo aviso y sin responsabilidad.
+              We reserve the right to suspend or cancel access for users who violate
+              these terms, without prior notice and without liability.
             </p>
           </section>
 
           <section>
             <h2 className="font-display text-xl font-semibold text-foreground mb-3">
-              7. Modificaciones de los términos
+              7. Modifications to the terms
             </h2>
             <p>
-              Podemos modificar estos términos en cualquier momento. Los cambios se publicarán
-              en esta página y, si son sustanciales, se notificarán a los usuarios por correo
-              electrónico o mediante un aviso en la aplicación. El uso continuado del servicio
-              después de los cambios constituye aceptación de los nuevos términos.
+              We may modify these terms at any time. Changes will be posted
+              on this page and, if substantial, will be notified to users via email
+              or through an in-app notice. Continued use of the service
+              after changes constitutes acceptance of the new terms.
             </p>
           </section>
 
           <section>
             <h2 className="font-display text-xl font-semibold text-foreground mb-3">
-              8. Legislación aplicable
+              8. Governing law
             </h2>
             <p>
-              Estos términos se rigen por las leyes de la República Argentina.
-              Cualquier disputa relacionada con estos términos será resuelta en los tribunales
-              de la Ciudad Autónoma de Buenos Aires.
+              These terms are governed by the laws of the Argentine Republic.
+              Any dispute related to these terms shall be resolved in the courts
+              of the Autonomous City of Buenos Aires.
             </p>
           </section>
 
           <section>
             <h2 className="font-display text-xl font-semibold text-foreground mb-3">
-              9. Contacto
+              9. Contact
             </h2>
             <p>
-              Para consultas sobre estos términos, contactanos a:{" "}
+              For inquiries about these terms, contact us at:{" "}
               <a
-                href="mailto:adrian.porcelli@tucloud.pro"
+                href="mailto:info@tucloud.pro"
                 className="text-primary underline underline-offset-2 hover:text-primary/80"
               >
-                adrian.porcelli@tucloud.pro
+                info@tucloud.pro
               </a>
             </p>
           </section>
