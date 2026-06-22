@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Política de Privacidad | Ptime",
-  description: "Política de privacidad de Ptime — cómo manejamos tus datos personales, acceso a Google Sheets, y más.",
+  title: "Privacy Policy | Ptime",
+  description: "Ptime Privacy Policy — how we handle your personal data, Google Sheets access, and more.",
   robots: { index: true, follow: true },
 };
 
@@ -11,79 +11,78 @@ export default function PrivacyPage() {
   return (
     <main className="min-h-screen bg-background text-foreground font-sans antialiased">
       <div className="mx-auto max-w-2xl px-6 py-16 sm:px-8 sm:py-24">
-        {/* Header */}
         <Link
           href="/"
           className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-8 inline-block"
         >
-          ← Volver a Ptime
+          ← Back to Ptime
         </Link>
         <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
-          Política de Privacidad
+          Privacy Policy
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Última actualización: 22 de junio de 2026
+          Last updated: June 22, 2026
         </p>
 
         <div className="mt-10 space-y-8 text-[15px] leading-relaxed text-foreground/85">
           <section>
             <p>
-              En <strong>Ptime</strong> (operado por <strong>TuCloud.pro</strong>) nos tomamos tu privacidad en serio.
-              Esta política describe qué datos recopilamos, cómo los usamos, y qué derechos tenés sobre ellos.
+              At <strong>Ptime</strong> (operated by <strong>TuCloud.pro</strong>) we take your privacy seriously.
+              This policy describes what data we collect, how we use it, and what rights you have over it.
             </p>
           </section>
 
           <section>
             <h2 className="font-display text-xl font-semibold text-foreground mb-3">
-              1. Datos que recopilamos
+              1. Data we collect
             </h2>
             <ul className="list-disc pl-5 space-y-1.5">
               <li>
-                <strong>Información de perfil de Google:</strong> nombre, correo electrónico y foto de perfil
-                (a través de Google OAuth 2.0).
+                <strong>Google Profile Information:</strong> name, email address, and profile picture
+                (via Google OAuth 2.0).
               </li>
               <li>
-                <strong>Datos de Google Sheets:</strong> leemos y escribimos exclusivamente en la hoja de cálculo
-                que vos configurás dentro de la app. No accedemos a ningún otro documento de tu Google Drive.
+                <strong>Google Sheets Data:</strong> we read from and write to exclusively the spreadsheet
+                you configure within the app. We do not access any other documents in your Google Drive.
               </li>
               <li>
-                <strong>Tokens de acceso:</strong> almacenamos un token de acceso y un refresh token de Google
-                para mantener tu sesión activa. Estos tokens se guardan en tu navegador (JWT) y se renuevan automáticamente.
+                <strong>Access Tokens:</strong> we store a Google access token and refresh token
+                to keep your session active. These tokens are stored in your browser (JWT) and renewed automatically.
               </li>
               <li>
-                <strong>Datos de uso anónimos:</strong> podemos recopilar métricas anónimas de rendimiento y
-                errores para mejorar el servicio.
+                <strong>Anonymous Usage Data:</strong> we may collect anonymous performance and
+                error metrics to improve the service.
               </li>
             </ul>
           </section>
 
           <section>
             <h2 className="font-display text-xl font-semibold text-foreground mb-3">
-              2. Cómo usamos tus datos
+              2. How we use your data
             </h2>
             <ul className="list-disc pl-5 space-y-1.5">
-              <li>Autenticarte en la aplicación.</li>
-              <li>Leer y registrar horas trabajadas, proyectos, clientes y tareas en tu hoja de cálculo.</li>
-              <li>Generar reportes y facturación basados en los datos que cargás.</li>
-              <li>Persistir tu configuración entre sesiones y dispositivos.</li>
+              <li>Authenticate you in the application.</li>
+              <li>Read and record hours worked, projects, clients, and tasks in your spreadsheet.</li>
+              <li>Generate reports and invoicing based on the data you enter.</li>
+              <li>Persist your configuration across sessions and devices.</li>
             </ul>
             <p className="mt-3">
-              <strong>No usamos tus datos para:</strong> publicidad, venta a terceros, entrenamiento de modelos
-              de IA, ni ningún propósito no relacionado con el funcionamiento de Ptime.
+              <strong>We do NOT use your data for:</strong> advertising, sale to third parties, AI model training,
+              or any purpose unrelated to the operation of Ptime.
             </p>
           </section>
 
           <section>
             <h2 className="font-display text-xl font-semibold text-foreground mb-3">
-              3. Almacenamiento y retención
+              3. Storage and retention
             </h2>
             <p>
-              Tus datos de horas, proyectos, clientes y configuración se almacenan <strong>exclusivamente
-              en tu Google Sheets</strong>. No copiamos ni almacenamos esos datos en servidores de TuCloud.pro.
+              Your hours, projects, clients, and configuration data are stored <strong>exclusively
+              in your Google Sheets</strong>. We do not copy or store this data on TuCloud.pro servers.
             </p>
             <p className="mt-2">
-              Solo retenemos tu información de sesión (nombre, email, token) mientras tu cuenta esté activa.
-              Podés revocar el acceso en cualquier momento desde tu cuenta de Google en{" "}
+              We only retain your session information (name, email, token) while your account is active.
+              You can revoke access at any time from your Google account at{" "}
               <a
                 href="https://myaccount.google.com/permissions"
                 target="_blank"
@@ -97,10 +96,10 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="font-display text-xl font-semibold text-foreground mb-3">
-              4. Uso limitado de datos de Google APIs
+              4. Limited use of Google API data
             </h2>
             <p>
-              El uso que Ptime hace de la información recibida de Google APIs cumple con la{" "}
+              Ptime&apos;s use of information received from Google APIs complies with the{" "}
               <a
                 href="https://developers.google.com/terms/api-services-user-data-policy"
                 target="_blank"
@@ -108,40 +107,40 @@ export default function PrivacyPage() {
                 className="text-primary underline underline-offset-2 hover:text-primary/80"
               >
                 Google API Services User Data Policy
-              </a>, incluyendo los requisitos de <strong>Limited Use</strong>.
-              No transferimos, vendemos ni usamos tus datos de Google Sheets para ningún propósito
-              que no sea proveer el servicio que solicitaste.
+              </a>, including the <strong>Limited Use</strong> requirements.
+              We do not transfer, sell, or use your Google Sheets data for any purpose
+              other than providing the service you requested.
             </p>
           </section>
 
           <section>
             <h2 className="font-display text-xl font-semibold text-foreground mb-3">
-              5. Protección de datos y seguridad
+              5. Data protection and security
             </h2>
             <ul className="list-disc pl-5 space-y-1.5">
               <li>
-                <strong>Cifrado en tránsito:</strong> toda la comunicación entre tu navegador, Ptime y las APIs de Google
-                se realiza mediante HTTPS con TLS 1.2 o superior. Ningún dato viaja sin cifrar.
+                <strong>Encryption in transit:</strong> all communication between your browser, Ptime, and Google APIs
+                is conducted over HTTPS with TLS 1.2 or higher. No data travels unencrypted.
               </li>
               <li>
-                <strong>Tokens de acceso seguros:</strong> los tokens de autenticación OAuth (access token y refresh token)
-                se almacenan como JWT firmados dentro de cookies con flags <code>httpOnly</code>, <code>secure</code> y
-                <code>sameSite=lax</code>, lo que previene acceso desde JavaScript y ataques CSRF.
+                <strong>Secure access tokens:</strong> OAuth authentication tokens (access token and refresh token)
+                are stored as signed JWTs within cookies with <code>httpOnly</code>, <code>secure</code>, and
+                <code>sameSite=lax</code> flags, preventing JavaScript access and CSRF attacks.
               </li>
               <li>
-                <strong>Datos en Google Sheets:</strong> todos los datos de horas, proyectos, clientes y facturación
-                residen exclusivamente en tu Google Sheets, protegidos por los controles de seguridad de Google Workspace
-                (cifrado en reposo, control de acceso basado en tu cuenta de Google, y registro de auditoría).
-                Ptime no mantiene una copia separada de estos datos en servidores propios.
+                <strong>Data at rest in Google Sheets:</strong> all hours, project, client, and invoicing data
+                reside exclusively in your Google Sheets, protected by Google Workspace security controls
+                (encryption at rest, access control based on your Google account, and audit logging).
+                Ptime does not maintain a separate copy of this data on its own servers.
               </li>
               <li>
-                <strong>Acceso mínimo:</strong> Ptime solo accede a la hoja de cálculo específica que vos configurás
-                durante el setup. No listamos, exploramos ni accedemos a otros documentos de tu Google Drive.
-                El token de acceso se usa exclusivamente contra el spreadsheet ID que vos proveíste.
+                <strong>Minimal access:</strong> Ptime only accesses the specific spreadsheet you configure
+                during setup. We do not list, browse, or access other documents in your Google Drive.
+                The access token is used exclusively against the spreadsheet ID you provided.
               </li>
               <li>
-                <strong>Revocación inmediata:</strong> podés revocar el acceso de Ptime a tu cuenta de Google
-                en cualquier momento desde{" "}
+                <strong>Immediate revocation:</strong> you can revoke Ptime&apos;s access to your Google account
+                at any time from{" "}
                 <a
                   href="https://myaccount.google.com/permissions"
                   target="_blank"
@@ -149,72 +148,71 @@ export default function PrivacyPage() {
                   className="text-primary underline underline-offset-2 hover:text-primary/80"
                 >
                   myaccount.google.com/permissions
-                </a>. Al revocar, Ptime deja de poder leer o escribir en tu hoja de cálculo de inmediato.
+                </a>. Upon revocation, Ptime immediately loses the ability to read from or write to your spreadsheet.
               </li>
               <li>
-                <strong>No almacenamos tus datos de Sheets:</strong> los únicos datos que Ptime retiene en sus
-                servidores son tu información de perfil (nombre, email, foto) durante la sesión activa.
-                No almacenamos, copiamos ni respaldamos el contenido de tus hojas de cálculo.
+                <strong>We do not store your Sheets data:</strong> the only data Ptime retains on its
+                servers is your profile information (name, email, photo) during the active session.
+                We do not store, copy, or back up the contents of your spreadsheets.
               </li>
             </ul>
           </section>
 
           <section>
             <h2 className="font-display text-xl font-semibold text-foreground mb-3">
-              6. Terceros
+              6. Third parties
             </h2>
             <p>
-              No vendemos, intercambiamos ni transferimos tu información personal a terceros.
-              Esto no incluye a proveedores de confianza que nos ayudan a operar el servicio
-              (por ejemplo, Vercel para hosting), siempre que acepten mantener la confidencialidad
-              de tus datos.
+              We do not sell, trade, or transfer your personal information to third parties.
+              This does not include trusted providers who assist us in operating the service
+              (e.g., Vercel for hosting), provided they agree to keep your data confidential.
             </p>
           </section>
 
           <section>
             <h2 className="font-display text-xl font-semibold text-foreground mb-3">
-              7. Tus derechos
+              7. Your rights
             </h2>
-            <p>Tenés derecho a:</p>
+            <p>You have the right to:</p>
             <ul className="list-disc pl-5 space-y-1.5 mt-2">
-              <li><strong>Acceder</strong> a los datos que tenemos sobre vos.</li>
-              <li><strong>Solicitar la eliminación</strong> de tu cuenta y datos asociados.</li>
-              <li><strong>Revocar el acceso</strong> de Ptime a tu cuenta de Google en cualquier momento.</li>
-              <li><strong>Exportar</strong> tus datos (están en tu Google Sheets — podés descargarlos directamente).</li>
+              <li><strong>Access</strong> the data we hold about you.</li>
+              <li><strong>Request deletion</strong> of your account and associated data.</li>
+              <li><strong>Revoke access</strong> of Ptime to your Google account at any time.</li>
+              <li><strong>Export</strong> your data (it lives in your Google Sheets — you can download it directly).</li>
             </ul>
             <p className="mt-3">
-              Para ejercer cualquiera de estos derechos, contactanos a{" "}
+              To exercise any of these rights, contact us at{" "}
               <a
-                href="mailto:adrian.porcelli@tucloud.pro"
+                href="mailto:info@tucloud.pro"
                 className="text-primary underline underline-offset-2 hover:text-primary/80"
               >
-                adrian.porcelli@tucloud.pro
+                info@tucloud.pro
               </a>.
             </p>
           </section>
 
           <section>
             <h2 className="font-display text-xl font-semibold text-foreground mb-3">
-              8. Cambios en esta política
+              8. Changes to this policy
             </h2>
             <p>
-              Podemos actualizar esta política periódicamente. Los cambios importantes se notificarán
-              a través de la aplicación o por correo electrónico. El uso continuado de Ptime después
-              de los cambios constituye aceptación de la nueva política.
+              We may update this policy periodically. Significant changes will be notified
+              through the app or via email. Continued use of Ptime after
+              changes constitutes acceptance of the new policy.
             </p>
           </section>
 
           <section>
             <h2 className="font-display text-xl font-semibold text-foreground mb-3">
-              9. Contacto
+              9. Contact
             </h2>
             <p>
-              Si tenés preguntas sobre esta política, escribinos a:{" "}
+              If you have questions about this policy, write to us at:{" "}
               <a
-                href="mailto:adrian.porcelli@tucloud.pro"
+                href="mailto:info@tucloud.pro"
                 className="text-primary underline underline-offset-2 hover:text-primary/80"
               >
-                adrian.porcelli@tucloud.pro
+                info@tucloud.pro
               </a>
             </p>
           </section>
