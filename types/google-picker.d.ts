@@ -3,7 +3,7 @@
 
 interface Window {
   gapi: {
-    load: (api: string, config: { callback?: () => void } | any) => void;
+    load: (api: string, config: { callback?: (() => void) | undefined } | any) => void;
   };
   google: {
     picker: {
