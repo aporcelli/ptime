@@ -43,7 +43,7 @@ export default async function LoginPage({
         <div className="glass rounded-2xl p-8 shadow-2xl animate-slide-up">
           <h2 className="font-semibold text-lg mb-2">Iniciar sesión</h2>
           <p className="text-muted-foreground text-sm mb-6">
-            Usá tu cuenta de Google para acceder. Solo se pedirá acceso a los archivos de Google Drive que elijas explícitamente.
+            Usá tu cuenta de Google para acceder. Se solicitará permiso para leer y escribir en tus Google Sheets.
           </p>
 
           {errorMsg && (

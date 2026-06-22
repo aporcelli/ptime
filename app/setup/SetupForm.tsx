@@ -1,13 +1,12 @@
 // app/setup/SetupForm.tsx
 "use client";
 
-import { useState, useCallback }      from "react";
+import { useState }      from "react";
 import { useRouter }     from "next/navigation";
 import { motion }     from "framer-motion";
 import { validateAndSaveSheetId } from "@/app/actions/setup";
-import GoogleSheetPicker from "@/components/GoogleSheetPicker";
 
-// SVG Icons inline para evitar dependencia de lucide-react
+// SVG Icons inline
 const Loader2 = ({ size = 16, className = "" }: { size?: number; className?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
     <path d="M21 12a9 9 0 1 1-6.219-8.56" />
@@ -29,23 +28,13 @@ const ExternalLink = ({ size = 11, className = "" }: { size?: number; className?
   </svg>
 );
 
-/**
- * Extrae el Sheet ID de una URL de Google Sheets o lo devuelve directo si ya es un ID.
- * Soporta formatos:
- *   - https://docs.google.com/spreadsheets/d/SHEET_ID/edit#gid=0
- *   - https://docs.google.com/spreadsheets/d/SHEET_ID/
- *   - SHEET_ID (directo)
- */
 function extractSheetId(input: string): string {
   const trimmed = input.trim();
-  // Regex: captura el ID entre /d/ y el siguiente / o fin de string
   const match = trimmed.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
   if (match) return match[1];
-  // Si no matchea, asumir que es un ID directo
   return trimmed;
 }
 
-/** Detecta si el input parece una URL de Google Sheets */
 function isGoogleSheetsUrl(input: string): boolean {
   return input.includes("docs.google.com/spreadsheets") || input.includes("sheets.google.com");
 }
@@ -57,21 +46,6 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
   const [message, setMessage]   = useState("");
   const [showManual, setShowManual] = useState(!sharedSheetId);
 
-  const handlePickerSelect = useCallback(async (fileId: string, fileName: string) => {
-    setStatus("loading");
-    setMessage("");
-    const result = await validateAndSaveSheetId(fileId);
-    if (!result.success) {
-      setStatus("error");
-      setMessage(result.error ?? "Error desconocido al conectar el sheet.");
-      return;
-    }
-    setStatus("success");
-    setMessage(`Sheet "${result.title}" conectado. Entrando…`);
-    setTimeout(() => { router.push("/dashboard"); router.refresh(); }, 1200);
-  }, [router]);
-
-  // ID extraído en tiempo real para mostrar preview
   const extractedId = rawInput.trim() ? extractSheetId(rawInput) : "";
   const isUrl = isGoogleSheetsUrl(rawInput);
 
@@ -79,51 +53,36 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
     if (!sharedSheetId) return;
     setStatus("loading");
     setMessage("");
-
     const result = await validateAndSaveSheetId(sharedSheetId);
-
     if (!result.success) {
       setStatus("error");
       setMessage(result.error ?? "Error desconocido al unirse al workspace.");
       return;
     }
-
     setStatus("success");
     setMessage(`Workspace "${result.title}" conectado. Entrando…`);
-
-    setTimeout(() => {
-      router.push("/dashboard");
-      router.refresh();
-    }, 1200);
+    setTimeout(() => { router.push("/dashboard"); router.refresh(); }, 1200);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setStatus("loading");
     setMessage("");
-
     const sheetId = extractSheetId(rawInput);
     if (!sheetId) {
       setStatus("error");
       setMessage("Pegá la URL completa de tu Google Sheet o el ID directamente.");
       return;
     }
-
     const result = await validateAndSaveSheetId(sheetId);
-
     if (!result.success) {
       setStatus("error");
       setMessage(result.error ?? "Error desconocido");
       return;
     }
-
     setStatus("success");
     setMessage(`Sheet "${result.title}" conectado. Entrando…`);
-
-    setTimeout(() => {
-      router.push("/dashboard");
-      router.refresh();
-    }, 1200);
+    setTimeout(() => { router.push("/dashboard"); router.refresh(); }, 1200);
   }
 
   if (!showManual && sharedSheetId) {
@@ -140,30 +99,21 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
         </motion.button>
 
         {status === "error" && (
-          <motion.div
-            initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-            className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm"
-          >
-            <AlertCircle size={16} className="shrink-0 mt-0.5" />
-            {message}
+          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+            className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
+            <AlertCircle size={16} className="shrink-0 mt-0.5" /> {message}
           </motion.div>
         )}
-
         {status === "success" && (
-          <motion.div
-            initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-sm"
-          >
+          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-sm">
             <CheckCircle size={16} /> {message}
           </motion.div>
         )}
 
         <div className="text-center mt-2">
-          <button
-            type="button"
-            onClick={() => setShowManual(true)}
-            className="text-xs text-muted-foreground hover:text-primary transition-colors"
-          >
+          <button type="button" onClick={() => setShowManual(true)}
+            className="text-xs text-muted-foreground hover:text-primary transition-colors">
             Usar otro Sheet distinto / Crear de cero
           </button>
         </div>
@@ -173,53 +123,28 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
 
   return (
     <>
-      {/* Instrucciones */}
       <div className="mb-6 p-4 bg-muted/50 border border-border rounded-xl text-sm text-muted-foreground space-y-2">
-        <p className="font-semibold text-foreground text-xs uppercase tracking-wide">Choose your Google Sheet</p>
-        <p className="text-xs">Click the button below to open Google Picker and select the spreadsheet you want to use as your Ptime database.</p>
-      </div>
-
-      <GoogleSheetPicker
-        onSelect={handlePickerSelect}
-        disabled={status === "loading" || status === "success"}
-      />
-
-      {(status === "loading" || status === "error" || status === "success") && (
-        <div className="mt-3">
-          {status === "loading" && <p className="text-sm text-muted-foreground text-center">Connecting sheet…</p>}
-          {status === "error" && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
-              <AlertCircle size={16} className="shrink-0 mt-0.5" />{message}
-            </motion.div>
-          )}
-          {status === "success" && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-sm">
-              <CheckCircle size={16} />{message}
-            </motion.div>
-          )}
-        </div>
-      )}
-
-      <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
-        <div className="relative flex justify-center"><span className="bg-background px-3 text-xs text-muted-foreground">or paste URL manually</span></div>
+        <p className="font-semibold text-foreground text-xs uppercase tracking-wide">¿Cómo obtener el Sheet ID?</p>
+        <ol className="list-decimal list-inside space-y-1 text-xs">
+          <li>Andá a <a href="https://sheets.new" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">sheets.new</a> y creá una hoja vacía</li>
+          <li>Copiá el ID de la URL:<br/>
+            <code className="bg-background border border-border px-1.5 py-0.5 rounded text-[11px] break-all">
+              sheets.google.com/d/<span className="text-emerald-500 font-bold">ID_AQUI</span>/edit
+            </code>
+          </li>
+          <li>Pegalo abajo — Ptime crea las hojas automáticamente</li>
+        </ol>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-foreground">
-            URL de Google Sheets
-          </label>
+          <label className="text-sm font-medium text-foreground">URL de Google Sheets</label>
           <input
             type="text"
             value={rawInput}
             onChange={(e) => { setRawInput(e.target.value); setStatus("idle"); setMessage(""); }}
             placeholder="https://docs.google.com/spreadsheets/d/…"
-            className="
-              bg-background border border-input rounded-lg px-3.5 py-2.5
-              text-foreground text-sm placeholder:text-muted-foreground
-              focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-ring
-            "
+            className="bg-background border border-input rounded-lg px-3.5 py-2.5 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-ring"
             required
           />
           {isUrl && extractedId && (
@@ -228,26 +153,18 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
               <span>ID detectado: <code className="text-foreground bg-muted px-1 py-0.5 rounded text-[11px]">{extractedId}</code></span>
             </div>
           )}
-          <p className="text-xs text-muted-foreground">
-            También podés pegar solo el ID del Sheet directamente.
-          </p>
+          <p className="text-xs text-muted-foreground">También podés pegar solo el ID del Sheet directamente.</p>
         </div>
 
         {status === "error" && (
-          <motion.div
-            initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-            className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm"
-          >
-            <AlertCircle size={16} className="shrink-0 mt-0.5" />
-            {message}
+          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+            className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
+            <AlertCircle size={16} className="shrink-0 mt-0.5" /> {message}
           </motion.div>
         )}
-
         {status === "success" && (
-          <motion.div
-            initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-sm"
-          >
+          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-sm">
             <CheckCircle size={16} /> {message}
           </motion.div>
         )}
