@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Manrope, Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { SessionProvider } from "next-auth/react";
+import Script from "next/script";
 import "./globals.css";
 import { PwaRegister } from "./pwa-register";
 
@@ -50,6 +51,9 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${manrope.variable} ${inter.variable}`}
     >
+      <head>
+        <Script src="https://apis.google.com/js/api.js" strategy="beforeInteractive" />
+      </head>
       <body className="min-h-screen bg-background text-foreground font-sans antialiased">
         <SessionProvider>
           <ThemeProvider
