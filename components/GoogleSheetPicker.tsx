@@ -92,6 +92,7 @@ export default function GoogleSheetPicker({ onSelect, disabled }: Props) {
         .addView(view)
         .setOAuthToken(session.user.accessToken)
         .setDeveloperKey(process.env.NEXT_PUBLIC_GOOGLE_API_KEY ?? "")
+        .setOrigin(window.location.origin)
         .setCallback((data: any) => {
           if (data.action === g.picker.Action.PICKED && data.docs?.[0]) {
             const doc = data.docs[0];
