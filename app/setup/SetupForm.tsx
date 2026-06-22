@@ -1,10 +1,11 @@
 // app/setup/SetupForm.tsx
 "use client";
 
-import { useState }      from "react";
+import { useState, useCallback }      from "react";
 import { useRouter }     from "next/navigation";
 import { motion }     from "framer-motion";
 import { validateAndSaveSheetId } from "@/app/actions/setup";
+import GoogleSheetPicker from "@/components/GoogleSheetPicker";
 
 // SVG Icons inline para evitar dependencia de lucide-react
 const Loader2 = ({ size = 16, className = "" }: { size?: number; className?: string }) => (
@@ -55,6 +56,20 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
   const [status, setStatus]     = useState<"idle"|"loading"|"success"|"error">("idle");
   const [message, setMessage]   = useState("");
   const [showManual, setShowManual] = useState(!sharedSheetId);
+
+  const handlePickerSelect = useCallback(async (fileId: string, fileName: string) => {
+    setStatus("loading");
+    setMessage("");
+    const result = await validateAndSaveSheetId(fileId);
+    if (!result.success) {
+      setStatus("error");
+      setMessage(result.error ?? "Error desconocido al conectar el sheet.");
+      return;
+    }
+    setStatus("success");
+    setMessage(`Sheet "${result.title}" conectado. Entrando…`);
+    setTimeout(() => { router.push("/dashboard"); router.refresh(); }, 1200);
+  }, [router]);
 
   // ID extraído en tiempo real para mostrar preview
   const extractedId = rawInput.trim() ? extractSheetId(rawInput) : "";
@@ -160,16 +175,34 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
     <>
       {/* Instrucciones */}
       <div className="mb-6 p-4 bg-muted/50 border border-border rounded-xl text-sm text-muted-foreground space-y-2">
-        <p className="font-semibold text-foreground text-xs uppercase tracking-wide">¿Cómo obtener el Sheet ID?</p>
-        <ol className="list-decimal list-inside space-y-1 text-xs">
-          <li>Andá a <a href="https://sheets.new" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">sheets.new</a> y creá una hoja vacía</li>
-          <li>Copiá el ID de la URL:<br/>
-            <code className="bg-background border border-border px-1.5 py-0.5 rounded text-[11px] break-all">
-              sheets.google.com/d/<span className="text-emerald-500 font-bold">ID_AQUI</span>/edit
-            </code>
-          </li>
-          <li>Pegalo abajo — Ptime crea las hojas automáticamente</li>
-        </ol>
+        <p className="font-semibold text-foreground text-xs uppercase tracking-wide">Choose your Google Sheet</p>
+        <p className="text-xs">Click the button below to open Google Picker and select the spreadsheet you want to use as your Ptime database.</p>
+      </div>
+
+      <GoogleSheetPicker
+        onSelect={handlePickerSelect}
+        disabled={status === "loading" || status === "success"}
+      />
+
+      {(status === "loading" || status === "error" || status === "success") && (
+        <div className="mt-3">
+          {status === "loading" && <p className="text-sm text-muted-foreground text-center">Connecting sheet…</p>}
+          {status === "error" && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
+              <AlertCircle size={16} className="shrink-0 mt-0.5" />{message}
+            </motion.div>
+          )}
+          {status === "success" && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-sm">
+              <CheckCircle size={16} />{message}
+            </motion.div>
+          )}
+        </div>
+      )}
+
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
+        <div className="relative flex justify-center"><span className="bg-background px-3 text-xs text-muted-foreground">or paste URL manually</span></div>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
