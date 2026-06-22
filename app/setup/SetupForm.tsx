@@ -1,10 +1,11 @@
 // app/setup/SetupForm.tsx
 "use client";
 
-import { useState }      from "react";
+import { useState, useCallback }      from "react";
 import { useRouter }     from "next/navigation";
 import { motion }     from "framer-motion";
 import { validateAndSaveSheetId } from "@/app/actions/setup";
+import GoogleSheetPicker from "@/components/GoogleSheetPicker";
 
 // SVG Icons inline
 const Loader2 = ({ size = 16, className = "" }: { size?: number; className?: string }) => (
@@ -45,6 +46,20 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
   const [status, setStatus]     = useState<"idle"|"loading"|"success"|"error">("idle");
   const [message, setMessage]   = useState("");
   const [showManual, setShowManual] = useState(!sharedSheetId);
+
+  const handlePickerSelect = useCallback(async (fileId: string) => {
+    setStatus("loading");
+    setMessage("Connecting sheet…");
+    const result = await validateAndSaveSheetId(fileId);
+    if (!result.success) {
+      setStatus("error");
+      setMessage(result.error ?? "Error connecting sheet.");
+      return;
+    }
+    setStatus("success");
+    setMessage(`Sheet "${result.title}" connected. Redirecting…`);
+    setTimeout(() => { router.push("/dashboard"); router.refresh(); }, 1200);
+  }, [router]);
 
   const extractedId = rawInput.trim() ? extractSheetId(rawInput) : "";
   const isUrl = isGoogleSheetsUrl(rawInput);
@@ -136,7 +151,34 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
         </ol>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <div className="mb-4">
+        <GoogleSheetPicker
+          onSelect={handlePickerSelect}
+          disabled={status === "loading" || status === "success"}
+        />
+      </div>
+
+      {status === "loading" && (
+        <p className="text-sm text-muted-foreground text-center mb-3">Connecting sheet…</p>
+      )}
+
+      <div className="relative my-4">
+        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
+        <div className="relative flex justify-center"><span className="bg-background px-3 text-xs text-muted-foreground">or paste URL manually</span></div>
+      </div>
+
+      <div className="mb-4 p-3 bg-muted/50 border border-border rounded-lg text-xs text-muted-foreground">
+        <p className="font-semibold text-foreground text-[11px] uppercase tracking-wide mb-1">How to get your Sheet URL</p>
+        <ol className="list-decimal list-inside space-y-0.5">
+          <li>Go to <a href="https://sheets.new" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">sheets.new</a> and create a blank sheet</li>
+          <li>Copy the URL from your browser:</li>
+        </ol>
+        <code className="mt-1 block bg-background border border-border px-2 py-1 rounded text-[10px] break-all">
+          docs.google.com/spreadsheets/d/<span className="text-emerald-500 font-bold">SHEET_ID</span>/edit
+        </code>
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-foreground">URL de Google Sheets</label>
           <input
