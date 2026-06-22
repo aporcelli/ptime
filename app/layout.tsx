@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Manrope, Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { SessionProvider } from "next-auth/react";
-import GapiLoader from "@/components/GapiLoader";
 import "./globals.css";
 import { PwaRegister } from "./pwa-register";
 
@@ -59,10 +58,8 @@ export default function RootLayout({
             enableSystem={false}
             disableTransitionOnChange
           >
-            <GapiLoader>
-              <PwaRegister />
-              {children}
-            </GapiLoader>
+            <PwaRegister />
+            {children}
           </ThemeProvider>
         </SessionProvider>
       </body>

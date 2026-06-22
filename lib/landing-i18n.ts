@@ -43,12 +43,12 @@ export const translations = {
       {
         step: "1",
         title: "Sign in",
-        desc: "Use your Google account. We'll ask for permission to access files you choose — only the spreadsheet you select via Google Picker.",
+        desc: "Use your Google account. We'll ask for permission to access your Google Sheets — only the one you configure.",
       },
       {
         step: "2",
         title: "Connect your sheet",
-        desc: "Paste your Google Sheet link or select it with the Google Picker. Ptime automatically creates the required tabs (Records, Projects, Clients, etc.).",
+        desc: "Paste your Google Sheet link. Ptime automatically creates the required tabs (Records, Projects, Clients, etc.).",
       },
       {
         step: "3",
@@ -99,12 +99,12 @@ export const translations = {
       {
         step: "1",
         title: "Iniciá sesión",
-        desc: "Usá tu cuenta de Google. Te pedirá permiso para acceder a los archivos que elijas — solo la hoja de cálculo que selecciones desde Google Picker.",
+        desc: "Usá tu cuenta de Google. Te pedirá permiso para acceder a tus Google Sheets — solo a la hoja que vos configures.",
       },
       {
         step: "2",
         title: "Conectá tu sheet",
-        desc: "Pegá el link de tu Google Sheet o seleccionalo con Google Picker. Ptime crea automáticamente las pestañas necesarias (Registros, Proyectos, Clientes, etc.).",
+        desc: "Pegá el link de tu Google Sheet. Ptime crea automáticamente las pestañas necesarias (Registros, Proyectos, Clientes, etc.).",
       },
       {
         step: "3",
