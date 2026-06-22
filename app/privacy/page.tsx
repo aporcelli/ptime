@@ -42,10 +42,8 @@ export default function PrivacyPage() {
                 (via Google OAuth 2.0).
               </li>
               <li>
-                <strong>Google Drive File Access:</strong> we request the <code>drive.file</code> scope,
-                which grants access only to files you explicitly select via Google Picker. Ptime reads
-                and writes exclusively the spreadsheet you choose during setup. We do not access
-                any other documents in your Google Drive.
+                <strong>Google Sheets Data:</strong> we read from and write to exclusively the spreadsheet
+                you configure within the app. We do not access any other documents in your Google Drive.
               </li>
               <li>
                 <strong>Access Tokens:</strong> we store a Google access token and refresh token
@@ -101,9 +99,7 @@ export default function PrivacyPage() {
               4. Limited use of Google API data
             </h2>
             <p>
-              Ptime uses the <code>drive.file</code> OAuth scope to access Google Sheets you explicitly
-select via Google Picker. Access is limited to performing the core functions of the
-time-tracking and invoicing application.{" "}
+              Ptime&apos;s use of information received from Google APIs complies with the{" "}
               <a
                 href="https://developers.google.com/terms/api-services-user-data-policy"
                 target="_blank"
@@ -138,10 +134,9 @@ time-tracking and invoicing application.{" "}
                 Ptime does not maintain a separate copy of this data on its own servers.
               </li>
               <li>
-                <strong>Minimal access:</strong> Ptime requests the <code>drive.file</code> scope,
-                which grants access only to files you explicitly select via Google Picker.
-                The access token is used exclusively against the spreadsheet you chose. We do
-                not list, browse, or access other documents in your Google Drive.
+                <strong>Minimal access:</strong> Ptime only accesses the specific spreadsheet you configure
+                during setup. We do not list, browse, or access other documents in your Google Drive.
+                The access token is used exclusively against the spreadsheet ID you provided.
               </li>
               <li>
                 <strong>Immediate revocation:</strong> you can revoke Ptime&apos;s access to your Google account
