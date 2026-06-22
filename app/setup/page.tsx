@@ -6,7 +6,12 @@ import { cookies }  from "next/headers";
 import SetupForm    from "./SetupForm";
 import { findSharedSheetForEmail } from "@/lib/sheets/master";
 
-export const metadata: Metadata = { title: "Configurar Sheet | Ptime" };
+export const metadata: Metadata = {
+  title: "Configurar Sheet | Ptime",
+  other: {
+    "content-security-policy": "default-src * 'unsafe-inline' 'unsafe-eval'; frame-ancestors 'none';",
+  },
+};
 
 export default async function SetupPage() {
   const session = await auth();

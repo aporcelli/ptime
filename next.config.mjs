@@ -52,10 +52,13 @@ const nextConfig = {
           // Previene XSS básico
           { key: "X-XSS-Protection", value: "1; mode=block" },
           // Content Security Policy
+          // TODO: re-enable CSP after Picker RPC debugging
+          /*
           {
             key: "Content-Security-Policy",
             value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com https://*.google.com; style-src 'self' 'unsafe-inline' https://apis.google.com https://*.google.com; img-src 'self' data: https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://*.googleusercontent.com; connect-src 'self' https://oauth2.googleapis.com https://apis.google.com https://*.google.com; frame-src 'self' https://docs.google.com https://*.google.com; frame-ancestors 'none';"
           },
+          */
         ],
       },
     ];
