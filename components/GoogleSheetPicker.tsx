@@ -2,7 +2,7 @@
 // Google Picker integration for selecting a Google Sheet
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 
 let gapiLoadPromise: Promise<void> | null = null;
@@ -51,10 +51,23 @@ export default function GoogleSheetPicker({ onSelect, disabled }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pickerReady, setPickerReady] = useState(false);
+  const pickerReadyRef = useRef(false);
 
-  // Load gapi + picker on mount
+  // Load gapi + picker on mount with timeout
   useEffect(() => {
-    loadGapi().then(() => loadPicker()).then(() => setPickerReady(true));
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      if (!pickerReadyRef.current && !cancelled) {
+        setError("Google Picker failed to load. Use the URL paste option below.");
+      }
+    }, 8000);
+
+    loadGapi()
+      .then(() => loadPicker())
+      .then(() => { if (!cancelled) { pickerReadyRef.current = true; setPickerReady(true); clearTimeout(timer); } })
+      .catch(() => { if (!cancelled) { setError("Google Picker failed to load. Use the URL paste option below."); clearTimeout(timer); } });
+
+    return () => { cancelled = true; clearTimeout(timer); };
   }, []);
 
   const openPicker = useCallback(() => {
