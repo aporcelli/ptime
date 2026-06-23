@@ -47,23 +47,24 @@
 
     function log(msg) { $status.textContent = msg; console.log(msg); }
 
-    log("Step 1: validating parameters…");
-    if (!token || !key) {
-      showError("Missing OAuth token or API key. Please re-login.");
-      return;
-    }
+    function init() {
+      log("Step 1: validating parameters…");
+      if (!token || !key) {
+        showError("Missing OAuth token or API key. Please re-login.");
+        return;
+      }
 
-    log("Step 2: loading Google API script…");
-    var script = document.createElement("script");
-    script.src = "https://apis.google.com/js/api.js";
+      log("Step 2: loading Google API script…");
+      var script = document.createElement("script");
+      script.src = "https://apis.google.com/js/api.js";
 
-    var loadTimeout = setTimeout(function() {
-      showError("Google API script timed out (15s). Check your connection or disable ad blockers.");
-    }, 15000);
+      var loadTimeout = setTimeout(function() {
+        showError("Google API script timed out (15s). Check your connection or disable ad blockers.");
+      }, 15000);
 
-    script.onload = function() {
-      clearTimeout(loadTimeout);
-      log("Step 3: loading Picker module…");
+      script.onload = function() {
+        clearTimeout(loadTimeout);
+        log("Step 3: loading Picker module…");
 
       if (!window.gapi || !window.gapi.load) {
         showError("gapi not available after script load.");
@@ -126,6 +127,9 @@
     };
 
     document.head.appendChild(script);
+    }
+
+    init();
   </script>
 </body>
 </html>
