@@ -61,9 +61,9 @@ export default async function ConfiguracionPage() {
           <div className="flex items-center gap-3">
             {session?.user && (
               <img
-                src={`/api/auth/avatar?v=${encodeURIComponent(session.user.email ?? "session")}`}
+                src={session.user.image ?? `/api/auth/avatar?s=${encodeURIComponent(session.user.email ?? "")}`}
                 alt="Avatar"
-                className="w-10 h-10 rounded-full"
+                className="w-10 h-10 rounded-full bg-muted"
                 onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
               />
             )}
