@@ -60,7 +60,11 @@ export default async function ConfiguracionPage() {
         <div className="card p-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {session?.user?.image && (
-              <img src={session.user.image} alt="Avatar" className="w-10 h-10 rounded-full" referrerPolicy="no-referrer" />
+              <img 
+                src={`/api/auth/avatar?v=${encodeURIComponent(session.user.email ?? session.user.id ?? "")}`}
+                alt="Avatar" 
+                className="w-10 h-10 rounded-full" 
+              />
             )}
             <div>
               <p className="text-sm font-medium text-heading">{session?.user?.name}</p>
