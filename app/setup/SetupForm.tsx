@@ -1,53 +1,44 @@
 // app/setup/SetupForm.tsx
 "use client";
 
-import { useState, useCallback }      from "react";
-import { useRouter }     from "next/navigation";
-import { motion }     from "framer-motion";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { validateAndSaveSheetId } from "@/app/actions/setup";
-import GoogleSheetPicker from "@/components/GoogleSheetPicker";
+import { listUserSpreadsheets, createPtimeSpreadsheet } from "@/app/actions/drive";
 
-// SVG Icons inline
-const Loader2 = ({ size = 16, className = "" }: { size?: number; className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+const Loader2 = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="animate-spin">
     <path d="M21 12a9 9 0 1 1-6.219-8.56" />
   </svg>
 );
-const CheckCircle = ({ size = 16, className = "" }: { size?: number; className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <circle cx="12" cy="12" r="10" /><path d="m9 12 2 2 4-4" />
-  </svg>
-);
-const AlertCircle = ({ size = 16, className = "" }: { size?: number; className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-  </svg>
-);
-const ExternalLink = ({ size = 11, className = "" }: { size?: number; className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
-  </svg>
-);
 
-function extractSheetId(input: string): string {
-  const trimmed = input.trim();
-  const match = trimmed.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
-  if (match) return match[1];
-  return trimmed;
-}
-
-function isGoogleSheetsUrl(input: string): boolean {
-  return input.includes("docs.google.com/spreadsheets") || input.includes("sheets.google.com");
-}
+interface DriveFile { id: string; name: string; modifiedTime: string; }
 
 export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string }) {
   const router = useRouter();
-  const [rawInput, setRawInput] = useState("");
-  const [status, setStatus]     = useState<"idle"|"loading"|"success"|"error">("idle");
-  const [message, setMessage]   = useState("");
-  const [showManual, setShowManual] = useState(!sharedSheetId);
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [message, setMessage] = useState("");
+  const [mode, setMode] = useState<"select" | "create" | "paste" | "shared">(
+    sharedSheetId ? "shared" : "select"
+  );
+  const [files, setFiles] = useState<DriveFile[]>([]);
+  const [filesLoading, setFilesLoading] = useState(false);
+  const [filesError, setFilesError] = useState("");
+  const [urlInput, setUrlInput] = useState("");
 
-  const handlePickerSelect = useCallback(async (fileId: string) => {
+  // Load user's existing spreadsheets
+  useEffect(() => {
+    if (mode !== "select") return;
+    setFilesLoading(true);
+    listUserSpreadsheets().then((r) => {
+      if (r.error) setFilesError(r.error);
+      else setFiles(r.files ?? []);
+      setFilesLoading(false);
+    });
+  }, [mode]);
+
+  async function connectSheet(fileId: string) {
     setStatus("loading");
     setMessage("Connecting sheet…");
     const result = await validateAndSaveSheetId(fileId);
@@ -57,50 +48,41 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
       return;
     }
     setStatus("success");
-    setMessage(`Sheet "${result.title}" connected. Redirecting…`);
+    setMessage(`"${result.title}" connected. Redirecting…`);
     setTimeout(() => { router.push("/dashboard"); router.refresh(); }, 1200);
-  }, [router]);
+  }
 
-  const extractedId = rawInput.trim() ? extractSheetId(rawInput) : "";
-  const isUrl = isGoogleSheetsUrl(rawInput);
+  async function handleCreate() {
+    setStatus("loading");
+    setMessage("Creating new Ptime sheet…");
+    const r = await createPtimeSpreadsheet();
+    if (r.error) {
+      setStatus("error");
+      setMessage(r.error);
+      return;
+    }
+    await connectSheet(r.fileId!);
+  }
+
+  async function handleUrlSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const match = urlInput.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+    const id = match ? match[1] : urlInput.trim();
+    if (!id) {
+      setStatus("error");
+      setMessage("Invalid Sheet URL or ID.");
+      return;
+    }
+    await connectSheet(id);
+  }
 
   async function handleSharedSubmit() {
     if (!sharedSheetId) return;
-    setStatus("loading");
-    setMessage("");
-    const result = await validateAndSaveSheetId(sharedSheetId);
-    if (!result.success) {
-      setStatus("error");
-      setMessage(result.error ?? "Error desconocido al unirse al workspace.");
-      return;
-    }
-    setStatus("success");
-    setMessage(`Workspace "${result.title}" conectado. Entrando…`);
-    setTimeout(() => { router.push("/dashboard"); router.refresh(); }, 1200);
+    await connectSheet(sharedSheetId);
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setStatus("loading");
-    setMessage("");
-    const sheetId = extractSheetId(rawInput);
-    if (!sheetId) {
-      setStatus("error");
-      setMessage("Pegá la URL completa de tu Google Sheet o el ID directamente.");
-      return;
-    }
-    const result = await validateAndSaveSheetId(sheetId);
-    if (!result.success) {
-      setStatus("error");
-      setMessage(result.error ?? "Error desconocido");
-      return;
-    }
-    setStatus("success");
-    setMessage(`Sheet "${result.title}" conectado. Entrando…`);
-    setTimeout(() => { router.push("/dashboard"); router.refresh(); }, 1200);
-  }
-
-  if (!showManual && sharedSheetId) {
+  // ── Shared Workspace View ─────────────────────────
+  if (mode === "shared") {
     return (
       <div className="flex flex-col gap-4">
         <motion.button
@@ -109,125 +91,136 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
           whileTap={{ scale: 0.98 }}
           className="bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-semibold rounded-lg py-3 text-sm flex items-center justify-center gap-2 transition-colors"
         >
-          {status === "loading" && <Loader2 size={16} className="animate-spin mr-2" />}
-          {status === "loading" ? "Conectando al Workspace…" : "Unirse al Workspace Compartido"}
+          {status === "loading" && <Loader2 />}
+          {status === "loading" ? "Connecting…" : "Join Shared Workspace"}
         </motion.button>
-
         {status === "error" && (
-          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-            className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
-            <AlertCircle size={16} className="shrink-0 mt-0.5" /> {message}
-          </motion.div>
+          <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">{message}</div>
         )}
         {status === "success" && (
-          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-sm">
-            <CheckCircle size={16} /> {message}
-          </motion.div>
+          <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-sm">{message}</div>
         )}
-
-        <div className="text-center mt-2">
-          <button type="button" onClick={() => setShowManual(true)}
-            className="text-xs text-muted-foreground hover:text-primary transition-colors">
-            Usar otro Sheet distinto / Crear de cero
-          </button>
-        </div>
+        <button type="button" onClick={() => setMode("select")} className="text-xs text-muted-foreground hover:text-primary">
+          Use a different sheet
+        </button>
       </div>
     );
   }
 
   return (
-    <>
-      <div className="mb-6 p-4 bg-muted/50 border border-border rounded-xl text-sm text-muted-foreground space-y-2">
-        <p className="font-semibold text-foreground text-xs uppercase tracking-wide">¿Cómo obtener el Sheet ID?</p>
-        <ol className="list-decimal list-inside space-y-1 text-xs">
-          <li>Andá a <a href="https://sheets.new" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">sheets.new</a> y creá una hoja vacía</li>
-          <li>Copiá el ID de la URL:<br/>
-            <code className="bg-background border border-border px-1.5 py-0.5 rounded text-[11px] break-all">
-              sheets.google.com/d/<span className="text-emerald-500 font-bold">ID_AQUI</span>/edit
-            </code>
-          </li>
-          <li>Pegalo abajo — Ptime crea las hojas automáticamente</li>
-        </ol>
-      </div>
-
-      <div className="mb-4">
-        <GoogleSheetPicker
-          onSelect={handlePickerSelect}
-          disabled={status === "loading" || status === "success"}
-        />
-      </div>
-
-      {status === "loading" && (
-        <p className="text-sm text-muted-foreground text-center mb-3">Connecting sheet…</p>
-      )}
-
-      <div className="relative my-4">
-        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
-        <div className="relative flex justify-center"><span className="bg-background px-3 text-xs text-muted-foreground">or paste URL manually</span></div>
-      </div>
-
-      <div className="mb-4 p-3 bg-muted/50 border border-border rounded-lg text-xs text-muted-foreground">
-        <p className="font-semibold text-foreground text-[11px] uppercase tracking-wide mb-1">How to get your Sheet URL</p>
-        <ol className="list-decimal list-inside space-y-0.5">
-          <li>Go to <a href="https://sheets.new" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">sheets.new</a> and create a blank sheet</li>
-          <li>Copy the URL from your browser:</li>
-        </ol>
-        <code className="mt-1 block bg-background border border-border px-2 py-1 rounded text-[10px] break-all">
-          docs.google.com/spreadsheets/d/<span className="text-emerald-500 font-bold">SHEET_ID</span>/edit
-        </code>
-      </div>
-
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-foreground">URL de Google Sheets</label>
-          <input
-            type="text"
-            value={rawInput}
-            onChange={(e) => { setRawInput(e.target.value); setStatus("idle"); setMessage(""); }}
-            placeholder="https://docs.google.com/spreadsheets/d/…"
-            className="bg-background border border-input rounded-lg px-3.5 py-2.5 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-ring"
-            required
-          />
-          {isUrl && extractedId && (
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500 shrink-0"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
-              <span>ID detectado: <code className="text-foreground bg-muted px-1 py-0.5 rounded text-[11px]">{extractedId}</code></span>
-            </div>
-          )}
-          <p className="text-xs text-muted-foreground">También podés pegar solo el ID del Sheet directamente.</p>
-        </div>
-
-        {status === "error" && (
-          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-            className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
-            <AlertCircle size={16} className="shrink-0 mt-0.5" /> {message}
-          </motion.div>
-        )}
-        {status === "success" && (
-          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-sm">
-            <CheckCircle size={16} /> {message}
-          </motion.div>
-        )}
-
+    <div className="flex flex-col gap-4">
+      {/* ── Main actions ──────────────────────────── */}
+      <div className="grid gap-3">
         <motion.button
-          type="submit"
-          disabled={status === "loading" || status === "success" || !rawInput.trim()}
+          onClick={() => setMode("create")}
           whileTap={{ scale: 0.98 }}
-          className="bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-semibold rounded-lg py-3 text-sm flex items-center justify-center gap-2 transition-colors"
+          className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl py-3.5 text-sm flex items-center justify-center gap-2 transition-colors shadow-lg shadow-emerald-500/20"
         >
-          {status === "loading" && <Loader2 size={16} className="animate-spin" />}
-          {status === "loading" ? "Verificando y configurando…" : "Conectar Sheet"}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Create New Ptime Sheet
         </motion.button>
 
-        <div className="text-center">
-          <a href="https://sheets.new" target="_blank" rel="noopener noreferrer"
-            className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1 transition-colors">
-            Crear nuevo Google Sheet <ExternalLink size={11} />
-          </a>
+        <motion.button
+          onClick={() => setMode("select")}
+          whileTap={{ scale: 0.98 }}
+          className="bg-white hover:bg-slate-50 text-slate-800 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 font-semibold rounded-xl py-3.5 text-sm flex items-center justify-center gap-2 transition-colors border border-slate-200 dark:border-slate-700 shadow-sm"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Select Existing Google Sheet
+        </motion.button>
+      </div>
+
+      {/* ── Mode: list sheets ─────────────────────── */}
+      {mode === "select" && (
+        <div className="mt-2 space-y-2">
+          {filesLoading && (
+            <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
+              <Loader2 /> Loading your spreadsheets…
+            </div>
+          )}
+          {filesError && (
+            <p className="text-xs text-destructive text-center py-3">{filesError}</p>
+          )}
+          {!filesLoading && !filesError && files.length === 0 && (
+            <div className="text-center py-6 text-sm text-muted-foreground space-y-2">
+              <p>No spreadsheets found.</p>
+              <button onClick={() => setMode("paste")} className="text-primary hover:underline text-xs">
+                Paste a URL instead
+              </button>
+            </div>
+          )}
+          {files.map((f) => (
+            <button
+              key={f.id}
+              onClick={() => connectSheet(f.id)}
+              disabled={status === "loading"}
+              className="w-full text-left p-3 rounded-lg border border-border hover:border-primary/40 hover:bg-muted/50 transition-colors flex items-center gap-3"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-emerald-500 shrink-0"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">{f.name}</p>
+                <p className="text-xs text-muted-foreground">{new Date(f.modifiedTime).toLocaleDateString()}</p>
+              </div>
+            </button>
+          ))}
         </div>
-      </form>
-    </>
+      )}
+
+      {/* ── Mode: paste URL ──────────────────────── */}
+      {(mode === "paste" || mode === "create") && (
+        <form onSubmit={mode === "create" ? handleCreate as any : handleUrlSubmit} className="flex flex-col gap-3 mt-2">
+          {mode === "paste" && (
+            <>
+              <label className="text-sm font-medium text-foreground">Google Sheet URL</label>
+              <input
+                type="text"
+                value={urlInput}
+                onChange={(e) => setUrlInput(e.target.value)}
+                placeholder="https://docs.google.com/spreadsheets/d/…"
+                className="bg-background border border-input rounded-lg px-3.5 py-2.5 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50"
+                required
+              />
+            </>
+          )}
+          {mode === "create" && (
+            <p className="text-sm text-muted-foreground">
+              This will create a new Google Sheet named <strong>Ptime — Time Tracking</strong> in your Drive.
+            </p>
+          )}
+          <motion.button
+            type="submit"
+            disabled={status === "loading"}
+            whileTap={{ scale: 0.98 }}
+            className="bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-semibold rounded-lg py-3 text-sm flex items-center justify-center gap-2"
+          >
+            {status === "loading" && <Loader2 />}
+            {mode === "create" ? "Create & Connect" : "Connect Sheet"}
+          </motion.button>
+          {(mode === "create" || mode === "paste") && (
+            <button type="button" onClick={() => setMode("select")} className="text-xs text-muted-foreground hover:text-primary">
+              ← Back
+            </button>
+          )}
+        </form>
+      )}
+
+      {/* ── Status messages ───────────────────────── */}
+      {status === "loading" && mode !== "select" && (
+        <p className="text-sm text-muted-foreground text-center animate-pulse">{message}</p>
+      )}
+      {status === "error" && (
+        <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">{message}</div>
+      )}
+      {status === "success" && (
+        <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-sm">{message}</div>
+      )}
+
+      {/* ── Fallback: paste URL ───────────────────── */}
+      {mode === "select" && (
+        <button type="button" onClick={() => setMode("paste")} className="text-xs text-muted-foreground hover:text-primary text-center mt-1">
+          Or paste a Google Sheet URL manually
+        </button>
+      )}
+    </div>
   );
 }
