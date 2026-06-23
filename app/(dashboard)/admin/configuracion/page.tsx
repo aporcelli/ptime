@@ -59,8 +59,13 @@ export default async function ConfiguracionPage() {
         <SectionHeader icon={<ShieldCheck size={16} />} title="Tu cuenta" />
         <div className="card p-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {session?.user?.image && (
-              <img src={session.user.image} alt="Avatar" className="w-10 h-10 rounded-full" />
+            {session?.user && (
+              <img
+                src={`/api/auth/avatar?v=${encodeURIComponent(session.user.email ?? "session")}`}
+                alt="Avatar"
+                className="w-10 h-10 rounded-full"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              />
             )}
             <div>
               <p className="text-sm font-medium text-heading">{session?.user?.name}</p>

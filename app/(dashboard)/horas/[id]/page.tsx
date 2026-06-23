@@ -3,7 +3,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getRegistroById, getProyectos, getTareas } from "@/lib/sheets/queries";
+import { getRegistroById, getProyectos, getTareas, getClientes } from "@/lib/sheets/queries";
 import { getPageCtx } from "@/lib/sheets/getPageCtx";
 import { formatCurrency, formatDateShort, formatDateTimeShort, formatHours } from "@/lib/utils/index";
 import { ArrowLeft, Calendar, Clock, DollarSign, FileText, Tag } from "lucide-react";
@@ -15,12 +15,13 @@ export default async function HoraDetailPage({ params }: { params: { id: string 
   try {
     const ctx = await getPageCtx();
 
-    let registro, proyectos, tareas;
+    let registro, proyectos, tareas, clientes;
     try {
-        [registro, proyectos, tareas] = await Promise.all([
+        [registro, proyectos, tareas, clientes] = await Promise.all([
             getRegistroById(ctx, params.id),
             getProyectos(ctx),
             getTareas(ctx),
+            getClientes(ctx),
         ]);
     } catch (error) {
         return (
@@ -38,6 +39,7 @@ export default async function HoraDetailPage({ params }: { params: { id: string 
 
     const proyecto = proyectos.find((p) => p.id === registro.proyecto_id);
     const tarea = tareas.find((t) => t.id === registro.tarea_id);
+    const cliente = clientes.find((c) => c.id === proyecto?.cliente_id);
 
     const ESTADO_COLORS: Record<string, string> = {
         borrador: "bg-slate-100 text-slate-600",
@@ -59,6 +61,9 @@ export default async function HoraDetailPage({ params }: { params: { id: string 
                 {/* Encabezado */}
                 <div className="flex items-start justify-between">
                     <div>
+                        {cliente && (
+                            <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide mb-0.5">{cliente.nombre}</p>
+                        )}
                         <p className="font-semibold text-foreground text-lg">{proyecto?.nombre ?? "—"}</p>
                         <p className="text-muted-foreground text-sm">{tarea?.nombre ?? "—"}</p>
                     </div>
