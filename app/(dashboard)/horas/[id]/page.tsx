@@ -61,8 +61,12 @@ export default async function HoraDetailPage({ params }: { params: { id: string 
                 {/* Encabezado */}
                 <div className="flex items-start justify-between">
                     <div>
-                        {cliente && (
+                        {cliente ? (
                             <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide mb-0.5">{cliente.nombre}</p>
+                        ) : proyecto?.cliente_id ? (
+                            <p className="text-amber-500 text-xs font-medium uppercase tracking-wide mb-0.5">Cliente ID: {proyecto.cliente_id} (no encontrado)</p>
+                        ) : (
+                            <p className="text-muted-foreground/40 text-xs italic mb-0.5">Sin cliente asignado</p>
                         )}
                         <p className="font-semibold text-foreground text-lg">{proyecto?.nombre ?? "—"}</p>
                         <p className="text-muted-foreground text-sm">{tarea?.nombre ?? "—"}</p>
