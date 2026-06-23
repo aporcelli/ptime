@@ -40,6 +40,12 @@ export default async function HoraDetailPage({ params }: { params: { id: string 
     const proyecto = proyectos.find((p) => p.id === registro.proyecto_id);
     const tarea = tareas.find((t) => t.id === registro.tarea_id);
     const cliente = clientes.find((c) => c.id === proyecto?.cliente_id);
+    
+    // Debug: log what's happening with client lookup
+    console.log("[detail] proyecto.cliente_id:", proyecto?.cliente_id);
+    console.log("[detail] clientes count:", clientes.length);
+    console.log("[detail] client IDs:", clientes.map(c => c.id).slice(0, 5));
+    console.log("[detail] matched client:", cliente?.nombre ?? "NONE");
 
     const ESTADO_COLORS: Record<string, string> = {
         borrador: "bg-slate-100 text-slate-600",
