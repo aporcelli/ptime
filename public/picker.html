@@ -96,14 +96,10 @@
               if (data.action === google.picker.Action.PICKED && data.docs && data.docs[0]) {
                 var doc = data.docs[0];
                 console.log("[Picker] Selected:", doc.id, doc.name);
-                if (window.opener) {
-                  window.opener.postMessage({ action: "picked", fileId: doc.id, fileName: doc.name || "Untitled" }, window.location.origin);
-                }
-                setTimeout(function() { window.close(); }, 300);
+                localStorage.setItem("ptime-picker-result", JSON.stringify({ fileId: doc.id, fileName: doc.name || "Untitled" }));
+                window.close();
               } else if (data.action === google.picker.Action.CANCEL) {
-                if (window.opener) {
-                  window.opener.postMessage({ action: "cancelled" }, window.location.origin);
-                }
+                localStorage.setItem("ptime-picker-result", JSON.stringify({ cancelled: true }));
                 window.close();
               }
             });
