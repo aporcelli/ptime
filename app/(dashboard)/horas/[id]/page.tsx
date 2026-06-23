@@ -58,16 +58,14 @@ export default async function HoraDetailPage({ params }: { params: { id: string 
             </div>
 
             <div className="bg-card text-card-foreground rounded-2xl border border-border p-6 md:p-8 flex flex-col gap-6">
-                {/* Encabezado */}
-                <div className="flex items-start justify-between">
-                    <div>
-                        {cliente ? (
-                            <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide mb-0.5">{cliente.nombre}</p>
-                        ) : proyecto?.cliente_id ? (
-                            <p className="text-amber-500 text-xs font-medium uppercase tracking-wide mb-0.5">Cliente ID: {proyecto.cliente_id} (no encontrado)</p>
-                        ) : (
-                            <p className="text-muted-foreground/40 text-xs italic mb-0.5">Sin cliente asignado</p>
-                        )}
+                {/* Encabezado con Cliente destacado */}
+                <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                        {/* Cliente — box destacado */}
+                        <div className="mb-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-brand-500/10 border border-brand-500/20">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-brand-500 shrink-0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            <span className="text-base font-semibold text-brand-600 dark:text-brand-400">{cliente?.nombre ?? "Sin cliente"}</span>
+                        </div>
                         <p className="font-semibold text-foreground text-lg">{proyecto?.nombre ?? "—"}</p>
                         <p className="text-muted-foreground text-sm">{tarea?.nombre ?? "—"}</p>
                     </div>
