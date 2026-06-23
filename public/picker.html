@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Google Sheets Picker</title>
+  <style>
+    body { margin: 0; background: #111; color: #fff; font-family: system-ui; display: flex; align-items: center; justify-content: center; height: 100vh; }
+    p { font-size: 14px; opacity: 0.7; }
+  </style>
+</head>
+<body>
+  <p>Opening file selector…</p>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    const key = params.get("key");
+    const fileId = params.get("fileId");
+
+    if (!token || !key) {
+      document.body.innerHTML = "<p style='color:#f87171'>Missing token or API key.</p>";
+      if (window.opener) window.opener.postMessage({ error: "Missing params" }, "*");
+      return;
+    }
+
+    function sendResult(fileId, fileName) {
+      if (window.opener) {
+        window.opener.postMessage({ action: "picked", fileId, fileName }, window.location.origin);
+      }
+      window.close();
+    }
+
+    function loadPicker() {
+      const view = new google.picker.DocsView(google.picker.ViewId.SPREADSHEETS);
+      view.setMode(google.picker.DocsViewMode.LIST);
+      if (fileId) {
+        // Pre-navigate to the specific file
+        view.setFileIds ? view.setFileIds([fileId]) : null;
+      }
+
+      const picker = new google.picker.PickerBuilder()
+        .addView(view)
+        .setOAuthToken(token)
+        .setDeveloperKey(key)
+        .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
+        .setCallback(function(data) {
+          if (data.action === google.picker.Action.PICKED && data.docs && data.docs[0]) {
+            sendResult(data.docs[0].id, data.docs[0].name || "Untitled");
+          } else if (data.action === google.picker.Action.CANCEL) {
+            if (window.opener) window.opener.postMessage({ action: "cancelled" }, window.location.origin);
+            window.close();
+          }
+        })
+        .build();
+
+      picker.setVisible(true);
+    }
+
+    // Load gapi then picker
+    var script = document.createElement("script");
+    script.src = "https://apis.google.com/js/api.js";
+    script.onload = function() {
+      window.gapi.load("picker", { callback: loadPicker });
+    };
+    script.onerror = function() {
+      document.body.innerHTML = "<p style='color:#f87171'>Failed to load Google API.</p>";
+    };
+    document.head.appendChild(script);
+  </script>
+</body>
+</html>
