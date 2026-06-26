@@ -54,7 +54,7 @@ export default async function HoraDetailPage({ params }: { params: { id: string 
                 <Link href="/horas" className="text-muted-foreground hover:text-foreground transition-colors">
                     <ArrowLeft size={20} />
                 </Link>
-                <h1 className="font-serif text-3xl text-foreground font-semibold tracking-tight">Detalle del registro</h1>
+                <h1 className="font-display text-3xl text-foreground font-semibold tracking-tight">Detalle del registro</h1>
             </div>
 
             <div className="bg-card text-card-foreground rounded-2xl border border-border p-6 md:p-8 flex flex-col gap-6">

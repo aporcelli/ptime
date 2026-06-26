@@ -61,7 +61,7 @@ export default function ClientesAdmin({ clientes }: { clientes: Cliente[] }) {
     <div className="flex flex-col gap-6 animate-fade-in">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="font-serif text-3xl text-heading">Clientes</h1>
+          <h1 className="font-display text-3xl text-heading">Clientes</h1>
           <p className="text-sub mt-1">{clientes.length} clientes registrados</p>
         </div>
         <button onClick={openCreate} className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold px-4 py-2.5 rounded-lg text-sm transition-colors">

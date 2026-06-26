@@ -50,7 +50,7 @@ export async function updateProyectoHorasAcumuladas(ctx: SheetCtx, id: string, n
 
 export async function createTarea(ctx: SheetCtx, data: Omit<Tarea, "created_at">): Promise<void> {
   await appendSheetRow(ctx.sheetId, ctx.accessToken, SHEET_RANGES.TAREAS,
-    [data.id, data.nombre, data.categoria ?? "", String(data.activa), now()]);
+    [data.id, data.nombre, data.categoria ?? "", String(data.activa), now(), String(data.horas_acumuladas ?? 0)]);
 }
 
 export async function createRegistroHoras(ctx: SheetCtx, data: Omit<RegistroHoras, "created_at" | "updated_at">): Promise<void> {
@@ -199,7 +199,17 @@ export async function updateTarea(ctx: SheetCtx, id: string, data: Partial<Omit<
   const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, SHEET_RANGES.TAREAS);
   const current = rows.find((r) => r[0] === id)!;
   await updateSheetRow(ctx.sheetId, ctx.accessToken, SHEET_NAMES.TAREAS, rowNum,
-    [id, data.nombre ?? current[1], data.categoria ?? current[2] ?? "", String(data.activa ?? (current[3] === "true")), current[4]]);
+    [id, data.nombre ?? current[1], data.categoria ?? current[2] ?? "", String(data.activa ?? (current[3] === "true")), current[4], String(data.horas_acumuladas ?? current[5] ?? 0)]);
+}
+
+export async function updateTareaHorasAcumuladas(ctx: SheetCtx, tareaId: string, nuevasHoras: number): Promise<void> {
+  const rowNum = await findRowNumber(ctx, SHEET_RANGES.TAREAS, tareaId);
+  if (!rowNum) return; // tarea might have been deleted
+  const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, SHEET_RANGES.TAREAS);
+  const current = rows.find((r) => r[0] === tareaId);
+  if (!current) return;
+  await updateSheetRow(ctx.sheetId, ctx.accessToken, SHEET_NAMES.TAREAS, rowNum,
+    [current[0], current[1], current[2] ?? "", current[3] ?? "true", current[4] ?? "", String(nuevasHoras)]);
 }
 
 export async function deleteUsuario(ctx: SheetCtx, email: string): Promise<void> {

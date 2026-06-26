@@ -41,7 +41,7 @@ export default function UsuariosAdmin({ users, currentEmail }: { users: PtimeUse
   return (
     <div className="flex flex-col gap-6 animate-fade-in">
       <div>
-        <h1 className="font-serif text-3xl text-heading">Usuarios</h1>
+        <h1 className="font-display text-3xl text-heading">Usuarios</h1>
         <p className="text-sub mt-1">{users.length} usuarios registrados</p>
       </div>
 

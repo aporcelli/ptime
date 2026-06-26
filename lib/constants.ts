@@ -17,7 +17,7 @@ export const SHEET_RANGES = {
   REGISTROS_HORAS:    "Registros_Horas!A:O",
   PROYECTOS:          "Proyectos!A:K",
   CLIENTES:           "Clientes!A:G",
-  TAREAS:             "Tareas!A:F",
+  TAREAS:             "Tareas!A:G",
   CONFIGURACIONES:    "Configuraciones!A:C",
   WORKSPACE_MEMBERS:  "Workspace_Members!A:F",
 } as const;
@@ -38,7 +38,7 @@ export const SHEET_HEADERS = {
     "id", "nombre", "email", "telefono", "activo", "created_at", "updated_at",
   ],
   TAREAS: [
-    "id", "nombre", "categoria", "activa", "created_at",
+    "id", "nombre", "categoria", "activa", "created_at", "horas_acumuladas",
   ],
   CONFIGURACIONES: [
     "clave", "valor", "updated_at",

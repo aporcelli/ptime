@@ -40,6 +40,7 @@ export async function createTareaAction(rawData: unknown): Promise<ActionResult<
       nombre: sanitize(parsed.data.nombre),
       categoria: parsed.data.categoria ? sanitize(parsed.data.categoria) : undefined,
       activa: parsed.data.activa,
+      horas_acumuladas: 0,
       created_at: new Date().toISOString(),
     };
 

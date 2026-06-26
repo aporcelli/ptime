@@ -18,7 +18,7 @@ export default async function ConfiguracionPage() {
   return (
     <div className="flex flex-col gap-8 animate-fade-in max-w-2xl">
       <div>
-        <h1 className="font-serif text-3xl text-heading">Configuración</h1>
+        <h1 className="font-display text-3xl text-heading">Configuración</h1>
         <p className="text-sub mt-1">Ajustes de tu espacio de trabajo en Ptime</p>
       </div>
 

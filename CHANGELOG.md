@@ -5,6 +5,21 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.25] — 2026-06-22
+
+### Añadido
+- **Tareas acumulan horas**: campo `horas_acumuladas`, mutaciones, save-flow, deleteHour
+- **TareasAdmin**: columna "Horas acum."
+- **Gráfico horas por tarea**: barras horizontales en Reemplazado TareasPieChart
+### Mejorado
+- **Dashboard**: proyectos usan horas del mes actual, no acumuladas totales
+- **Tipografía**: `font-serif` → `font-display` en todo el sitio
+
+## [1.2.24] — 2026-06-22
+
+### Añadido
+- **Ingresos por cliente**: chart de barras horizontales en Reportes
+
 ## [1.2.23] — 2026-06-22
 
 ### Mejorado

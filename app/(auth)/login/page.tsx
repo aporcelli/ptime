@@ -34,7 +34,7 @@ export default async function LoginPage({
       <div className="relative w-full max-w-sm z-10">
         {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="font-serif text-6xl font-extrabold tracking-tight">
+          <h1 className="font-display text-6xl font-extrabold tracking-tight">
             P<span className="text-emerald-500 italic">time</span>
           </h1>
           <p className="text-muted-foreground mt-2 text-sm">Gestión de horas profesionales</p>
