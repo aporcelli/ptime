@@ -42,7 +42,7 @@ export default async function HorasPage() {
       <div className="flex flex-col gap-8 animate-fade-in">
         <div className="flex flex-col gap-4 justify-between md:flex-row md:items-center">
           <div>
-            <h1 className="font-serif text-3xl font-bold tracking-tight text-foreground">
+            <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">
               Mis registros de horas
             </h1>
             <p className="mt-1 text-muted-foreground">

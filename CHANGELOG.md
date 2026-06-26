@@ -5,6 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.23] — 2026-06-22
+
+### Mejorado
+- **Gráfico de ingresos**: reemplazada línea con barras + línea de tendencia overlay. Barras comparan mes a mes, línea muestra la tendencia general.
+
 ## [1.2.22] — 2026-06-22
 
 ### Mejorado

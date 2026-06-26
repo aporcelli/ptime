@@ -24,6 +24,12 @@ const compact = (n: number) =>
     maximumFractionDigits: 1,
   }).format(n);
 
+const long = (n: number) =>
+  new Intl.NumberFormat("es-AR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n);
+
 export default function IngresosLineChart({ data, moneda = "USD", showHoras = false }: Props) {
   const { resolvedTheme } = useTheme();
   const theme = getEchartsTheme(resolvedTheme === "dark" ? "dark" : "light");
@@ -41,79 +47,82 @@ export default function IngresosLineChart({ data, moneda = "USD", showHoras = fa
     const peak = Math.max(...ingresos, 0);
     const peakIndex = ingresos.findIndex((v) => v === peak);
 
-    const series = [
+    // Bar colors: highlight the highest bar
+    const barColors = ingresos.map((v) =>
+      v === peak ? theme.palette[0] : `${theme.palette[0]}55`,
+    );
+
+    const series: any[] = [
+      // ── Bars ──────────────────────────────────────
       {
         name: "Ingresos",
-        type: "line" as const,
-        smooth: true,
-        data: ingresos,
-        lineStyle: {
-          width: 3.5,
-          shadowBlur: 10,
-          shadowColor: `${theme.palette[0]}88`,
-        },
-        symbol: "circle" as const,
-        showSymbol: false,
-        symbolSize: 7,
-        emphasis: {
-          focus: "series" as const,
-          scale: true,
-        },
-        areaStyle: {
-          color: {
-            type: "linear",
-            x: 0,
-            y: 0,
-            x2: 0,
-            y2: 1,
-            colorStops: [
-              { offset: 0, color: `${theme.palette[0]}AA` },
-              { offset: 0.6, color: `${theme.palette[0]}33` },
-              { offset: 1, color: `${theme.palette[0]}08` },
-            ],
+        type: "bar",
+        data: ingresos.map((v, i) => ({
+          value: v,
+          itemStyle: {
+            color: barColors[i],
+            borderRadius: [5, 5, 0, 0],
+            borderColor: "transparent",
           },
-          opacity: 0.95,
+        })),
+        barWidth: hasManyPoints ? "50%" : "40%",
+        barGap: "0%",
+        barCategoryGap: hasManyPoints ? "30%" : "40%",
+        emphasis: {
+          itemStyle: { color: theme.palette[0] },
         },
-        markLine: avgIngresos
-          ? {
-              symbol: "none" as const,
-              lineStyle: { type: "dashed" as const, color: theme.palette[2], width: 1.5 },
-              label: { formatter: `Prom. ${moneda} ${compact(avgIngresos)}`, color: theme.palette[2] },
-              data: [{ yAxis: avgIngresos }],
-            }
-          : undefined,
-        markPoint: {
-          symbolSize: 40,
-          itemStyle: { color: theme.palette[0], borderColor: theme.tooltipBg, borderWidth: 2 },
-          label: { color: "#fff", fontSize: 10, fontWeight: 700 },
-          data:
-            peakIndex >= 0
-              ? [{ type: "max" as const, name: "Pico", valueDim: "y", coord: [peakIndex, peak] }]
-              : [],
+        label: {
+          show: !hasManyPoints,
+          position: "top",
+          color: theme.muted,
+          fontSize: 10,
+          formatter: (p: any) => `${moneda} ${compact(p.value)}`,
         },
       },
-      ...(showHoras
-        ? [
-            {
-              name: "Horas",
-              type: "line" as const,
-              smooth: true,
-              data: horas,
-              lineStyle: { width: 2, type: "dashed" as const, opacity: 0.85 },
-              symbol: "none" as const,
-              yAxisIndex: 0,
-            },
-          ]
-        : []),
-    ] as NonNullable<EChartsOption["series"]>;
+    ];
+
+    // ── Trend line overlay ──────────────────────────
+    if (data.length >= 3) {
+      series.push({
+        name: "Tendencia",
+        type: "line",
+        smooth: true,
+        data: ingresos,
+        symbol: "circle",
+        symbolSize: 5,
+        showSymbol: false,
+        lineStyle: {
+          width: 2.5,
+          color: theme.palette[2],
+          type: "solid",
+        },
+        itemStyle: { color: theme.palette[2] },
+        z: 10,
+      });
+    }
+
+    // ── Horas line (optional) ───────────────────────
+    if (showHoras) {
+      series.push({
+        name: "Horas",
+        type: "line",
+        smooth: true,
+        data: horas,
+        symbol: "none",
+        lineStyle: { width: 2, type: "dashed", opacity: 0.7 },
+        yAxisIndex: 1,
+        z: 5,
+      });
+    }
 
     const option: EChartsOption = {
       color: theme.palette,
-      animationDuration: 700,
-      animationDurationUpdate: 450,
+      animationDuration: 600,
+      animationDurationUpdate: 400,
+      animationEasing: "cubicOut" as const,
       tooltip: {
         trigger: "axis",
-        axisPointer: { type: "line" as const },
+        axisPointer: { type: "shadow" as const },
         backgroundColor: theme.tooltipBg,
         borderColor: theme.tooltipBorder,
         borderWidth: 1,
@@ -124,8 +133,15 @@ export default function IngresosLineChart({ data, moneda = "USD", showHoras = fa
           const actual = ingresos[idx] ?? 0;
           const previous = idx > 0 ? ingresos[idx - 1] : 0;
           const varPct = previous > 0 ? ((actual - previous) / previous) * 100 : 0;
-          const horasTxt = showHoras ? `<br/>Horas: <b>${horas[idx] ?? 0}h</b>` : "";
-          return `${rows[0]?.axisValue ?? ""}<br/>Ingresos: <b>${moneda} ${actual.toFixed(2)}</b>${horasTxt}<br/>Δ vs ant.: <b>${varPct >= 0 ? "+" : ""}${varPct.toFixed(1)}%</b>`;
+          const actualFmt = long(actual);
+          const varSign = varPct >= 0 ? "+" : "";
+          const diffColor = varPct >= 0 ? "#10b981" : "#ef4444";
+          const h = showHoras && horas[idx] ? `<br/>Horas: <b>${horas[idx]}h</b>` : "";
+          return [
+            `<b>${rows[0]?.axisValue ?? ""}</b>`,
+            `Ingresos: <b>${moneda} ${actualFmt}</b>${h}`,
+            `<span style="color:${diffColor}">Δ vs ant: ${varSign}${varPct.toFixed(1)}%</span>`,
+          ].join("<br/>");
         },
       },
       grid: { left: 24, right: 18, top: 26, bottom: hasManyPoints ? 58 : 34 },
@@ -135,7 +151,6 @@ export default function IngresosLineChart({ data, moneda = "USD", showHoras = fa
       },
       xAxis: {
         type: "category",
-        boundaryGap: false,
         data: data.map((d) => d.mes),
         axisLine: { lineStyle: { color: theme.axisLine } },
         axisTick: { show: false },
@@ -148,18 +163,37 @@ export default function IngresosLineChart({ data, moneda = "USD", showHoras = fa
       yAxis: [
         {
           type: "value",
+          name: moneda,
+          nameTextStyle: {
+            color: theme.palette[0],
+            fontSize: 10,
+            fontWeight: 600,
+          },
           axisLabel: {
             color: theme.muted,
             fontSize: 11,
-            formatter: (value: number) => `${moneda} ${compact(value)}`,
+            formatter: (value: number) => `${compact(value)}`,
           },
-          splitLine: { lineStyle: { color: theme.grid, type: "dashed" as const, opacity: 0.6 } },
+          splitLine: {
+            lineStyle: { color: theme.grid, type: "dashed", opacity: 0.6 },
+          },
         },
+        ...(showHoras
+          ? [
+              {
+                type: "value" as const,
+                name: "h",
+                nameTextStyle: { color: theme.muted, fontSize: 10 },
+                axisLabel: { color: theme.muted, fontSize: 10 },
+                splitLine: { show: false },
+              },
+            ]
+          : []),
       ],
       dataZoom: hasManyPoints
         ? [
-            { type: "inside" as const, xAxisIndex: 0, zoomOnMouseWheel: true },
-            { type: "slider" as const, xAxisIndex: 0, height: 18, bottom: 10 },
+            { type: "inside", xAxisIndex: 0, zoomOnMouseWheel: true },
+            { type: "slider", xAxisIndex: 0, height: 18, bottom: 10 },
           ]
         : undefined,
       series,
