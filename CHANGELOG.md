@@ -5,6 +5,55 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.21] — 2026-06-22
+
+### Corregido
+- **Filtro de estado en Mis Horas**: el resumen "A cobrar" ahora refleja el filtro activo (confirmado/facturado/todos).
+
+## [1.2.20] — 2026-06-22
+
+### Mejorado
+- **Sesión extendida a 7 días** (antes 8 horas).
+- **Login simplificado**: removido `prompt:consent`. Google solo pide autorizar scopes la primera vez.
+
+## [1.2.19] — 2026-06-22
+
+### Corregido
+- **Avatar en Configuración**: usa proxy `/api/auth/avatar` (mismo que Topbar) — arregla imagen rota.
+### Mejorado
+- **Cliente en detalle de registro**: ahora se muestra en un box destacado con icono y tipografía más grande.
+
+## [1.2.18] — 2026-06-22
+
+### Corregido
+- **Cliente en detalle de horas**: usaba `proyecto.cliente_id` en vez de `registro.cliente_id`. Corregido para matchear con la lista de Mis Horas.
+
+## [1.2.16 — 1.2.17] — 2026-06-22
+
+### Corregido
+- **Avatar en Config**: revertido cambio que rompía la página con error 500.
+- **Cliente en detalle**: fallback "Sin cliente asignado" cuando no hay match.
+
+## [1.2.15] — 2026-06-22
+
+### Mejorado
+- **Detalle de horas**: ahora muestra el cliente asignado al registro.
+
+## [1.2.12 — 1.2.14] — 2026-06-22
+
+### Añadido
+- **Landing page pública** en `/` para verificación OAuth de Google.
+- **Toggle de idioma EN/ES** en el header, default inglés.
+- **Fondo atmosférico** con imagen + gradient overlay oscuro.
+- **Animaciones Framer Motion**: fade-up, stagger, hover effects.
+- **Theme toggle** (dark/light) en el header.
+- **Privacy Policy y Terms of Service en inglés** con sección de Data Protection.
+### Corregido
+- Middleware: `/` agregado a rutas públicas.
+- Email de contacto: `info@tucloud.pro`.
+
+---
+
 ## [1.2.11] — 2026-05-20
 
 ### 🎯 Rediseño 180° de actividad diaria + tendencia de ingresos premium
