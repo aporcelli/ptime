@@ -6,6 +6,7 @@ import { format, startOfMonth } from "date-fns";
 import IngresosLineChart from "@/components/charts/IngresosLineChart";
 import HorasPorProyecto from "@/components/charts/HorasPorProyecto";
 import TareasPieChart from "@/components/charts/TareasPieChart";
+import IngresosPorCliente from "@/components/charts/IngresosPorCliente";
 import ActividadHeatmap from "@/components/charts/ActividadHeatmap";
 import { BarChart3, TrendingUp, Clock } from "lucide-react";
 import type { ReportData } from "@/types/api";
@@ -84,6 +85,16 @@ export default async function ReportesPage({
     return acc;
   }, {});
 
+  // ── Agregados por cliente
+  const porClienteMap = registrosRepriced.reduce<Record<string, { nombre: string; ingresos: number }>>((acc, r) => {
+    const proyecto = proyectosMap.get(r.proyecto_id);
+    const clienteId = r.cliente_id ?? proyecto?.cliente_id ?? "__sin_cliente__";
+    const nombre = clientesMap.get(clienteId)?.nombre ?? "Sin cliente";
+    if (!acc[clienteId]) acc[clienteId] = { nombre, ingresos: 0 };
+    acc[clienteId].ingresos += r.monto_total;
+    return acc;
+  }, {});
+
   // ── Actividad diaria para heatmap
   const actividadDiariaMap = registrosRepriced.reduce<Record<string, { horas: number; ingresos: number }>>((acc, r) => {
     const fecha = r.fecha.slice(0, 10);
@@ -104,6 +115,8 @@ export default async function ReportesPage({
 
   const proyectosData = Object.values(porProyectoMap).sort((a, b) => b.ingresos - a.ingresos);
   const tareasDataRaw = Object.values(porTareaMap).sort((a, b) => b.horas - a.horas);
+  const clientesData = Object.values(porClienteMap).sort((a, b) => b.ingresos - a.ingresos);
+
   const tareasData    = tareasDataRaw.map(t => ({
     ...t,
     porcentaje: totalHoras > 0 ? Math.round((t.horas / totalHoras) * 100) : 0,
@@ -191,6 +204,10 @@ export default async function ReportesPage({
 
         <SectionCard title="Actividad diaria · ritmo y tendencia">
           <ActividadHeatmap data={actividadDiariaData} />
+        </SectionCard>
+
+        <SectionCard title="Ingresos por cliente" icon={<TrendingUp size={16} className="text-primary" />} className="lg:col-span-2">
+          <IngresosPorCliente data={clientesData} moneda={config.moneda} />
         </SectionCard>
       </div>
 
