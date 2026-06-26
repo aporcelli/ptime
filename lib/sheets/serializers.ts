@@ -64,6 +64,7 @@ export function parseTareaRow(row: unknown[]): Tarea {
     ...(optionalString(row[2]) ? { categoria: optionalString(row[2]) } : {}),
     activa: parseBool(row[3]),
     created_at: String(row[4] ?? ""),
+    horas_acumuladas: parseNum(row[5]),
   };
 }
 

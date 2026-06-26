@@ -29,7 +29,7 @@ export default async function WorkspacePage() {
   return (
     <div className="max-w-2xl mx-auto animate-fade-in">
       <div className="mb-8">
-        <h1 className="font-serif text-3xl text-ink">Workspace</h1>
+        <h1 className="font-display text-3xl text-ink">Workspace</h1>
         <p className="text-slate-500 mt-1">
           Invitá colaboradores o viewers a trabajar en tu Google Sheet.
         </p>

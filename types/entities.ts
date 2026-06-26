@@ -54,6 +54,7 @@ export interface Tarea {
   nombre: string;
   categoria?: string;
   activa: boolean;
+  horas_acumuladas: number;
   created_at: string;
 }
 

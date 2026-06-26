@@ -1,3 +1,5 @@
+// components/charts/TareasPieChart.tsx
+// Distribución de horas por tarea — bar chart
 "use client";
 
 import { useMemo } from "react";
@@ -9,88 +11,99 @@ import { getEchartsTheme } from "@/lib/utils/echarts-theme";
 interface DataPoint {
   nombre: string;
   horas: number;
-  porcentaje: number;
+  porcentaje?: number;
 }
 
 interface Props {
   data: DataPoint[];
 }
 
+const compact = (n: number) =>
+  new Intl.NumberFormat("es-AR", {
+    maximumFractionDigits: 1,
+  }).format(n);
+
 export default function TareasPieChart({ data }: Props) {
   const { resolvedTheme } = useTheme();
   const theme = getEchartsTheme(resolvedTheme === "dark" ? "dark" : "light");
 
   const option: EChartsOption = useMemo(() => {
-    const total = data.reduce((sum, d) => sum + d.horas, 0);
+    const sorted = [...data]
+      .filter((d) => d.horas > 0)
+      .sort((a, b) => a.horas - b.horas); // ascending for horizontal bar
+
+    const nombres = sorted.map((d) => d.nombre);
+    const valores = sorted.map((d) => d.horas);
+    const maxVal = Math.max(...valores, 1);
+
+    const colors = valores.map((v) => {
+      const t = v / maxVal;
+      const r = Math.round(59 + t * 90);
+      const g = Math.round(130 - t * 30);
+      const b = Math.round(246 - t * 60);
+      return `rgba(${r},${g},${b},${0.7 + t * 0.3})`;
+    });
+
     return {
-      color: theme.palette,
-      animationDuration: 650,
-      animationDurationUpdate: 500,
+      animationDuration: 500,
+      animationEasing: "cubicOut",
       tooltip: {
-        trigger: "item",
+        trigger: "axis",
+        axisPointer: { type: "shadow" },
         backgroundColor: theme.tooltipBg,
         borderColor: theme.tooltipBorder,
-        borderWidth: 1,
         textStyle: { color: theme.text },
-        formatter: (p: any) => `${p.name}<br/>${p.value}h · ${p.percent}%`,
-      },
-      legend: {
-        bottom: 0,
-        left: "center",
-        textStyle: { color: theme.muted, fontSize: 11 },
-      },
-      graphic: [
-        {
-          type: "text",
-          left: "center",
-          top: "38%",
-          style: {
-            text: "Total",
-            fill: theme.muted,
-            fontSize: 11,
-            fontWeight: 500,
-          },
+        formatter: (p: any) => {
+          const row = Array.isArray(p) ? p[0] : p;
+          const pct = sorted[row?.dataIndex]?.porcentaje ?? 0;
+          return `<b>${row?.name ?? ""}</b><br/>Horas: <b>${row?.value ?? 0}h</b><br/>Del total: <b>${pct}%</b>`;
         },
-        {
-          type: "text",
-          left: "center",
-          top: "47%",
-          style: {
-            text: `${total.toFixed(1)}h`,
-            fill: theme.text,
-            fontSize: 18,
-            fontWeight: 700,
-          },
+      },
+      grid: { left: 100, right: 48, top: 4, bottom: 4 },
+      xAxis: {
+        type: "value",
+        name: "h",
+        axisLabel: { color: theme.muted, fontSize: 10 },
+        splitLine: { lineStyle: { color: theme.grid, type: "dashed", opacity: 0.4 } },
+        axisTick: { show: false },
+      },
+      yAxis: {
+        type: "category",
+        data: nombres,
+        axisLabel: {
+          color: theme.text,
+          fontSize: 11,
+          width: 90,
+          overflow: "truncate",
         },
-      ],
+        axisTick: { show: false },
+      },
       series: [
         {
-          name: "Tareas",
-          type: "pie",
-          radius: ["42%", "68%"],
-          center: ["50%", "43%"],
-          padAngle: 1.5,
-          itemStyle: { borderRadius: 6, borderColor: "transparent", borderWidth: 1 },
+          type: "bar",
+          data: valores.map((v, i) => ({
+            value: v,
+            itemStyle: {
+              color: colors[i],
+              borderRadius: [0, 6, 6, 0],
+            },
+          })),
+          barWidth: "60%",
           label: {
             show: true,
-            formatter: ({ percent }: any) => (percent >= 6 ? `${percent}%` : ""),
+            position: "right",
             color: theme.muted,
-            fontSize: 11,
-          },
-          labelLine: { length: 8, length2: 6 },
-          data: data.map((d) => ({ name: d.nombre, value: Number(d.horas.toFixed(2)) })),
-          emphasis: {
-            scale: true,
-            scaleSize: 6,
+            fontSize: 10,
+            formatter: (p: any) => `${compact(p.value)}h`,
           },
         },
       ],
     };
   }, [data, theme]);
 
-  if (!data.length) {
-    return <div className="flex h-[280px] items-center justify-center text-sm text-sub">Sin datos para mostrar</div>;
+  if (!data.filter((d) => d.horas > 0).length) {
+    return <div className="flex h-[200px] items-center justify-center text-sm text-sub">Sin datos</div>;
   }
 
-  return <EChart option={option} height={320} />;
+  return <EChart option={option} height={Math.max(180, data.filter((d) => d.horas > 0).length * 42 + 24)} />;
 }

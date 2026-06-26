@@ -69,7 +69,7 @@ export default function TareasAdmin({ tareas }: { tareas: Tarea[] }) {
     <div className="flex flex-col gap-6 animate-fade-in">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="font-serif text-3xl text-heading">Tareas</h1>
+          <h1 className="font-display text-3xl text-heading">Tareas</h1>
           <p className="text-sub mt-1">{tareas.length} tareas registradas</p>
         </div>
         <button onClick={openCreate} className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold px-4 py-2.5 rounded-lg text-sm transition-colors">
@@ -87,7 +87,7 @@ export default function TareasAdmin({ tareas }: { tareas: Tarea[] }) {
         ) : (
           <table className="w-full text-sm">
             <thead><tr className="table-head">
-              {["Nombre", "Categoría", "Estado", "", ""].map((h, i) => (
+              {["Nombre", "Categoría", "Horas acum.", "Estado", "", ""].map((h, i) => (
                 <th key={i} className="p-3 text-xs font-semibold uppercase tracking-wide text-left"
                   style={{ color: "var(--text-muted)" }}>{h}</th>
               ))}
@@ -97,6 +97,7 @@ export default function TareasAdmin({ tareas }: { tareas: Tarea[] }) {
                 <tr key={t.id} className="table-row">
                   <td className="p-3 font-medium text-heading">{t.nombre}</td>
                   <td className="p-3 text-sub">{t.categoria ?? "—"}</td>
+                  <td className="p-3 font-mono text-sub">{t.horas_acumuladas ?? 0}h</td>
                   <td className="p-3">
                     <span className={`badge ${t.activa ? "badge-green" : "badge-slate"}`}>
                       {t.activa ? "Activa" : "Inactiva"}

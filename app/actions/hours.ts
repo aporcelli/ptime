@@ -6,8 +6,8 @@ import { getSheetCtx }       from "@/lib/sheets/context";
 import { hourFormSchema }    from "@/lib/schemas/hour";
 import { calculateHoursAmount } from "@/lib/pricing/calculateHoursAmount";
 import { getPricingConfigForProject } from "@/app/actions/config";
-import { getProyectoById, getRegistrosHoras, getRegistroById } from "@/lib/sheets/queries";
-import { deleteRegistroHoras, updateRegistroEstado, updateRegistroEstadoBulk, updateRegistroHoras, updateProyectoHorasAcumuladas } from "@/lib/sheets/mutations";
+import { getProyectoById, getRegistrosHoras, getRegistroById, getTareaById } from "@/lib/sheets/queries";
+import { deleteRegistroHoras, updateRegistroEstado, updateRegistroEstadoBulk, updateRegistroHoras, updateProyectoHorasAcumuladas, updateTareaHorasAcumuladas } from "@/lib/sheets/mutations";
 import { sanitize }          from "@/lib/utils/sanitize";
 import { generateUUID }      from "@/lib/utils/index";
 import type { ActionResult, HoraEstado, RegistroHoras } from "@/types/entities";
@@ -178,8 +178,19 @@ export async function deleteHourAction(id: string): Promise<ActionResult> {
       await updateProyectoHorasAcumuladas(
         ctx,
         registro.proyecto_id,
-        applyProjectHourDelta(proyecto.horas_acumuladas, -registro.horas),
+        Math.max(0, Math.round((proyecto.horas_acumuladas - registro.horas) * 10000) / 10000),
       );
+    }
+
+    if (registro.tarea_id) {
+      const tarea = await getTareaById(ctx, registro.tarea_id);
+      if (tarea) {
+        await updateTareaHorasAcumuladas(
+          ctx,
+          registro.tarea_id,
+          Math.max(0, Math.round((tarea.horas_acumuladas - registro.horas) * 10000) / 10000),
+        );
+      }
     }
 
     // revalidatePath("/horas");

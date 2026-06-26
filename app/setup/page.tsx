@@ -30,7 +30,7 @@ export default async function SetupPage() {
       <div className="relative w-full max-w-lg z-10 animate-slide-up">
         {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="font-serif text-5xl font-extrabold tracking-tight">
+          <h1 className="font-display text-5xl font-extrabold tracking-tight">
             P<span className="text-emerald-500 italic">time</span>
           </h1>
         </div>

@@ -20,6 +20,10 @@ export async function getClientes(ctx: SheetCtx, soloActivos = false): Promise<C
   return safeReturn(list);
 }
 
+export async function getTareaById(ctx: SheetCtx, id: string): Promise<Tarea | null> {
+  return (await getTareas(ctx)).find((t) => t.id === id) ?? null;
+}
+
 export async function getClienteById(ctx: SheetCtx, id: string): Promise<Cliente | null> {
   return (await getClientes(ctx)).find((c) => c.id === id) ?? null;
 }

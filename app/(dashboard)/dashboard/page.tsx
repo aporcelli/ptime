@@ -50,9 +50,16 @@ export default async function DashboardPage() {
     const diasDelMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
     const promedioHoras = +(totalHoras / Math.max(diasDelMes, 1)).toFixed(2);
 
-    const proyectosEnTramo2 = proyectos.filter(
-      (p) => p.horas_acumuladas > (p.umbral_precio_alto ?? config.umbralHoras)
-    );
+    // Horas del MES actual por proyecto (no acumuladas totales)
+    const horasMesPorProyecto: Record<string, number> = {};
+    for (const r of registros) {
+      horasMesPorProyecto[r.proyecto_id] = (horasMesPorProyecto[r.proyecto_id] ?? 0) + (r.horas_a_cobrar ?? r.horas);
+    }
+
+    const proyectosEnTramo2 = proyectos.filter((p) => {
+      const horasMes = horasMesPorProyecto[p.id] ?? 0;
+      return horasMes > (p.umbral_precio_alto ?? config.umbralHoras);
+    });
 
     return (
       <PageShell
@@ -113,7 +120,7 @@ export default async function DashboardPage() {
                 {proyectosEnTramo2.length} proyecto(s) en tarifa alta
               </p>
               <p className="text-xs text-amber-600 dark:text-amber-400/80 mt-1">
-                {proyectosEnTramo2.map((p) => p.nombre).join(", ")} superaron el umbral de {config.umbralHoras}h y están facturando a ${config.precioAlto}/h.
+                {proyectosEnTramo2.map((p) => p.nombre).join(", ")} superaron el umbral de {config.umbralHoras}h este mes y están facturando a ${config.precioAlto}/h.
               </p>
             </div>
           </div>
@@ -175,7 +182,8 @@ export default async function DashboardPage() {
           <SectionCard title="Estado de proyectos" icon={<FolderOpen className="h-4 w-4 text-primary" />}>
             <div className="space-y-3">
               {proyectos.slice(0, 5).map((p) => {
-                const isHigh = p.horas_acumuladas > config.umbralHoras;
+                const horasMes = horasMesPorProyecto[p.id] ?? 0;
+                const isHigh = horasMes > config.umbralHoras;
                 return (
                   <Card key={p.id}>
                     <CardContent className="p-4">
@@ -183,7 +191,7 @@ export default async function DashboardPage() {
                         <div className="min-w-0">
                           <p className="text-sm font-semibold text-foreground truncate">{p.nombre}</p>
                           <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider mt-0.5">
-                            {p.horas_acumuladas}h acumuladas
+                            {horasMes}h este mes · {p.horas_acumuladas}h total
                           </p>
                         </div>
                         <StatusPill tone={isHigh ? "warning" : "success"}>
@@ -193,7 +201,7 @@ export default async function DashboardPage() {
                       <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all ${isHigh ? "bg-amber-500" : "bg-emerald-500"}`}
-                          style={{ width: `${Math.min((p.horas_acumuladas / config.umbralHoras) * 100, 100)}%` }}
+                          style={{ width: `${Math.min((horasMes / config.umbralHoras) * 100, 100)}%` }}
                         />
                       </div>
                     </CardContent>

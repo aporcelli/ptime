@@ -4,8 +4,8 @@ import { hourFormSchema } from "@/lib/schemas/hour";
 import { sanitize } from "@/lib/utils/sanitize";
 import type { PricingConfig, RegistroHoras } from "@/types/entities";
 import type { SheetCtx } from "@/lib/sheets/context";
-import { getProyectoById, getRegistrosHoras } from "@/lib/sheets/queries";
-import { createRegistroHoras, updateProyectoHorasAcumuladas } from "@/lib/sheets/mutations";
+import { getProyectoById, getRegistrosHoras, getTareaById } from "@/lib/sheets/queries";
+import { createRegistroHoras, updateProyectoHorasAcumuladas, updateTareaHorasAcumuladas } from "@/lib/sheets/mutations";
 import { generateUUID } from "@/lib/utils/index";
 import type { ActionResult } from "@/types/entities";
 import { getMonthlyWorkedHoursAccumulated } from "@/lib/hours/accounting";
@@ -71,6 +71,18 @@ export async function saveHourFromActionInput(rawData: unknown, options: SaveHou
       data.proyecto_id,
       Math.round((proyecto.horas_acumuladas + data.horas) * 10000) / 10000,
     );
+
+    // Update tarea hours
+    if (data.tarea_id) {
+      const tarea = await getTareaById(options.ctx, data.tarea_id);
+      if (tarea) {
+        await updateTareaHorasAcumuladas(
+          options.ctx,
+          data.tarea_id,
+          Math.round((tarea.horas_acumuladas + data.horas) * 10000) / 10000,
+        );
+      }
+    }
 
     return actionOk(registro);
   } catch (error) {
