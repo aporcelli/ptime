@@ -5,6 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.22] — 2026-06-22
+
+### Mejorado
+- **Tipografía unificada**: montos en Mis Horas y Reportes ahora usan Inter (`font-sans`) en vez de `font-serif`/`font-mono`.
+
 ## [1.2.21] — 2026-06-22
 
 ### Corregido

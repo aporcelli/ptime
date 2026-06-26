@@ -216,8 +216,8 @@ export default async function ReportesPage({
                 return (
                   <tr key={mes} className={`transition-colors hover:bg-surface-low ${i % 2 === 0 ? "bg-surface-lowest" : "bg-surface-low"}`}>
                     <td className="p-3 font-mono text-on-surface font-medium">{formatMonthYearLabel(mes)}</td>
-                    <td className="p-3 text-right font-mono text-on-surface-variant">{formatHours(d.horas)}</td>
-                    <td className="p-3 text-right font-mono text-primary-fixed font-semibold">{formatCurrency(d.ingresos, config.moneda)}</td>
+                    <td className="p-3 text-right font-sans text-on-surface-variant">{formatHours(d.horas)}</td>
+                    <td className="p-3 text-right font-sans text-primary-fixed font-semibold">{formatCurrency(d.ingresos, config.moneda)}</td>
                     <td className="p-3 text-right text-on-surface-variant text-xs">{pct}%</td>
                   </tr>
                 );
@@ -247,8 +247,8 @@ export default async function ReportesPage({
               ) : proyectosData.map((p, i) => (
                 <tr key={p.nombre} className={`transition-colors hover:bg-surface-low ${i % 2 === 0 ? "bg-surface-lowest" : "bg-surface-low"}`}>
                   <td className="p-3 font-medium text-on-surface">{p.nombre}</td>
-                  <td className="p-3 text-right font-mono text-on-surface-variant">{formatHours(p.horas)}</td>
-                  <td className="p-3 text-right font-mono text-primary-fixed font-semibold">{formatCurrency(p.ingresos, config.moneda)}</td>
+                  <td className="p-3 text-right font-sans text-on-surface-variant">{formatHours(p.horas)}</td>
+                  <td className="p-3 text-right font-sans text-primary-fixed font-semibold">{formatCurrency(p.ingresos, config.moneda)}</td>
                 </tr>
               ))}
             </tbody>
