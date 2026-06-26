@@ -150,6 +150,34 @@ export async function updateHourAction(id: string, rawData: unknown): Promise<Ac
       }
     }
 
+    // Adjust task hours when tarea changes
+    if (currentRegistro.tarea_id !== data.tarea_id) {
+      // Remove from old tarea
+      if (currentRegistro.tarea_id) {
+        const oldTarea = await getTareaById(ctx, currentRegistro.tarea_id);
+        if (oldTarea) {
+          await updateTareaHorasAcumuladas(ctx, currentRegistro.tarea_id,
+            Math.max(0, Math.round((oldTarea.horas_acumuladas - currentRegistro.horas) * 10000) / 10000));
+        }
+      }
+      // Add to new tarea
+      if (data.tarea_id) {
+        const newTarea = await getTareaById(ctx, data.tarea_id);
+        if (newTarea) {
+          await updateTareaHorasAcumuladas(ctx, data.tarea_id,
+            Math.round((newTarea.horas_acumuladas + (data.horas ?? currentRegistro.horas)) * 10000) / 10000);
+        }
+      }
+    } else if (currentRegistro.tarea_id && Number(currentRegistro.horas) !== Number(data.horas)) {
+      // Same tarea but hours changed — adjust delta
+      const tarea = await getTareaById(ctx, data.tarea_id);
+      if (tarea) {
+        const delta = (data.horas ?? currentRegistro.horas) - currentRegistro.horas;
+        await updateTareaHorasAcumuladas(ctx, data.tarea_id,
+          Math.max(0, Math.round((tarea.horas_acumuladas + delta) * 10000) / 10000));
+      }
+    }
+
     // revalidatePath("/horas", "layout");
     // revalidatePath("/dashboard", "layout");
     return actionDone();
