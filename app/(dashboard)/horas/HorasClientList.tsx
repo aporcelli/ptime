@@ -80,7 +80,6 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
 
   const selectedMonth = useMemo(() => resolveMonthFilter(repricedRecords, monthFilter), [repricedRecords, monthFilter]);
   const baseFiltered = useMemo(() => getFilteredRecords(repricedRecords, monthFilter, clientFilter), [repricedRecords, monthFilter, clientFilter]);
-  const summary = useMemo(() => summarizeRecords(baseFiltered), [baseFiltered]);
   const invoiceSummary = useMemo(
     () => (selectedMonth ? getMonthInvoiceSummary(repricedRecords, selectedMonth) : null),
     [repricedRecords, selectedMonth],
@@ -94,6 +93,8 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
     // Vista default/tabla: siempre mostrar de más reciente a más antigua
     return sortByRecentDate(filtered);
   }, [baseFiltered, filtroEstado]);
+
+  const summary = useMemo(() => summarizeRecords(filtrados), [filtrados]);
 
   const canInvoiceMonth = monthFilter !== "all" && clientFilter === "all" && !!invoiceSummary && invoiceSummary.eligibleCount > 0;
   const dolarRate = useMemo(() => parseExchangeRateInput(dolarRateInput), [dolarRateInput]);
