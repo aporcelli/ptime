@@ -254,7 +254,7 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
               </div>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Horas trabajadas</p>
-                <p className="text-2xl font-serif font-semibold text-foreground">{formatHours(summary.totalWorkedHours)}</p>
+                <p className="text-2xl font-sans font-semibold text-foreground">{formatHours(summary.totalWorkedHours)}</p>
               </div>
             </div>
           </CardContent>
@@ -268,7 +268,7 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">A cobrar</p>
-                <p className="text-2xl font-serif font-semibold text-emerald-600 dark:text-emerald-400">{formatCurrency(summary.totalAmount)}</p>
+                <p className="text-2xl font-sans font-semibold text-emerald-600 dark:text-emerald-400">{formatCurrency(summary.totalAmount)}</p>
                 <p className="mt-1 text-sm font-semibold text-foreground">{totalArs !== null ? formatCurrency(totalArs, "ARS") : "ARS —"}</p>
               </div>
             </div>
@@ -314,7 +314,7 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
               </div>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Horas facturables</p>
-                <p className="text-2xl font-serif font-semibold text-foreground">{formatHours(summary.totalBillableHours)}</p>
+                <p className="text-2xl font-sans font-semibold text-foreground">{formatHours(summary.totalBillableHours)}</p>
               </div>
             </div>
           </CardContent>
