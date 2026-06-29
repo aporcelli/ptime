@@ -88,6 +88,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             "https://www.googleapis.com/auth/spreadsheets",
           ].join(" "),
           access_type: "offline",
+          prompt:      "select_account",
         },
       },
     }),
