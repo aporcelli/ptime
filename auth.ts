@@ -119,13 +119,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // así no necesita volver a poner el link en otra sesión / navegador.
         // Usamos la versión Edge-compatible (sin googleapis pesado).
         if (user.email) {
-          try {
-            const persisted = await findSharedSheetForEmailEdge(user.email);
-            if (persisted) {
-              token.sheetId = persisted;
+          // Admin: usar MASTER_SHEET_ID directamente
+          if (token.role === "ADMIN") {
+            const masterId = process.env.MASTER_SHEET_ID?.replace(/"/g, "");
+            if (masterId) token.sheetId = masterId;
+          }
+
+          if (!token.sheetId) {
+            try {
+              const persisted = await findSharedSheetForEmailEdge(user.email);
+              if (persisted) token.sheetId = persisted;
+            } catch (e) {
+              console.error("[auth] No se pudo recuperar sheetId persistido:", e);
             }
-          } catch (e) {
-            console.error("[auth] No se pudo recuperar sheetId persistido:", e);
           }
         }
         return token;
