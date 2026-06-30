@@ -14,7 +14,8 @@ export default async function LoginPage({
 }) {
   const session = await auth();
   const callbackUrl = safeCallbackUrl(searchParams.callbackUrl);
-  if (session?.user) redirect(callbackUrl);
+  // Only redirect if session is valid (no RefreshTokenError, has accessToken)
+  if (session?.user && !session.error && session.user.accessToken) redirect(callbackUrl);
 
   const errorMessages: Record<string, string> = {
     OAuthAccountNotLinked: "Esta cuenta ya está vinculada con otro método de login.",
