@@ -5,6 +5,28 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.29] — 2026-06-22
+
+### Corregido
+- **Token refresh con retry**: 3 intentos con 2s delay post-suspensión de equipo.
+
+## [1.2.28] — 2026-06-22
+
+### Corregido
+- **ERR_TOO_MANY_REDIRECTS**: roto loop redirect en login cuando token expiraba.
+- Login page no redirige si la sesión tiene `RefreshTokenError`.
+- Middleware detecta sesión expirada y redirige a `/login?error=TokenExpired`.
+
+## [1.2.27] — 2026-06-22
+
+### Corregido
+- **Google account chooser**: `prompt:select_account` permite elegir cuenta al hacer login.
+
+## [1.2.26] — 2026-06-22
+
+### Corregido
+- **Judgment Day**: `updateHourAction` ahora ajusta horas de tarea al editar registro.
+
 ## [1.2.25] — 2026-06-22
 
 ### Añadido
