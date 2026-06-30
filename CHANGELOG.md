@@ -5,11 +5,6 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
-## [1.2.30] — 2026-06-22
-
-### Mejorado
-- **Reorganización del proyecto**: eliminados archivos basura, movida documentación a `docs/`, assets a `public/`, actualizado `.gitignore` y README.
-
 ## [1.2.29] — 2026-06-22
 
 ### Corregido
