@@ -148,13 +148,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return token;
       }
 
-      // 3️⃣ Token vencido — intentar refresh
+      // 3️⃣ Token vencido — intentar refresh con retry (post-sleep resilience)
       if (!token.refreshToken) {
         console.error("[auth] No refresh token available");
         return { ...token, error: "RefreshTokenError" as const };
       }
 
-      const refreshed = await refreshGoogleToken(token.refreshToken);
+      // Retry up to 3 times with 2s delay (handles post-sleep network recovery)
+      let refreshed = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        refreshed = await refreshGoogleToken(token.refreshToken);
+        if (refreshed) break;
+        if (attempt < 2) await new Promise(r => setTimeout(r, 2000));
+      }
+
       if (!refreshed) {
         return { ...token, error: "RefreshTokenError" as const };
       }
