@@ -38,3 +38,5 @@ SA/
 build.log
 # Local Pi runtime state
 .atl/
+ptime/
+tsconfig.tsbuildinfo

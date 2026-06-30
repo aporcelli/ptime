@@ -1,159 +1,129 @@
-# Ptime - TuCloud.pro
+# Ptime — Professional Time Tracking & Invoicing
 
-**Ptime** es una aplicación robusta para el registro y gestión de horas trabajadas y facturación, utilizando Google Sheets como base de datos en tiempo real (BaaS). Optimizado para despliegues rápidos y sin fricción, aprovecha el ecosistema de Vercel y Google Workspace.
+**Ptime** is a professional time-tracking and invoicing application that uses Google Sheets as a real-time database (BaaS). Optimized for fast deployments without friction, leveraging the Vercel + Google Workspace ecosystem.
 
-## 🚀 Características Clave
+## Features
 
-- **Persistencia Cross-Device y Workspaces Compartidos**: El Sheet ID del usuario ahora persiste automáticamente vía JWT, eliminando la necesidad de reconfiguración. Los workspaces se pueden compartir, permitiendo a los propietarios invitar colaboradores o espectadores con roles definidos (`OWNER`, `COLABORADOR`, `VIEWER`). La auto-configuración de Workspaces simplifica el onboarding de nuevos miembros.
-- **Google Sheets como DB:** Utiliza una hoja de cálculo como backend, permitiendo a los administradores editar datos directamente o visualizar reportes crudos sin salir de Google.
-- **Autenticación Segura:** NextAuth.js integrado con Google OAuth 2.0 y control de acceso basado en roles (RBAC) para proteger zonas administrativas. Soporte para JWTs Edge-compatible.
-- **Experiencia de Usuario Moderna**: Componentes Shadcn/UI reescritos y optimizados para Tailwind CSS v3 (Combobox, Popover, Card, Button, etc.). Diseño completamente migrado a tokens semánticos, ofreciendo un **Dark/Light Mode unificado, instantáneo y consistente** en toda la aplicación. Nuevos efectos "glass" y animaciones "slide-up" mejoran la interfaz.
-- **Tarifas y Facturación Escalonada:** Algoritmo mensual por usuario: primeras 20h a precio base, fracciones del tramo base redondeadas a 0.5h y tramo alto redondeado a hora completa. Se guardan horas trabajadas y horas facturables por separado.
-- **Mis Horas con Cierre Mensual:** Vista por último mes, mes anterior o todo. Totales de horas trabajadas, horas facturables, monto USD, conversión manual ARS/USD, cotización BNA oficial y acción segura para marcar un mes como `facturado`.
-- **Módulo BI / Reportes:** Dashboard completo y exportación PDF con branding TuCloud, fechas DD-MM-AA, layouts optimizados y gráficos interactivos (`react-pdf` y Recharts).
-- **Gestión Administrativa Completa:** CRUD de Clientes, Proyectos, Tareas, Configuraciones y Usuarios. Los clientes pueden compartir email si el negocio lo requiere; la identidad real sigue siendo el `id` del cliente.
-- **Server Actions con Seguridad Mejorada**: Configuración de `allowedOrigins` para `ptime.tucloud.pro` y `*.ptime.tucloud.pro`, garantizando el correcto funcionamiento en producción.
-- **Modo Local sin OAuth**: Para desarrollo se puede entrar en localhost sin OAuth con `LOCAL_DEV_ACCESS=true`; este bypass queda bloqueado en producción.
-- **Suite de Tests**: Vitest cubre pricing, horas, serialización, BNA, acciones y helpers críticos.
+- **Google Sheets as Database** — Your spreadsheet is your backend. Edit data directly in Sheets or use the app.
+- **Secure Authentication** — NextAuth.js v5 with Google OAuth 2.0, JWT sessions, and RBAC access control.
+- **Tiered Billing** — Monthly per-project pricing: first N hours at base rate, remainder at premium rate.
+- **BI / Reports** — Interactive ECharts dashboard with income trends, client breakdown, task distribution, daily activity heatmap, and PDF export.
+- **Shared Workspaces** — Invite collaborators with OWNER, COLLABORATOR, or VIEWER roles.
+- **Cross-Device Persistence** — Sheet ID persists via JWT. No reconfiguration needed between devices.
+- **Dark/Light Mode** — Semantic CSS tokens with glass effects and Framer Motion animations.
+- **Assets & Crypto Support** — Track USD pricing with ARS conversion via BNA official rate.
+- **Local Dev Mode** — `LOCAL_DEV_ACCESS=true` bypasses OAuth for localhost development.
+- **Test Suite** — Vitest covering pricing, hours, serialization, BNA, and critical helpers.
 
-## 📦 Tecnologías
+## Tech Stack
 
-- [Next.js 14](https://nextjs.org/) (App Router)
-- [React 18](https://react.dev/)
-- [Tailwind CSS v3](https://tailwindcss.com/)
-- [Shadcn/UI](https://ui.shadcn.com/) (Radix Primitives)
-- [NextAuth.js v5 (beta)](https://nextjs.authjs.dev/)
-- [Google APIs Node.js Client](https://github.com/googleapis/google-api-nodejs-client)
-- [Zod](https://zod.dev/)
-- [React Hook Form](https://react-hook-form.com/)
+| Category | Technology |
+|----------|-----------|
+| Framework | [Next.js 14](https://nextjs.org/) (App Router) |
+| UI | [React 18](https://react.dev/) + [Tailwind CSS v3](https://tailwindcss.com/) |
+| Components | [Shadcn/UI](https://ui.shadcn.com/) (Radix Primitives) |
+| Auth | [NextAuth.js v5](https://nextjs.authjs.dev/) |
+| Charts | [Apache ECharts](https://echarts.apache.org/) |
+| Animation | [Framer Motion](https://www.framer.com/motion/) |
+| Validation | [Zod](https://zod.dev/) |
+| Forms | [React Hook Form](https://react-hook-form.com/) |
+| Google APIs | REST Sheets v4 + `googleapis` (service account) |
+| Testing | [Vitest](https://vitest.dev/) |
+| Hosting | [Vercel](https://vercel.com/) |
 
-## 💻 Desarrollo Local
+## Quick Start
 
-### Prerrequisitos
+### Prerequisites
 - Node.js >= 20
-- npm o yarn
-- Una cuenta en Google Cloud Console para habilitar la API de Sheets y obtener las credenciales de OAuth.
+- Google Cloud Console project with Sheets API enabled
+- OAuth 2.0 credentials (Web application type)
 
-### Configuración inicial
-
-1. Clona este repositorio.
-2. Instala las dependencias:
-   ```bash
-   npm install
-   ```
-3. Crea un archivo `.env` basado en `.env.example`:
-   ```bash
-   cp .env.example .env
-   ```
-4. Configura las variables en `.env`:
-   - `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET`: Obtenidos de tu proyecto en GCP.
-   - `AUTH_SECRET` (o `NEXTAUTH_SECRET`): Genera uno con `openssl rand -base64 32`.
-   - `AUTH_URL` (o `NEXTAUTH_URL`): `http://localhost:3000` en desarrollo local.
-   - `MASTER_SHEET_ID`: El ID de tu hoja maestra de Google Sheets (donde se gestionan los usuarios y workspaces).
-
-### Arrancar la aplicación
+### Setup
 
 ```bash
+npm install
+cp .env.example .env
+# Fill in GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, AUTH_SECRET, MASTER_SHEET_ID
 npm run dev
 ```
 
-La aplicación estará corriendo en `http://localhost:3000`.
-
-### Modo local sin OAuth
-
-Para probar en localhost sin depender del callback OAuth de Google:
+### Local Dev Without OAuth
 
 ```bash
 LOCAL_DEV_ACCESS=true npm run dev
 ```
+Only works on localhost with `NODE_ENV !== "production"`.
 
-Reglas de seguridad:
-- Solo funciona con `NODE_ENV !== "production"`.
-- Solo funciona en `localhost` o `127.0.0.1`.
-- Aunque la variable exista en Vercel/producción, el acceso local queda bloqueado.
-
-### Verificación local
+### Verify
 
 ```bash
-npm run test:run
-npx tsc --noEmit
-npm run lint
-npm run build
+npm run test:run     # Vitest
+npx tsc --noEmit     # Type check
+npm run lint         # ESLint
+npm run build        # Production build
 ```
 
-`npm run test:run` usa Vitest en modo no-watch.
+## Billing Rules
 
-## 💵 Reglas de facturación
+- First **N hours** (configurable, default 20) per project/month: **base rate**
+- After N hours: **premium rate**
+- Base tier fractions round to **0.5h**; premium tier fractions round to **next full hour**
+- `horas_trabajadas` = actual hours; `horas_a_cobrar` = billable hours after rounding
 
-Ptime calcula costos por usuario y por mes:
+## Deployment (Vercel)
 
-- Primeras **20h mensuales**: precio base del proyecto/configuración.
-- Después de **20h mensuales**: precio alto.
-- En tramo base, cualquier fracción menor a 0.5h se redondea a **0.5h**.
-- En tramo alto, cualquier fracción se redondea a la **siguiente hora completa**.
-- `horas_trabajadas` conserva lo cargado por el usuario.
-- `horas_a_cobrar` conserva lo facturable después del redondeo.
+1. Import repo in Vercel
+2. Set environment variables:
+   - `AUTH_SECRET`, `AUTH_URL`
+   - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
+   - `MASTER_SHEET_ID`, `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY`
+   - `ADMIN_EMAILS` (comma-separated)
+3. Update authorized redirect URI in GCP: `https://your-domain/api/auth/callback/google`
 
-Ejemplos:
-
-| Acumulado mensual | Nueva carga | Tramo | Horas facturables |
-|---:|---:|---|---:|
-| 0h | 0.1h | Base | 0.5h |
-| 0h | 0.5h | Base | 0.5h |
-| 19.5h | 0.5h | Base | 0.5h |
-| 20h | 0.5h | Alto | 1h |
-| 20h | 2.5h | Alto | 3h |
-
-En **Mis Horas**, la vista default muestra el último mes con registros. También hay filtro de mes anterior y ver todo. La acción “Marcar mes como facturado” solo opera sobre el mes seleccionado y no toca registros rechazados ni ya facturados.
-
-## 🚢 Despliegue (Deploy)
-
-El proyecto está preparado para desplegarse fácilmente en **Vercel**.
-
-Asegúrate de:
-1. Importar el repositorio en Vercel.
-2. Configurar las variables de entorno de producción (incluyendo `MASTER_SHEET_ID`).
-3. Actualizar la URI de redirección autorizada en Google Cloud Console con el dominio de tu Vercel (ej: `https://tu-proyecto.vercel.app/api/auth/callback/google` o `https://ptime.tucloud.pro/api/auth/callback/google` si usas el dominio oficial).
-4. Configurar variables de Auth en Vercel para producción:
-   - `AUTH_SECRET` (recomendado) y opcionalmente `NEXTAUTH_SECRET` por compatibilidad.
-   - `AUTH_URL` (o `NEXTAUTH_URL`) exactamente con el dominio productivo canónico (`https://ptime.tucloud.pro`).
-   - `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` en el environment Production.
-5. Asegurarte que los `allowedOrigins` en `next.config.mjs` incluyan tu dominio de producción para Server Actions.
-
-Para más detalles, revisa el [CHANGELOG.md](./CHANGELOG.md).
-
-## 📄 Licencia y Autores
-
-Propiedad intelectual y desarrollo bajo [TuCloud.pro](https://tucloud.pro).
-
-## 📁 Estructura del Proyecto
-
-Esta es la organización principal de los directorios de Ptime (Next.js 14 App Router):
+## Project Structure
 
 ```text
 .
-├── app/                  # Rutas y páginas de Next.js (App Router)
-│   ├── (auth)/           # Rutas de autenticación (login)
-│   ├── (dashboard)/      # Vistas protegidas (panel, horas, reportes, admin)
-│   ├── actions/          # Server Actions para mutaciones (CRUD)
-│   └── api/              # Endpoints API (health, auth, bna-dolar)
-├── components/           # Componentes de React (Shadcn/UI reescritos)
-│   ├── admin/            # Componentes específicos de administración
-│   ├── charts/           # Gráficos con Recharts
-│   ├── forms/            # Formularios con react-hook-form + Zod
-│   ├── layout/           # Sidebar, Topbar, Shell (migrados a tokens semánticos)
-│   ├── pdf/              # Plantillas para exportación PDF (react-pdf)
-│   └── shared/           # Componentes reutilizables (DataTables, Botones)
-├── hooks/                # Custom hooks (e.g. usePricingPreview)
-├── lib/                  # Lógica de negocio y utilidades
-│   ├── actions/          # Helpers comunes para Server Actions
-│   ├── env/              # Modo local sin OAuth y guards de entorno
-│   ├── hours/            # Save-flow, accounting, mensualización y moneda
-│   ├── pricing/          # Algoritmo de cálculo de precios y unit tests
-│   ├── schemas/          # Esquemas de validación Zod
-│   ├── sheets/           # Cliente, queries, mutations y serializers Google Sheets
-│   └── utils/            # Utilidades generales y formateo
-├── public/               # Archivos estáticos y logos (e.g., logo_tucloud_white.png)
-├── types/                # Definiciones de TypeScript e interfaces
-├── auth.ts               # Configuración de NextAuth.js (integración con MASTER_SHEET_ID)
-└── middleware.ts         # Middleware para protección de rutas y control de RBAC (usa JWT para sheetId)
+├── app/                       # Next.js App Router
+│   ├── (auth)/login/          # Authentication pages
+│   ├── (dashboard)/           # Protected routes
+│   │   ├── admin/             # CRUD: clients, projects, tasks, users, config, workspace
+│   │   ├── dashboard/         # Main dashboard + KPIs
+│   │   ├── horas/             # Time entries (list, detail, create, edit)
+│   │   └── reportes/          # BI reports + charts + PDF export
+│   ├── actions/               # Server Actions (CRUD mutations)
+│   ├── api/                   # API routes (auth, health, BNA dollar)
+│   ├── privacy/ & terms/      # Legal pages (required by Google OAuth)
+│   └── setup/                 # Initial spreadsheet configuration
+├── components/
+│   ├── charts/                # ECharts components (6 charts)
+│   ├── forms/                 # Hour entry form
+│   ├── layout/                # Sidebar, Topbar, DashboardShell
+│   ├── pdf/                   # PDF report templates
+│   ├── shared/                # DataTable, UI primitives
+│   ├── landing-page.tsx       # Public landing page
+│   └── ui/                    # Shadcn primitives
+├── lib/
+│   ├── hours/                 # Save flow, accounting, monthly logic, currency
+│   ├── pricing/               # Tiered pricing algorithm
+│   ├── schemas/               # Zod validation schemas
+│   ├── sheets/                # Google Sheets client, queries, mutations, serializers
+│   └── utils/                 # Formatters, sanitizers, helpers
+├── types/                     # TypeScript interfaces
+├── public/                    # Static assets (logos, icons, background)
+├── docs/                      # Planning & verification docs
+├── scripts/                   # Migration scripts
+├── auth.ts                    # NextAuth configuration
+├── middleware.ts               # Route protection + sheet context
+└── CHANGELOG.md               # Full version history
+```
+
+## Documentation
+
+- [CHANGELOG.md](./CHANGELOG.md) — Full version history since v1.2.11
+- [docs/GUARDRAILS.md](./docs/GUARDRAILS.md) — Developer pre-commit checklist
+- [docs/gcp-verification-response.md](./docs/gcp-verification-response.md) — Google OAuth verification correspondence
+
+## License
+
+Proprietary — [TuCloud.pro](https://tucloud.pro)
