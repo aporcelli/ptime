@@ -26,6 +26,12 @@ export default auth((req) => {
     return NextResponse.redirect(url);
   }
 
+  // Sesión con token expirado → re-login
+  if ((session as any)?.error === "RefreshTokenError") {
+    if (isApiRoute) return NextResponse.json({ success: false, error: "TOKEN_EXPIRED" }, { status: 401 });
+    return NextResponse.redirect(new URL("/login?error=TokenExpired", req.url));
+  }
+
   // Admin routes — solo bloquear si el rol es explícitamente USER y la ruta es /admin
   // (en esta versión todos los usuarios pueden acceder al admin de su propio sheet)
   // Mantener para futuras implementaciones multi-tenant.
