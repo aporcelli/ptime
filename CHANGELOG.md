@@ -5,6 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.30] — 2026-06-22
+
+### Corregido
+- **Incógnito sin sheetId**: admins ahora obtienen `MASTER_SHEET_ID` directo del env, sin depender de `findSharedSheetForEmailEdge`.
+
 ## [1.2.29] — 2026-06-22
 
 ### Corregido
