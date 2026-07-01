@@ -5,6 +5,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.41] — 2026-06-22
+
+### Mejorado
+- **Reubicación de Gráfico de Clientes**: El gráfico `"Horas por cliente"` fue movido justo debajo de la tabla de `"Detalle por proyecto"`. Al iniciar en la **página 2**, se aprovecha el espacio disponible de forma natural sin forzar saltos de página toscos.
+- **Margen de Página Corregido**: Se restauró el `paddingBottom` de la página a `52`, eliminando el espacio en blanco tosco que quedaba al final de la primera hoja.
+- **Leyenda de Horas Fija en Hoja 1**: El cartel explicativo `*` de Horas Facturables ahora se renderiza dinámicamente como un bloque absoluto únicamente en el pie de página de la hoja 1, totalmente alineado e independiente de la fluidez del contenido.
+
 ## [1.2.40] — 2026-06-22
 
 ### Corregido
