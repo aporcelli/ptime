@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Loader2, X, CheckSquare, CheckCircle, ToggleLeft, ToggleRight, Pencil, Trash2, AlertTriangle } from "lucide-react";
@@ -8,6 +8,30 @@ import type { Tarea } from "@/types/entities";
 
 export default function TareasAdmin({ tareas }: { tareas: Tarea[] }) {
   const router = useRouter();
+  const [sortKey, setSortKey] = useState<keyof Tarea>("nombre");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+
+  const sortedTareas = useMemo(() => {
+    const dir = sortDir === "asc" ? 1 : -1;
+    return [...tareas].sort((a, b) => {
+      const va = a[sortKey];
+      const vb = b[sortKey];
+      if (typeof va === "string") return va.localeCompare(vb as string, undefined, { sensitivity: "base" }) * dir;
+      if (typeof va === "number") return (va - (vb as number)) * dir;
+      return 0;
+    });
+  }, [tareas, sortKey, sortDir]);
+
+  function SortH({ col, label }: { col: keyof Tarea; label: string }) {
+    return (
+      <th onClick={() => { if (sortKey === col) setSortDir(d => d === "asc" ? "desc" : "asc"); else { setSortKey(col); setSortDir("asc"); } }}
+        className="p-3 text-xs font-semibold uppercase tracking-wide text-left cursor-pointer hover:text-heading select-none"
+        style={{ color: sortKey === col ? "var(--text-heading)" : "var(--text-muted)" }}>
+        {label} {sortKey === col && (sortDir === "asc" ? "▲" : "▼")}
+      </th>
+    );
+  }
+
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Tarea | null>(null);
   const [deleting, setDeleting] = useState<Tarea | null>(null);
@@ -87,13 +111,15 @@ export default function TareasAdmin({ tareas }: { tareas: Tarea[] }) {
         ) : (
           <table className="w-full text-sm">
             <thead><tr className="table-head">
-              {["Nombre", "Categoría", "Horas acum.", "Estado", "", ""].map((h, i) => (
-                <th key={i} className="p-3 text-xs font-semibold uppercase tracking-wide text-left"
-                  style={{ color: "var(--text-muted)" }}>{h}</th>
-              ))}
+              <SortH col="nombre" label="Nombre" />
+              <SortH col="categoria" label="Categoría" />
+              <SortH col="horas_acumuladas" label="Horas acum." />
+              <SortH col="activa" label="Estado" />
+              <th className="p-3 text-xs font-semibold uppercase tracking-wide text-left" style={{ color: "var(--text-muted)" }} />
+              <th className="p-3 text-xs font-semibold uppercase tracking-wide text-left" style={{ color: "var(--text-muted)" }} />
             </tr></thead>
             <tbody>
-              {tareas.map((t) => (
+              {sortedTareas.map((t) => (
                 <tr key={t.id} className="table-row">
                   <td className="p-3 font-medium text-heading">{t.nombre}</td>
                   <td className="p-3 text-sub">{t.categoria ?? "—"}</td>
