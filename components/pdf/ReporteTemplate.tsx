@@ -478,9 +478,10 @@ function ReporteDoc({
             </View>
             <View style={s.kpiGrid}>
               <View style={s.kpiCard}>
-                <Text style={s.kpiLabel}>Total horas</Text>
-                <Text style={s.kpiValue}>{fmtH(kpis.totalHoras)}</Text>
-                <Text style={s.kpiSub}>{kpis.registrosTotales} registros</Text>
+                <Text style={s.kpiLabel}>Horas Registradas</Text>
+                <Text style={s.kpiValue}>{fmtH(kpis.totalHoras)}*</Text>
+                <Text style={s.kpiSub}>Trabajadas: {fmtH(kpis.totalHorasTrabajadas ?? kpis.totalHoras)}</Text>
+                <Text style={{ fontSize: 6.5, color: C.muted, marginTop: 1 }}>{kpis.registrosTotales} registros</Text>
               </View>
               <View style={[s.kpiCard, { borderLeft: `3px solid ${C.teal}` }]}>
                 <Text style={s.kpiLabel}>Total facturado</Text>
@@ -623,6 +624,19 @@ function ReporteDoc({
               </View>
             </View>
           )}
+
+          {/* Nota sobre Horas Facturables (con asterisco) */}
+          <View style={{
+            marginTop: 10,
+            padding: 8,
+            backgroundColor: C.surfaceLow,
+            borderRadius: 4,
+            borderLeft: `2px solid ${C.muted}`,
+          }}>
+            <Text style={{ fontSize: 7, color: C.muted, lineHeight: 1.3 }}>
+              * Nota sobre Horas Facturables: Las horas facturables pueden diferir de las horas realmente trabajadas debido al algoritmo de redondeo y umbrales mensuales aplicados. En el tramo de tarifa base (primeras 20h), las fracciones se redondean a intervalos de 0.5h. En el tramo de tarifa alta (superado el umbral), las fracciones se redondean hacia arriba a la siguiente hora completa.
+            </Text>
+          </View>
 
           {/* ── Detalle de registros (si se pasan) ── */}
           {registros.length > 0 && (
