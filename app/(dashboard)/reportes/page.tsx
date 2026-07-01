@@ -106,6 +106,7 @@ export default async function ReportesPage({
   }, {});
 
   const totalHoras    = registrosRepriced.reduce((s, r) => s + (r.horas_a_cobrar ?? r.horas), 0);
+  const totalHorasTrabajadas = registrosRepriced.reduce((s, r) => s + (r.horas_trabajadas ?? r.horas), 0);
   const totalIngresos = registrosRepriced.reduce((s, r) => s + r.monto_total, 0);
   const proyectosEnPeriodo = new Set(registrosRepriced.map((r) => r.proyecto_id)).size;
 
@@ -137,6 +138,7 @@ export default async function ReportesPage({
   const reportData: ReportData = {
     kpis: {
       totalHoras,
+      totalHorasTrabajadas,
       totalIngresos,
       promedioHorasDia: +(totalHoras / 30).toFixed(2),
       proyectosActivos: proyectosEnPeriodo,

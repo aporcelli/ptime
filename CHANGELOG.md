@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.36] — 2026-06-22
+
+### Añadido
+- **Horas Trabajadas y Facturables en PDF**: El reporte PDF ahora calcula y muestra tanto las horas reales trabajadas como las horas facturables en la tarjeta de resumen.
+- **Leyenda explicativa**: Agregada una nota al pie en la primera página del reporte explicando las reglas de redondeo y los umbrales aplicados sobre las horas facturables.
+
 ## [1.2.35] — 2026-06-22
 
 ### Mejorado

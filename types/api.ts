@@ -28,6 +28,7 @@ export interface ReportQueryParams {
 export interface ReportData {
     kpis: {
         totalHoras: number;
+        totalHorasTrabajadas?: number;
         totalIngresos: number;
         promedioHorasDia: number;
         proyectosActivos: number;
