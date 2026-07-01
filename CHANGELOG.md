@@ -5,6 +5,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.34] — 2026-06-22
+
+### Mejorado
+- **Calendario de Actividad (Heatmap)**: Reescrito completamente a un componente React/Tailwind nativo.
+  - Elimina el Canvas de ECharts, resolviendo las celdas estiradas (rectangulares) en resoluciones de escritorio.
+  - Cuadrados perfectos (`aspect-square`) con grid exacto de 7 columnas (Lunes a Domingo).
+  - Rotulación clara de los días de la semana y los números de los días visibles.
+  - Celdas de relleno para respetar los días reales del calendario según el mes.
+  - Tooltip nativo interactivo con fecha y horas exactas.
+
 ## [1.2.33] — 2026-06-22
 
 ### Añadido
