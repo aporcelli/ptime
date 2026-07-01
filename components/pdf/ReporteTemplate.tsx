@@ -41,7 +41,7 @@ const s = StyleSheet.create({
     fontSize: 9,
     backgroundColor: C.surface,
     paddingTop: 0,
-    paddingBottom: 95, // Incrementado de 48 a 95 para reservar espacio para la nota absoluta y el footer
+    paddingBottom: 52, // Restaurado a un margen prolijo estándar para evitar huecos en blanco
     paddingHorizontal: 0,
   },
 
@@ -623,13 +623,6 @@ function ReporteDoc({
                 )}
               </View>
 
-              {/* ── Gráfico Horizontal: Horas por Cliente ── */}
-              {porCliente.length > 0 && (
-                <View style={[s.chartBox, { marginTop: 10, width: "100%" }]}>
-                  <Text style={s.chartTitle}>Horas por cliente</Text>
-                  <HorizontalBarChartSvg data={porCliente} width={480} height={Math.max(60, porCliente.filter(c => c.horas > 0).length * 16 + 20)} />
-                </View>
-              )}
             </View>
           )}
 
@@ -668,6 +661,20 @@ function ReporteDoc({
               </View>
             </View>
           )}
+
+          {/* ── Gráfico Horizontal: Horas por Cliente ── */}
+          {porCliente.length > 0 && (
+            <View style={s.section}>
+              <View style={s.sectionHeader}>
+                <View style={s.sectionDot} />
+                <Text style={s.sectionTitle}>Horas por cliente</Text>
+              </View>
+              <View style={[s.chartBox, { width: "100%" }]}>
+                <HorizontalBarChartSvg data={porCliente} width={480} height={Math.max(60, porCliente.filter(c => c.horas > 0).length * 16 + 20)} />
+              </View>
+            </View>
+          )}
+  
 
           {/* ── Tabla por mes ── */}
           {porMes.length > 1 && (
