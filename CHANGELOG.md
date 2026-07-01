@@ -5,6 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.39] — 2026-06-22
+
+### Mejorado
+- **Nota al Pie de Página Dinámica en PDF**: La leyenda explicativa `*` ahora se renderiza dinámicamente y con la propiedad `fixed` **exclusivamente en el pie de página de la hoja 1**, justo por encima del footer fijo común. Esto evita que se repita en hojas posteriores de detalle.
+
 ## [1.2.38] — 2026-06-22
 
 ### Mejorado
