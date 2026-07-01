@@ -362,6 +362,72 @@ function PieChartSvg({ data, size = 100 }: {
   );
 }
 
+// ── SVG Horizontal Bar Chart (Clientes) ───────────────────────────────────────
+function HorizontalBarChartSvg({ data, width = 480, height = 105, moneda = "USD" }: {
+  data: Array<{ nombre: string; ingresos: number }>;
+  width?: number;
+  height?: number;
+  moneda?: string;
+}) {
+  if (!data.length) return null;
+
+  const padLeft = 85; // Espacio para etiquetas a la izquierda
+  const padRight = 55; // Espacio para montos a la derecha
+  const padTop = 10;
+  const padBottom = 10;
+  const chartW = width - padLeft - padRight;
+  const chartH = height - padTop - padBottom;
+
+  const validData = data.filter(d => d.ingresos > 0).slice(0, 5); // top 5 clientes
+  if (!validData.length) return null;
+
+  const maxVal = Math.max(...validData.map(d => d.ingresos), 1);
+  const barH = chartH / validData.length;
+  const barW_max = chartW;
+
+  return (
+    <Svg width={width} height={height}>
+      {validData.map((d, i) => {
+        const barW = (d.ingresos / maxVal) * barW_max;
+        const barY = padTop + i * barH + (barH * 0.2);
+        const barH_actual = barH * 0.6;
+
+        return (
+          <G key={i}>
+            {/* Label a la izquierda */}
+            <Text
+              x={padLeft - 8}
+              y={barY + barH_actual / 2 + 2.5}
+              style={{ fontSize: 6.5, fill: C.onSurface, textAnchor: "end", fontFamily: "Helvetica-Bold" } as any}
+            >
+              {d.nombre.length > 18 ? d.nombre.slice(0, 17) + "…" : d.nombre}
+            </Text>
+
+            {/* Rectángulo de barra */}
+            <Rect
+              x={padLeft}
+              y={barY}
+              width={Math.max(barW, 2)}
+              height={barH_actual}
+              fill={CHART[i % CHART.length]}
+              rx={1.5}
+            />
+
+            {/* Monto a la derecha */}
+            <Text
+              x={padLeft + barW + 5}
+              y={barY + barH_actual / 2 + 2.5}
+              style={{ fontSize: 6.5, fill: C.muted, fontFamily: "Helvetica-Bold" } as any}
+            >
+              {fmt(d.ingresos, moneda)}
+            </Text>
+          </G>
+        );
+      })}
+    </Svg>
+  );
+}
+
 // ── Document Principal ────────────────────────────────────────────────────────
 interface DocProps {
   data: ReportData;
@@ -394,7 +460,7 @@ function ReporteDoc({
   clienteNombre,
   tituloReporte,
 }: DocProps) {
-  const { kpis, porMes, porProyecto, porTarea, alertasTramo2 } = data;
+  const { kpis, porMes, porProyecto, porTarea, alertasTramo2, porCliente = [] } = data;
   const now = formatDateShort(new Date().toISOString().slice(0, 10));
   const periodLabel = formatPeriodLabel(fechaDesde, fechaHasta);
 
@@ -501,15 +567,7 @@ function ReporteDoc({
             </View>
           </View>
 
-          {/* ── Alertas tramo 2 ── */}
-          {alertasTramo2.length > 0 && (
-            <View style={s.alertBox}>
-              <Text style={[s.alertText, s.alertBold]}>⚠ Proyectos en tramo precio alto: </Text>
-              <Text style={s.alertText}>
-                {alertasTramo2.map(a => `${a.nombre} (${a.horasAcumuladas}h / umbral ${a.umbral}h)`).join("  ·  ")}
-              </Text>
-            </View>
-          )}
+
 
           {/* ── Gráficos lado a lado ── */}
           {(barData.length > 0 || pieData.length > 0) && (
@@ -555,6 +613,14 @@ function ReporteDoc({
                   </View>
                 )}
               </View>
+
+              {/* ── Gráfico Horizontal: Ingresos por Cliente ── */}
+              {porCliente.length > 0 && (
+                <View style={[s.chartBox, { marginTop: 10, width: "100%" }]}>
+                  <Text style={s.chartTitle}>Ingresos por cliente</Text>
+                  <HorizontalBarChartSvg data={porCliente} width={480} height={105} moneda={moneda} />
+                </View>
+              )}
             </View>
           )}
 
@@ -634,7 +700,7 @@ function ReporteDoc({
             borderLeft: `2px solid ${C.muted}`,
           }}>
             <Text style={{ fontSize: 7, color: C.muted, lineHeight: 1.3 }}>
-              * Nota sobre Horas Facturables: Las horas facturables pueden diferir de las horas realmente trabajadas debido al algoritmo de redondeo y umbrales mensuales aplicados. En el tramo de tarifa base (primeras 20h), las fracciones se redondean a intervalos de 0.5h. En el tramo de tarifa alta (superado el umbral), las fracciones se redondean hacia arriba a la siguiente hora completa.
+              * Nota sobre Horas Facturables: Las horas facturables pueden diferir de las horas trabajadas debido al algoritmo de redondeo y umbrales mensuales aplicados. En el tramo de tarifa base (primeras 20h), las fracciones se redondean a intervalos de 0.5h. En el tramo de tarifa alta (superado el umbral), las fracciones se redondean hacia arriba a la siguiente hora completa.
             </Text>
           </View>
 

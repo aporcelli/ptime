@@ -5,6 +5,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.37] — 2026-06-22
+
+### Añadido
+- **Gráfico de Ingresos por Cliente en PDF**: Agregado el gráfico horizontal de ingresos por cliente en la primera hoja del PDF, imitando exactamente el look y colores degradados del reporte web.
+### Corregido
+- **Eliminación de Alertas**: Removida la caja de alertas de proyectos de precio alto que no se solicitó.
+- **Leyenda de Horas Facturables**: Se quitó la palabra "realmente" del comentario para mayor precisión (*"...diferir de las horas trabajadas..."*).
+
 ## [1.2.36] — 2026-06-22
 
 ### Añadido

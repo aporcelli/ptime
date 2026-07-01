@@ -149,6 +149,7 @@ export default async function ReportesPage({
     porTarea:    tareasData,
     top3Proyectos: proyectosData.slice(0, 3).map(p => ({ nombre: p.nombre, ingresos: p.ingresos })),
     alertasTramo2,
+    porCliente:  clientesData,
   };
 
   // ── Registros enriquecidos para detalle en PDF
