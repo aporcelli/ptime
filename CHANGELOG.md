@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.38] — 2026-06-22
+
+### Mejorado
+- **Gráfico de Horas por Cliente en PDF**: Cambiada la métrica de ingresos (costos) a **horas**, y actualizado el título de la sección a `"Horas por cliente"`. Se eliminó la limitación de mostrar solo el Top 5 para listar **todos los clientes** activos del reporte. El alto del gráfico es ahora dinámico para evitar superposiciones.
+- **Leyenda de Horas en Pie de Página**: Movida la nota `*` de Horas Facturables para que se renderice como un bloque absoluto en el pie de página de la **primera hoja**, por encima de la banda navy fija.
+
 ## [1.2.37] — 2026-06-22
 
 ### Añadido
