@@ -9,6 +9,7 @@ import { format, startOfMonth, endOfMonth } from "date-fns";
 import { Clock, DollarSign, FolderOpen, TrendingUp, AlertTriangle, Plus, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { Sparkline } from "@/components/charts/Sparkline";
+import CalendarHeatmap from "@/components/charts/CalendarHeatmap";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -61,6 +62,16 @@ export default async function DashboardPage() {
       return horasMes > (p.umbral_precio_alto ?? config.umbralHoras);
     });
 
+    // Actividad diaria para heatmap
+    const actividadDiariaDashboard = registrosRepriced.reduce<Record<string, number>>((acc, r) => {
+      const dia = r.fecha.slice(0, 10);
+      acc[dia] = (acc[dia] ?? 0) + (r.horas_a_cobrar ?? r.horas);
+      return acc;
+    }, {});
+    const actividadDiariaData = Object.entries(actividadDiariaDashboard)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([fecha, horas]) => ({ fecha, horas }));
+
     return (
       <PageShell
         title="Dashboard"
@@ -78,6 +89,9 @@ export default async function DashboardPage() {
           </>
         }
       >
+
+        {/* KPIs */}
+        <CalendarHeatmap data={actividadDiariaData} />
 
         {/* KPIs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
