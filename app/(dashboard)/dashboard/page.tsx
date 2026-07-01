@@ -112,37 +112,42 @@ export default async function DashboardPage({
         }
       >
 
-        {/* KPIs */}
-        <CalendarHeatmap data={actividadDiariaData} locale={locale} />
+        {/* Top Row: KPIs (2/3 width) + Heatmap (1/3 width) side-by-side */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+          {/* KPIs (2/3 width) */}
+          <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <MetricCard
+              icon={<Clock size={20} className="text-blue-500" />}
+              label="Horas del mes"
+              value={formatHours(totalHoras)}
+            >
+              {registros.length > 0 && <Sparkline data={registros.slice(-7).map((r) => r.horas)} color="#3b82f6" height={30} />}
+            </MetricCard>
+            <MetricCard
+              icon={<DollarSign size={20} className="text-emerald-500" />}
+              label="Ingresos del mes"
+              value={formatCurrency(totalIngresos, config.moneda)}
+              tone="success"
+            >
+              {registrosRepriced.length > 0 && <Sparkline data={registrosRepriced.slice(-7).map((r) => r.monto_total)} color="#10b981" height={30} />}
+            </MetricCard>
+            <MetricCard
+              icon={<TrendingUp size={20} className="text-amber-500" />}
+              label="Promedio diario"
+              value={`${promedioHoras}h`}
+              tone="warning"
+            />
+            <MetricCard
+              icon={<FolderOpen size={20} className="text-purple-500" />}
+              label="Proyectos activos"
+              value={String(proyectos.length)}
+            />
+          </div>
 
-        {/* KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <MetricCard
-            icon={<Clock size={20} className="text-blue-500" />}
-            label="Horas del mes"
-            value={formatHours(totalHoras)}
-          >
-            {registros.length > 0 && <Sparkline data={registros.slice(-7).map((r) => r.horas)} color="#3b82f6" height={30} />}
-          </MetricCard>
-          <MetricCard
-            icon={<DollarSign size={20} className="text-emerald-500" />}
-            label="Ingresos del mes"
-            value={formatCurrency(totalIngresos, config.moneda)}
-            tone="success"
-          >
-            {registrosRepriced.length > 0 && <Sparkline data={registrosRepriced.slice(-7).map((r) => r.monto_total)} color="#10b981" height={30} />}
-          </MetricCard>
-          <MetricCard
-            icon={<TrendingUp size={20} className="text-amber-500" />}
-            label="Promedio diario"
-            value={`${promedioHoras}h`}
-            tone="warning"
-          />
-          <MetricCard
-            icon={<FolderOpen size={20} className="text-purple-500" />}
-            label="Proyectos activos"
-            value={String(proyectos.length)}
-          />
+          {/* Heatmap (1/3 width) */}
+          <div className="lg:col-span-1">
+            <CalendarHeatmap data={actividadDiariaData} locale={locale} />
+          </div>
         </div>
 
         {/* Alerta tramo 2 */}

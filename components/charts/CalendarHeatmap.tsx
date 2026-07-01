@@ -93,37 +93,37 @@ export default function CalendarHeatmap({ data, locale = "es" }: Props) {
   }
 
   return (
-    <div className="card p-5 md:p-6 flex flex-col gap-4">
+    <div className="card p-4 flex flex-col gap-3">
       {/* Header del Calendario */}
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-heading text-sm uppercase tracking-wider flex items-center gap-2">
+        <h3 className="font-semibold text-heading text-[11px] uppercase tracking-wider flex items-center gap-1.5">
           <span>📅</span> {t.title}
         </h3>
-        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-muted text-foreground font-mono">
+        <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-muted text-foreground font-mono">
           {monthLabel}
         </span>
       </div>
 
       {/* Grid del Calendario */}
-      <div className="max-w-md mx-auto w-full">
+      <div className="w-full">
         {/* Cabecera de días (L M M J V S D) */}
-        <div className="grid grid-cols-7 gap-1.5 mb-2 text-center">
+        <div className="grid grid-cols-7 gap-1.5 mb-1.5 text-center">
           {weekdays.map((day) => (
-            <div key={day} className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground opacity-60 py-1">
-              {day}
+            <div key={day} className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground opacity-60">
+              {day.charAt(0)}
             </div>
           ))}
         </div>
 
         {/* Cuerpo del calendario (cuadrados perfectos) */}
-        <div className="grid grid-cols-7 gap-1.5">
+        <div className="grid grid-cols-7 gap-1">
           {gridCells.map((cell, idx) => {
             if (!cell.dayNum) {
               // Celda de relleno vacía
               return (
                 <div 
                   key={`empty-${idx}`} 
-                  className="aspect-square rounded-lg bg-transparent border border-transparent"
+                  className="aspect-square rounded-md bg-transparent border border-transparent"
                 />
               );
             }
@@ -138,19 +138,19 @@ export default function CalendarHeatmap({ data, locale = "es" }: Props) {
                 key={cell.fecha}
                 title={tooltip}
                 className={`
-                  aspect-square rounded-lg flex flex-col items-center justify-center 
+                  aspect-square rounded-md flex flex-col items-center justify-center 
                   relative cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95
                   ${intensityClass}
                 `}
               >
                 {/* Número del día */}
-                <span className="text-xs font-mono font-bold select-none">
+                <span className="text-[10px] font-mono font-bold select-none">
                   {cell.dayNum}
                 </span>
 
                 {/* Puntito de indicador en la esquina si tiene muchas horas */}
                 {cell.horas > 8 && (
-                  <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  <span className="absolute top-0.5 right-0.5 w-1 h-1 rounded-full bg-amber-400 animate-pulse" />
                 )}
               </div>
             );
@@ -159,9 +159,9 @@ export default function CalendarHeatmap({ data, locale = "es" }: Props) {
       </div>
 
       {/* Leyenda de Intensidades */}
-      <div className="flex items-center justify-center gap-1.5 mt-2 text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+      <div className="flex items-center justify-center gap-1.5 mt-1 text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
         <span>Less</span>
-        <div className="w-3.5 h-3.5 rounded bg-muted/60 border" />
+        <div className="w-3 h-3 rounded bg-muted/60 border" />
         <div className="w-3 h-3 rounded bg-emerald-100 dark:bg-emerald-500/20" />
         <div className="w-3 h-3 rounded bg-emerald-300 dark:bg-emerald-500/40" />
         <div className="w-3 h-3 rounded-full bg-emerald-500" />
