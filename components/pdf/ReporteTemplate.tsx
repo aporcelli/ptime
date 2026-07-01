@@ -219,6 +219,16 @@ const s = StyleSheet.create({
   // ── TuCloud Logos
   headerLogo: { height: 44, width: "auto", marginLeft: 14 },
   footerLogo: { height: 28, width: "auto", marginLeft: 8 },
+  footnoteBox: {
+    position: "absolute",
+    bottom: 45,
+    left: 36,
+    right: 36,
+    padding: 6,
+    backgroundColor: C.surfaceLow,
+    borderRadius: 4,
+    borderLeft: `2px solid ${C.muted}`,
+  },
 });
 
 // ── Helpers de formato ────────────────────────────────────────────────────────
@@ -363,11 +373,10 @@ function PieChartSvg({ data, size = 100 }: {
 }
 
 // ── SVG Horizontal Bar Chart (Clientes) ───────────────────────────────────────
-function HorizontalBarChartSvg({ data, width = 480, height = 105, moneda = "USD" }: {
-  data: Array<{ nombre: string; ingresos: number }>;
+function HorizontalBarChartSvg({ data, width = 480, height = 105 }: {
+  data: Array<{ nombre: string; horas: number }>;
   width?: number;
   height?: number;
-  moneda?: string;
 }) {
   if (!data.length) return null;
 
@@ -378,17 +387,17 @@ function HorizontalBarChartSvg({ data, width = 480, height = 105, moneda = "USD"
   const chartW = width - padLeft - padRight;
   const chartH = height - padTop - padBottom;
 
-  const validData = data.filter(d => d.ingresos > 0).slice(0, 5); // top 5 clientes
+  const validData = data.filter(d => d.horas > 0); // Mostrar todos
   if (!validData.length) return null;
 
-  const maxVal = Math.max(...validData.map(d => d.ingresos), 1);
+  const maxVal = Math.max(...validData.map(d => d.horas), 1);
   const barH = chartH / validData.length;
   const barW_max = chartW;
 
   return (
     <Svg width={width} height={height}>
       {validData.map((d, i) => {
-        const barW = (d.ingresos / maxVal) * barW_max;
+        const barW = (d.horas / maxVal) * barW_max;
         const barY = padTop + i * barH + (barH * 0.2);
         const barH_actual = barH * 0.6;
 
@@ -413,13 +422,13 @@ function HorizontalBarChartSvg({ data, width = 480, height = 105, moneda = "USD"
               rx={1.5}
             />
 
-            {/* Monto a la derecha */}
+            {/* Horas a la derecha */}
             <Text
               x={padLeft + barW + 5}
               y={barY + barH_actual / 2 + 2.5}
               style={{ fontSize: 6.5, fill: C.muted, fontFamily: "Helvetica-Bold" } as any}
             >
-              {fmt(d.ingresos, moneda)}
+              {fmtH(d.horas)}
             </Text>
           </G>
         );
@@ -614,11 +623,11 @@ function ReporteDoc({
                 )}
               </View>
 
-              {/* ── Gráfico Horizontal: Ingresos por Cliente ── */}
+              {/* ── Gráfico Horizontal: Horas por Cliente ── */}
               {porCliente.length > 0 && (
                 <View style={[s.chartBox, { marginTop: 10, width: "100%" }]}>
-                  <Text style={s.chartTitle}>Ingresos por cliente</Text>
-                  <HorizontalBarChartSvg data={porCliente} width={480} height={105} moneda={moneda} />
+                  <Text style={s.chartTitle}>Horas por cliente</Text>
+                  <HorizontalBarChartSvg data={porCliente} width={480} height={Math.max(60, porCliente.filter(c => c.horas > 0).length * 16 + 20)} />
                 </View>
               )}
             </View>
@@ -691,18 +700,7 @@ function ReporteDoc({
             </View>
           )}
 
-          {/* Nota sobre Horas Facturables (con asterisco) */}
-          <View style={{
-            marginTop: 10,
-            padding: 8,
-            backgroundColor: C.surfaceLow,
-            borderRadius: 4,
-            borderLeft: `2px solid ${C.muted}`,
-          }}>
-            <Text style={{ fontSize: 7, color: C.muted, lineHeight: 1.3 }}>
-              * Nota sobre Horas Facturables: Las horas facturables pueden diferir de las horas trabajadas debido al algoritmo de redondeo y umbrales mensuales aplicados. En el tramo de tarifa base (primeras 20h), las fracciones se redondean a intervalos de 0.5h. En el tramo de tarifa alta (superado el umbral), las fracciones se redondean hacia arriba a la siguiente hora completa.
-            </Text>
-          </View>
+
 
           {/* ── Detalle de registros (si se pasan) ── */}
           {registros.length > 0 && (
@@ -734,6 +732,13 @@ function ReporteDoc({
             </View>
           )}
 
+        </View>
+
+        {/* Nota sobre Horas Facturables en el pie de página de la hoja 1 */}
+        <View style={s.footnoteBox}>
+          <Text style={{ fontSize: 6.5, color: C.muted, lineHeight: 1.25 }}>
+            * Nota sobre Horas Facturables: Las horas facturables pueden diferir de las horas trabajadas debido al algoritmo de redondeo y umbrales mensuales aplicados. En el tramo de tarifa base (primeras 20h), las fracciones se redondean a intervalos de 0.5h. En el tramo de tarifa alta (superado el umbral), las fracciones se redondean hacia arriba a la siguiente hora completa.
+          </Text>
         </View>
 
         {/* ── Footer banda navy ── */}

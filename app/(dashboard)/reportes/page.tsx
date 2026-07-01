@@ -86,11 +86,13 @@ export default async function ReportesPage({
   }, {});
 
   // ── Agregados por cliente
-  const porClienteMap = registrosRepriced.reduce<Record<string, { nombre: string; ingresos: number }>>((acc, r) => {
+  const porClienteMap = registrosRepriced.reduce<Record<string, { nombre: string; horas: number; ingresos: number }>>((acc, r) => {
     const proyecto = proyectosMap.get(r.proyecto_id);
     const clienteId = r.cliente_id ?? proyecto?.cliente_id ?? "__sin_cliente__";
     const nombre = clientesMap.get(clienteId)?.nombre ?? "Sin cliente";
-    if (!acc[clienteId]) acc[clienteId] = { nombre, ingresos: 0 };
+    const horasFact = r.horas_a_cobrar ?? r.horas;
+    if (!acc[clienteId]) acc[clienteId] = { nombre, horas: 0, ingresos: 0 };
+    acc[clienteId].horas += horasFact;
     acc[clienteId].ingresos += r.monto_total;
     return acc;
   }, {});
