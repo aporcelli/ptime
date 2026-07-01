@@ -39,6 +39,7 @@ export interface ReportData {
     porTarea: Array<{ nombre: string; horas: number; porcentaje: number }>;
     top3Proyectos: Array<{ nombre: string; ingresos: number }>;
     alertasTramo2: Array<{ nombre: string; horasAcumuladas: number; umbral: number }>;
+    porCliente?: Array<{ nombre: string; ingresos: number }>;
 }
 
 /** Error de validación de formulario */
