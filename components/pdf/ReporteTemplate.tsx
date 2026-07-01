@@ -734,12 +734,16 @@ function ReporteDoc({
 
         </View>
 
-        {/* Nota sobre Horas Facturables en el pie de página de la hoja 1 */}
-        <View style={s.footnoteBox}>
-          <Text style={{ fontSize: 6.5, color: C.muted, lineHeight: 1.25 }}>
-            * Nota sobre Horas Facturables: Las horas facturables pueden diferir de las horas trabajadas debido al algoritmo de redondeo y umbrales mensuales aplicados. En el tramo de tarifa base (primeras 20h), las fracciones se redondean a intervalos de 0.5h. En el tramo de tarifa alta (superado el umbral), las fracciones se redondean hacia arriba a la siguiente hora completa.
-          </Text>
-        </View>
+        {/* Nota sobre Horas Facturables en el pie de página de la hoja 1 (render dinámico fijo) */}
+        <View render={({ pageNumber }) => (
+          pageNumber === 1 ? (
+            <View style={s.footnoteBox}>
+              <Text style={{ fontSize: 6.5, color: C.muted, lineHeight: 1.25 }}>
+                * Nota sobre Horas Facturables: Las horas facturables pueden diferir de las horas trabajadas debido al algoritmo de redondeo y umbrales mensuales aplicados. En el tramo de tarifa base (primeras 20h), las fracciones se redondean a intervalos de 0.5h. En el tramo de tarifa alta (superado el umbral), las fracciones se redondean hacia arriba a la siguiente hora completa.
+              </Text>
+            </View>
+          ) : null
+        )} fixed />
 
         {/* ── Footer banda navy ── */}
         <View style={s.footer} fixed>
