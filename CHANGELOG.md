@@ -5,6 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.32] — 2026-06-22
+
+### Añadido
+- **Calendario de actividad diaria** en Dashboard: heatmap tipo GitHub con intensidad verde por horas.
+
 ## [1.2.31] — 2026-06-22
 
 ### Añadido
