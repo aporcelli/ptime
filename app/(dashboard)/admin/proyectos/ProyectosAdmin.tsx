@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Loader2, X, FolderKanban, CheckCircle, Pencil, Trash2, AlertTriangle } from "lucide-react";
@@ -22,6 +22,33 @@ const defaultForm = {
 
 export default function ProyectosAdmin({ proyectos, clientes }: Props) {
   const router = useRouter();
+  const [sortKey, setSortKey] = useState<"nombre" | "cliente" | "presupuesto_horas" | "precio_base" | "precio_alto" | "estado">("nombre");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const sorted = useMemo(() => {
+    const dir = sortDir === "asc" ? 1 : -1;
+    return [...proyectos].sort((a, b) => {
+      let va: any = a[sortKey as keyof Proyecto];
+      let vb: any = b[sortKey as keyof Proyecto];
+      if (sortKey === "cliente") {
+        va = clientes.find(c => c.id === a.cliente_id)?.nombre ?? "";
+        vb = clientes.find(c => c.id === b.cliente_id)?.nombre ?? "";
+      }
+      if (typeof va === "string") return va.localeCompare(vb, undefined, { sensitivity: "base" }) * dir;
+      if (typeof va === "number") return (va - vb) * dir;
+      return 0;
+    });
+  }, [proyectos, clientes, sortKey, sortDir]);
+
+  function SortHeader({ col, label }: { col: typeof sortKey; label: string }) {
+    return (
+      <th onClick={() => { if (sortKey === col) setSortDir(d => d === "asc" ? "desc" : "asc"); else { setSortKey(col); setSortDir("asc"); } }}
+        className="p-3 text-xs font-semibold uppercase tracking-wide text-left cursor-pointer hover:text-on-surface select-none text-on-surface-variant"
+        style={{ color: sortKey === col ? "var(--text-on-surface)" : undefined }}>
+        {label} {sortKey === col && (sortDir === "asc" ? "▲" : "▼")}
+      </th>
+    );
+  }
+
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Proyecto | null>(null);
   const [deleting, setDeleting] = useState<Proyecto | null>(null);
@@ -106,13 +133,17 @@ export default function ProyectosAdmin({ proyectos, clientes }: Props) {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-surface-high">
-                {["Nombre", "Cliente", "Presupuesto", "$/h base", "$/h alto", "Estado", ""].map((h) => (
-                  <th key={h} className="p-3 text-xs font-semibold uppercase tracking-wide text-left text-on-surface-variant">{h}</th>
-                ))}
+                <SortHeader col="nombre" label="Nombre" />
+                <SortHeader col="cliente" label="Cliente" />
+                <SortHeader col="presupuesto_horas" label="Presupuesto" />
+                <SortHeader col="precio_base" label="$/h base" />
+                <SortHeader col="precio_alto" label="$/h alto" />
+                <SortHeader col="estado" label="Estado" />
+                <th className="p-3 text-xs font-semibold uppercase tracking-wide text-left text-on-surface-variant" />
               </tr>
             </thead>
             <tbody>
-              {proyectos.map((p, i) => {
+              {sorted.map((p, i) => {
                 const cliente = clientes.find((c) => c.id === p.cliente_id);
                 return (
                   <tr key={p.id} className={`transition-colors hover:bg-surface-low ${i % 2 === 0 ? "bg-surface-lowest" : "bg-surface-low"}`}>

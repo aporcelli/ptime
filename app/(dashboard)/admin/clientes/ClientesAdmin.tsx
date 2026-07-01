@@ -4,12 +4,14 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Loader2, X, Users, CheckCircle, Pencil, Trash2, AlertTriangle } from "lucide-react";
 import { createClienteAction, updateClienteAction, deleteClienteAction } from "@/app/actions/clients";
+import { useSort } from "@/hooks/useSort";
 import type { Cliente } from "@/types/entities";
 
 export default function ClientesAdmin({ clientes }: { clientes: Cliente[] }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Cliente | null>(null);
+  const { sorted, SortHeader } = useSort(clientes, "nombre");
   const [deleting, setDeleting] = useState<Cliente | null>(null);
   const [saving, setSaving] = useState(false);
   const [ok, setOk] = useState(false);
@@ -79,12 +81,14 @@ export default function ClientesAdmin({ clientes }: { clientes: Cliente[] }) {
         ) : (
           <table className="w-full text-sm">
             <thead><tr className="table-head">
-              {["Nombre", "Email", "Teléfono", "Estado", ""].map((h) => (
-                <th key={h} className="p-3 text-xs font-semibold uppercase tracking-wide text-left" style={{ color: "var(--text-muted)" }}>{h}</th>
-              ))}
+              <SortHeader colKey="nombre" label="Nombre" />
+              <SortHeader colKey="email" label="Email" />
+              <SortHeader colKey="telefono" label="Teléfono" />
+              <SortHeader colKey="activo" label="Estado" />
+              <th className="p-3 text-xs font-semibold uppercase tracking-wide text-left" style={{ color: "var(--text-muted)" }} />
             </tr></thead>
             <tbody>
-              {clientes.map((c) => (
+              {sorted.map((c) => (
                 <tr key={c.id} className="table-row">
                   <td className="p-3 font-medium text-heading">{c.nombre}</td>
                   <td className="p-3 text-sub">{c.email}</td>
