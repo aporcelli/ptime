@@ -664,7 +664,7 @@ function ReporteDoc({
 
           {/* ── Gráfico Horizontal: Horas por Cliente ── */}
           {porCliente.length > 0 && (
-            <View style={s.section}>
+            <View style={s.section} break>
               <View style={s.sectionHeader}>
                 <View style={s.sectionDot} />
                 <Text style={s.sectionTitle}>Horas por cliente</Text>

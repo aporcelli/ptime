@@ -5,6 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.42] — 2026-06-22
+
+### Corregido
+- **Salto de Página para Horas por Cliente**: Agregado el atributo `break` nativo al bloque `"Horas por cliente"`. Esto obliga a que tanto el título como el gráfico completo se rendericen juntos desde el inicio de la **hoja 2**, eliminando el problema de títulos huérfanos al final de la hoja 1.
+
 ## [1.2.41] — 2026-06-22
 
 ### Mejorado
