@@ -5,6 +5,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.35] — 2026-06-22
+
+### Mejorado
+- **Diseño del Dashboard**: Reorganizado el diseño de la primera fila en pantallas de escritorio.
+  - Los **KPIs** (4 tarjetas de métricas) y el **Calendario de Actividad** ahora se muestran lado a lado (`2/3` para KPIs y `1/3` para el Calendario).
+  - Reduce sustancialmente el espacio vertical ocupado y sube las tarjetas de Registros Recientes y Estado de Proyectos.
+  - El Calendario de Actividad se adaptó para ser aún más compacto y elegante como widget lateral.
+
 ## [1.2.34] — 2026-06-22
 
 ### Mejorado
