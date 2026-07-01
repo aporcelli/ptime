@@ -41,7 +41,7 @@ const s = StyleSheet.create({
     fontSize: 9,
     backgroundColor: C.surface,
     paddingTop: 0,
-    paddingBottom: 48,
+    paddingBottom: 95, // Incrementado de 48 a 95 para reservar espacio para la nota absoluta y el footer
     paddingHorizontal: 0,
   },
 
