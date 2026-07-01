@@ -5,11 +5,12 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getRegistrosHoras, getProyectos, getAppConfig } from "@/lib/sheets/queries";
 import { formatCurrency, formatDateShort, formatHours } from "@/lib/utils/index";
-import { format, startOfMonth, endOfMonth } from "date-fns";
+import { format, startOfMonth, endOfMonth, parse } from "date-fns";
 import { Clock, DollarSign, FolderOpen, TrendingUp, AlertTriangle, Plus, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { Sparkline } from "@/components/charts/Sparkline";
 import CalendarHeatmap from "@/components/charts/CalendarHeatmap";
+import DashboardMonthFilter from "@/components/DashboardMonthFilter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,7 +28,11 @@ import { repriceMonthlyRecords, summarizeRecords } from "@/lib/hours/monthly";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | undefined };
+}) {
   const session = await auth();
   const localUser = getLocalDevUser(getRequestUrlFromHeaders(headers()));
   const userName = session?.user?.name ?? localUser?.name ?? "";
@@ -35,20 +40,36 @@ export default async function DashboardPage() {
 
   try {
     const hoy = new Date();
-    const fechaDesde = format(startOfMonth(hoy), "yyyy-MM-dd");
-    const fechaHasta = format(endOfMonth(hoy), "yyyy-MM-dd");
 
-    const [registros, proyectos, config] = await Promise.all([
-      getRegistrosHoras(ctx, { fechaDesde, fechaHasta }),
+    const [todosLosRegistros, proyectos, config] = await Promise.all([
+      getRegistrosHoras(ctx),
       getProyectos(ctx, { soloActivos: true }),
       getAppConfig(ctx),
     ]);
+
+    const uniqueMonths = Array.from(
+      new Set(todosLosRegistros.map((r) => r.fecha.slice(0, 7)))
+    ).sort((a, b) => b.localeCompare(a));
+
+    const currentMonth = format(hoy, "yyyy-MM");
+    const selectedMonth = searchParams.mes ?? uniqueMonths[0] ?? currentMonth;
+    const selectedDate = parse(selectedMonth, "yyyy-MM", hoy);
+
+    const fechaDesde = format(startOfMonth(selectedDate), "yyyy-MM-dd");
+    const fechaHasta = format(endOfMonth(selectedDate), "yyyy-MM-dd");
+
+    const registros = todosLosRegistros.filter(
+      (r) => r.fecha >= fechaDesde && r.fecha <= fechaHasta
+    );
+
+    const acceptLanguage = headers().get("accept-language") ?? "";
+    const locale = acceptLanguage.toLowerCase().includes("es") ? "es" : "en";
 
     const registrosRepriced = repriceMonthlyRecords(registros, Object.fromEntries(proyectos.map((p) => [p.id, p])), config);
     const monthSummary = summarizeRecords(registrosRepriced);
     const totalHoras = registros.reduce((s, r) => s + r.horas, 0);
     const totalIngresos = monthSummary.totalAmount;
-    const diasDelMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
+    const diasDelMes = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0).getDate();
     const promedioHoras = +(totalHoras / Math.max(diasDelMes, 1)).toFixed(2);
 
     // Horas del MES actual por proyecto (no acumuladas totales)
@@ -75,9 +96,10 @@ export default async function DashboardPage() {
     return (
       <PageShell
         title="Dashboard"
-        description={`${format(hoy, "MMMM yyyy")} · Bienvenido, ${userName}`}
+        description={`${format(selectedDate, "MMMM yyyy")} · Bienvenido, ${userName}`}
         actions={
-          <>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <DashboardMonthFilter months={uniqueMonths} selectedMonth={selectedMonth} />
             <Button asChild variant="outline">
               <Link href="/reportes">Ver reportes</Link>
             </Button>
@@ -86,12 +108,12 @@ export default async function DashboardPage() {
                 <Plus className="mr-2 h-4 w-4" /> Cargar horas
               </Link>
             </Button>
-          </>
+          </div>
         }
       >
 
         {/* KPIs */}
-        <CalendarHeatmap data={actividadDiariaData} />
+        <CalendarHeatmap data={actividadDiariaData} locale={locale} />
 
         {/* KPIs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

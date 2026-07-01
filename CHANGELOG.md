@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.33] — 2026-06-22
+
+### Añadido
+- **Filtro de mes en Dashboard**: Selector dinámico de mes que actualiza KPIs, heatmap y registros.
+- **Soporte bilingüe en Heatmap**: Calendario de actividad adaptado automáticamente al idioma del navegador (EN/ES).
+
 ## [1.2.32] — 2026-06-22
 
 ### Añadido
