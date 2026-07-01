@@ -5,6 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.31] — 2026-06-22
+
+### Añadido
+- **Ordenamiento en tablas admin**: Clientes, Proyectos y Tareas ahora ordenables clickeando columnas (▲/▼). Default alfabético por primera columna.
+
 ## [1.2.30] — 2026-06-22
 
 ### Corregido
