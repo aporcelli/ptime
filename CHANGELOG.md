@@ -5,6 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.40] — 2026-06-22
+
+### Corregido
+- **Maquetación de PDF**: Incrementado el `paddingBottom` de la página a `95` para reservar espacio físico. Esto evita que los gráficos o tablas relativas se superpongan o encimen con la nota absoluta del pie de página de la hoja 1.
+
 ## [1.2.39] — 2026-06-22
 
 ### Mejorado
