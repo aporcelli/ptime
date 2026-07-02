@@ -94,12 +94,12 @@ export default function TermsPage() {
                   2. Database & Data Sovereignty
                 </h2>
                 <p>
-                  Because Ptime utilizes a "bring-your-own-database" architecture, you retain full ownership and control of your data:
+                  Because Ptime utilizes a &quot;bring-your-own-database&quot; architecture, you retain full ownership and control of your data:
                 </p>
                 <ul className="list-disc list-inside space-y-2 mt-2">
                   <li><strong>Sovereign Storage</strong>: All hours, tasks, clients, and projects reside entirely in your Google Sheets database in your Google Drive. Ptime does not store your logs on external databases.</li>
                   <li><strong>Google Drive permissions</strong>: Ptime uses the secure `drive.file` scope. It can only read and write to sheets created by Ptime or explicitly chosen by you. We have no visibility over any other documents.</li>
-                  <li><strong>Collaborator onboarding</strong>: For collaborators or team members to register hours, you must manually share your Google Sheet with them in Google Drive granting them 'Editor' access. This ensures that only you control who accesses your data.</li>
+                  <li><strong>Collaborator onboarding</strong>: For collaborators or team members to register hours, you must manually share your Google Sheet with them in Google Drive granting them &apos;Editor&apos; access. This ensures that only you control who accesses your data.</li>
                 </ul>
               </section>
 
@@ -131,7 +131,7 @@ export default function TermsPage() {
                   5. Limitation of liability
                 </h2>
                 <p>
-                  Ptime is provided "as is" without warranties of any kind. Since all data resides in your Google Sheets, TuCloud.pro is not liable for data loss, accidental sheet deletion, or API rate-limit service interruptions caused by Google.
+                  Ptime is provided &quot;as is&quot; without warranties of any kind. Since all data resides in your Google Sheets, TuCloud.pro is not liable for data loss, accidental sheet deletion, or API rate-limit service interruptions caused by Google.
                 </p>
               </section>
 
@@ -196,12 +196,12 @@ export default function TermsPage() {
                   2. Base de datos y Soberanía de Datos
                 </h2>
                 <p>
-                  Dado que Ptime utiliza una arquitectura de "trae tu propia base de datos", vos conservás el control y la propiedad absoluta de tu información:
+                  Dado que Ptime utiliza una arquitectura de &quot;trae tu propia base de datos&quot;, vos conservás el control y la propiedad absoluta de tu información:
                 </p>
                 <ul className="list-disc list-inside space-y-2 mt-2">
                   <li><strong>Almacenamiento Soberano</strong>: Todas las horas, tareas, clientes y proyectos residen íntegramente en tu Google Sheets dentro de tu Google Drive. Ptime no copia ni almacena tus registros en bases de datos externas.</li>
                   <li><strong>Permisos de Google Drive</strong>: Ptime utiliza el alcance seguro `drive.file`. Solo lee y escribe en planillas creadas por Ptime o explícitamente elegidas por vos. No tenemos visibilidad sobre ningún otro documento.</li>
-                  <li><strong>Invitación de colaboradores</strong>: Para que un colaborador o miembro de tu equipo registre horas, tenés que compartirle manualmente la planilla en Google Drive otorgándole acceso de 'Editor'. Esto garantiza que solo vos controlás quién accede a tus datos.</li>
+                  <li><strong>Invitación de colaboradores</strong>: Para que un colaborador o miembro de tu equipo registre horas, tenés que compartirle manualmente la planilla en Google Drive otorgándole acceso de &apos;Editor&apos;. Esto garantiza que solo vos controlás quién accede a tus datos.</li>
                 </ul>
               </section>
 
@@ -233,7 +233,7 @@ export default function TermsPage() {
                   5. Limitación de responsabilidad
                 </h2>
                 <p>
-                  Ptime se provee "tal cual está", sin garantías de ningún tipo. Dado que todos tus datos residen en tu Google Sheets, TuCloud.pro no se responsabiliza por pérdida de datos, eliminación accidental de pestañas o interrupciones del servicio causadas por límites de Google.
+                  Ptime se provee &quot;tal cual está&quot;, sin garantías de ningún tipo. Dado que todos tus datos residen en tu Google Sheets, TuCloud.pro no se responsabiliza por pérdida de datos, eliminación accidental de pestañas o interrupciones del servicio causadas por límites de Google.
                 </p>
               </section>
 

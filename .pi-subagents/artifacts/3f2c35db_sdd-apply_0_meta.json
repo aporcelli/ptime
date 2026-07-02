@@ -1,0 +1,36 @@
+{
+  "runId": "3f2c35db",
+  "agent": "sdd-apply",
+  "task": "Implement the remaining tasks (Task 4 to Task 8) in 'openspec/onboarding-marketing-overhaul.tasks.md' for the change 'onboarding-marketing-overhaul'. Note that Task 1, 2, and 3 are already implemented in the files 'lib/onboarding-i18n.ts', 'components/onboarding/OnboardingTour.tsx', and 'components/layout/Sidebar.tsx' respectively. You must implement the rest (DashboardShell integration, SetupForm language selector, landing page copy, privacy/terms translation, and the reset tour button). Run 'npm run test:run' and 'npx tsc --noEmit' to verify.",
+  "exitCode": 0,
+  "usage": {
+    "input": 848076,
+    "output": 79131,
+    "cacheRead": 1035417,
+    "cacheWrite": 0,
+    "cost": 2.1396055500000006,
+    "turns": 111
+  },
+  "model": "google/gemini-3.5-flash",
+  "attemptedModels": [
+    "google/gemini-3.5-flash"
+  ],
+  "modelAttempts": [
+    {
+      "model": "google/gemini-3.5-flash",
+      "success": true,
+      "exitCode": 0,
+      "usage": {
+        "input": 848076,
+        "output": 79131,
+        "cacheRead": 1035417,
+        "cacheWrite": 0,
+        "cost": 2.1396055500000006,
+        "turns": 111
+      }
+    }
+  ],
+  "durationMs": 485756,
+  "toolCount": 110,
+  "timestamp": 1783022110163
+}
