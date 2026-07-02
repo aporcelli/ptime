@@ -5,6 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.45] — 2026-06-22
+
+### Corregido
+- **Google Picker AppId Association**: Agregado el método `.setAppId("878309056527")` al constructor del PickerBuilder en `public/picker.html`. Esto asocia correctamente las acciones de selección de archivos del Picker con nuestro proyecto oficial de Google Cloud, garantizando que Google otorgue de forma efectiva los permisos del scope `drive.file` al ID del Sheet seleccionado y evitando el error 404 al procesar la planilla.
+
 ## [1.2.44] — 2026-06-22
 
 ### Corregido
