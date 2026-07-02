@@ -270,3 +270,22 @@ export async function initializeSpreadsheet(spreadsheetId: string, accessToken: 
     await valuesAppend(spreadsheetId, accessToken, "Configuraciones!A2", defaults, "RAW", "INSERT_ROWS");
   }
 }
+
+export async function createSpreadsheet(title: string, accessToken: string): Promise<string> {
+  const res = await fetch("https://sheets.googleapis.com/v4/spreadsheets", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      properties: { title },
+    }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Google Sheets API ${res.status}: ${text || res.statusText}`);
+  }
+  const data = await res.json() as { spreadsheetId: string };
+  return data.spreadsheetId;
+}

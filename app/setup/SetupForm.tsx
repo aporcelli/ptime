@@ -4,7 +4,7 @@
 import { useState }      from "react";
 import { useRouter }     from "next/navigation";
 import { motion }     from "framer-motion";
-import { validateAndSaveSheetId } from "@/app/actions/setup";
+import { validateAndSaveSheetId, createAndConnectNewSheet } from "@/app/actions/setup";
 import GoogleSheetPicker from "@/components/GoogleSheetPicker";
 
 const Loader2 = ({ size = 16, className = "" }: { size?: number; className?: string }) => (
@@ -68,6 +68,23 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
     }, 1200);
   }
 
+  async function handleCreateAutoSheet() {
+    setStatus("loading");
+    setMessage("");
+    const result = await createAndConnectNewSheet();
+    if (!result.success) {
+      setStatus("error");
+      setMessage(result.error ?? "Error al crear la planilla");
+      return;
+    }
+    setStatus("success");
+    setMessage(`¡Planilla "${result.title}" creada con éxito! Entrando…`);
+    setTimeout(() => {
+      router.push("/dashboard");
+      router.refresh();
+    }, 1200);
+  }
+
   async function handleSharedSubmit() {
     if (!sharedSheetId) return;
     await connectSheet(sharedSheetId);
@@ -117,15 +134,37 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
     return (
       <div className="flex flex-col gap-5 text-center">
         <div className="p-4 bg-muted/50 border border-border rounded-xl text-sm text-muted-foreground space-y-1">
-          <p className="font-semibold text-foreground text-xs uppercase tracking-wide">Choose your Google Sheet</p>
-          <p className="text-xs">Select the spreadsheet you want to use as your Ptime database.</p>
+          <p className="font-semibold text-foreground text-xs uppercase tracking-wide">Configure your database</p>
+          <p className="text-xs">Select an existing sheet or let Ptime create a fresh one for you.</p>
         </div>
 
-        <GoogleSheetPicker
-          onSelect={connectSheet}
-          disabled={status === "loading" || status === "success"}
-          label="Choose from Google Drive"
-        />
+        <div className="flex flex-col gap-3">
+          <GoogleSheetPicker
+            onSelect={connectSheet}
+            disabled={status === "loading" || status === "success"}
+            label="Select existing spreadsheet"
+            variant="secondary"
+          />
+
+          <div className="relative flex py-1 items-center">
+            <div className="flex-grow border-t border-border"></div>
+            <span className="flex-shrink mx-4 text-xs text-muted-foreground uppercase">or</span>
+            <div className="flex-grow border-t border-border"></div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleCreateAutoSheet}
+            disabled={status === "loading" || status === "success"}
+            className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-semibold rounded-xl py-3.5 text-sm flex items-center justify-center gap-2 transition-colors shadow-sm shadow-emerald-600/10"
+          >
+            {status === "loading" ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <span>✨ Create a brand new Google Sheet</span>
+            )}
+          </button>
+        </div>
 
         {status === "error" && (
           <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">{message}</div>

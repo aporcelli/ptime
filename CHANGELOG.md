@@ -5,6 +5,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.46] — 2026-06-22
+
+### Añadido
+- **Creación de Planilla Automática (One-click Setup)**: Implementado un nuevo botón en la interfaz del Picker ("Create a brand new Google Sheet") que permite a los usuarios nuevos crear una planilla de cero automáticamente en su Google Drive a través de la API.
+  - La nueva planilla se titula *"Ptime — Control de Horas"*.
+  - El sistema inicializa automáticamente todas las pestañas requeridas (`Registros_Horas`, `Clientes`, `Proyectos`, `Tareas`, `Configuraciones`) con sus respectivas cabeceras por defecto.
+  - Como el archivo es creado por Ptime, queda automáticamente autorizado bajo el scope seguro `drive.file` de Google, permitiendo un onboarding inmediato de un solo clic, sin pasar por el selector manual.
+
 ## [1.2.45] — 2026-06-22
 
 ### Corregido
