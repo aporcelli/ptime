@@ -3,8 +3,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
-import { LogOut, User, Menu } from "lucide-react";
+import { LogOut, User, Menu, Languages } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
+import { useRouter } from "next/navigation";
+import type { Locale } from "@/lib/onboarding-i18n";
 
 interface Props {
   user: { name?: string | null; email?: string | null; role: string; image?: string | null };
@@ -14,6 +16,22 @@ interface Props {
 export default function Topbar({ user, onMenuClick }: Props) {
   const { data: session } = useSession();
   const [sessionAvatarFromApi, setSessionAvatarFromApi] = useState<string | null>(null);
+  const [locale, setLocale] = useState<Locale>("en");
+  const router = useRouter();
+
+  useEffect(() => {
+    const saved = localStorage.getItem("ptime-locale") as Locale | null;
+    if (saved === "en" || saved === "es") setLocale(saved);
+  }, []);
+
+  const toggleLanguage = () => {
+    const next = locale === "en" ? "es" : "en";
+    setLocale(next);
+    localStorage.setItem("ptime-locale", next);
+    localStorage.setItem("landing-locale", next);
+    document.cookie = `ptime-locale=${next}; path=/; max-age=${365 * 24 * 60 * 60}`;
+    router.refresh();
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -89,7 +107,16 @@ export default function Topbar({ user, onMenuClick }: Props) {
           )}
         </div>
 
-        <ThemeToggle />
+        <button
+              onClick={toggleLanguage}
+              className="px-2.5 py-1 text-[11px] font-bold tracking-wider rounded-lg border border-border hover:bg-accent text-muted-foreground hover:text-foreground transition-all flex items-center gap-1 shrink-0"
+              title={locale === "en" ? "Switch to Spanish" : "Cambiar a Inglés"}
+            >
+              <Languages size={13} className="opacity-70" />
+              <span>{locale === "en" ? "EN" : "ES"}</span>
+            </button>
+
+            <ThemeToggle />
 
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}

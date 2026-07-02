@@ -39,14 +39,15 @@ export default function OnboardingTour({ sidebarOpen, setSidebarOpen }: Onboardi
   const setSidebarOpenRef = useRef(setSidebarOpen);
   setSidebarOpenRef.current = setSidebarOpen;
 
-  // 1. Check if tour is already completed
+  // 1. Check if tour is already completed and user is new
   useEffect(() => {
     setMounted(true);
-    const completed = localStorage.getItem("ptime-onboarding-completed");
+    const completed = localStorage.getItem("ptime-onboarding-completed") === "true";
+    const isNewUser = localStorage.getItem("ptime-is-new-user-setup") === "true";
     const activeLocale = (localStorage.getItem("ptime-locale") as Locale | null) || "en";
     setLocale(activeLocale);
     
-    if (!completed) {
+    if (isNewUser && !completed) {
       // Small timeout to let dashboard load before starting tour
       const t = setTimeout(() => {
         setActive(true);
@@ -123,12 +124,14 @@ export default function OnboardingTour({ sidebarOpen, setSidebarOpen }: Onboardi
 
   const handleSkip = () => {
     localStorage.setItem("ptime-onboarding-completed", "true");
+    localStorage.removeItem("ptime-is-new-user-setup");
     setActive(false);
     setSidebarOpenRef.current(false);
   };
 
   const handleFinish = () => {
     localStorage.setItem("ptime-onboarding-completed", "true");
+    localStorage.removeItem("ptime-is-new-user-setup");
     setActive(false);
     setSidebarOpenRef.current(false);
   };

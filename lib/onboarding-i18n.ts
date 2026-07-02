@@ -3,10 +3,27 @@ export type Locale = "en" | "es";
 
 export const onboardingTranslations = {
   en: {
-    // Setup language selector
-    setupLangTitle: "Select Language / Seleccionar Idioma",
-    setupLangDesc: "Choose your preferred language for your Ptime workspace.",
-    
+    // Setup page bilinguality
+    setupTitle: "Configure your database",
+    setupDesc: "Select an existing sheet or let Ptime create a fresh one for you.",
+    setupStepTitle: "How to get your Sheet ID?",
+    setupStep1: "Go to sheets.new and create a blank spreadsheet",
+    setupStep2: "Copy the ID from the URL: sheets.google.com/d/[ID_HERE]/edit",
+    setupStep3: "Paste it below — Ptime initializes the tabs automatically",
+    setupUrlLabel: "Google Sheets URL",
+    setupPlaceholder: "https://docs.google.com/spreadsheets/d/...",
+    setupIdDetected: "Detected ID",
+    setupIdHelper: "You can also paste just the Sheet ID directly.",
+    setupBtnVerify: "Verify and connect Sheet",
+    setupBtnCreating: "Creating and configuring...",
+    setupBtnCreateNew: "✨ Create a brand new Google Sheet",
+    setupBtnSelectExisting: "Select existing spreadsheet",
+    setupBtnManualUrl: "Or paste Google Sheet URL manually",
+    setupBtnBackToPicker: "← Back to Google Drive Picker",
+    setupConnectingWorkspace: "Connecting to Workspace...",
+    setupJoinWorkspace: "Join Shared Workspace",
+    setupOrSeparator: "or",
+
     // Onboarding buttons
     btnNext: "Next",
     btnBack: "Back",
@@ -52,10 +69,27 @@ export const onboardingTranslations = {
     ]
   },
   es: {
-    // Setup language selector
-    setupLangTitle: "Select Language / Seleccionar Idioma",
-    setupLangDesc: "Elegí el idioma para tu espacio de trabajo en Ptime.",
-    
+    // Setup page bilinguality
+    setupTitle: "Configurá tu base de datos",
+    setupDesc: "Seleccioná una planilla existente o dejá que Ptime cree una nueva por vos al instante.",
+    setupStepTitle: "¿Cómo obtener el Sheet ID?",
+    setupStep1: "Andá a sheets.new y creá una planilla en blanco",
+    setupStep2: "Copiá el ID de la URL: sheets.google.com/d/[ID_AQUÍ]/edit",
+    setupStep3: "Pegalo abajo — Ptime creará las pestañas automáticamente",
+    setupUrlLabel: "URL de Google Sheets",
+    setupPlaceholder: "https://docs.google.com/spreadsheets/d/...",
+    setupIdDetected: "ID detectado",
+    setupIdHelper: "También podés pegar solo el ID del Sheet directamente.",
+    setupBtnVerify: "Verificar y conectar Sheet",
+    setupBtnCreating: "Creando y configurando...",
+    setupBtnCreateNew: "✨ Crear una nueva planilla de Google Sheets",
+    setupBtnSelectExisting: "Seleccionar planilla existente",
+    setupBtnManualUrl: "O pegar URL de Google Sheet manualmente",
+    setupBtnBackToPicker: "← Volver al selector de Google Drive",
+    setupConnectingWorkspace: "Conectando al Workspace...",
+    setupJoinWorkspace: "Unirse al Workspace Compartido",
+    setupOrSeparator: "o",
+
     // Onboarding buttons
     btnNext: "Siguiente",
     btnBack: "Atrás",
