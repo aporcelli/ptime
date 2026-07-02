@@ -151,10 +151,10 @@ export default function TermsPage() {
                 <p>
                   If you have any questions about these Terms of Service, contact us at{" "}
                   <a
-                    href="mailto:soporte@tucloud.pro"
+                    href="mailto:info@tucloud.pro"
                     className="text-primary underline underline-offset-2 hover:text-primary/80"
                   >
-                    soporte@tucloud.pro
+                    info@tucloud.pro
                   </a>.
                 </p>
               </section>
@@ -253,10 +253,10 @@ export default function TermsPage() {
                 <p>
                   Si tenés alguna pregunta sobre estos Términos de Servicio, escribinos a{" "}
                   <a
-                    href="mailto:soporte@tucloud.pro"
+                    href="mailto:info@tucloud.pro"
                     className="text-primary underline underline-offset-2 hover:text-primary/80"
                   >
-                    soporte@tucloud.pro
+                    info@tucloud.pro
                   </a>.
                 </p>
               </section>

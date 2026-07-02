@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import Google   from "next-auth/providers/google";
-import { findSharedSheetForEmailEdge } from "@/lib/sheets/master-edge";
+import { findSharedSheetForEmailEdge, appendAuditLogEdge } from "@/lib/sheets/master-edge";
+import { headers } from "next/headers";
 
 declare module "next-auth" {
   interface Session {
@@ -113,7 +114,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const adminEmails = (process.env.ADMIN_EMAILS ?? process.env.ADMIN_EMAIL ?? "")
           .split(",").map((e) => e.trim().toLowerCase());
         token.role  = adminEmails.includes((user.email ?? "").toLowerCase()) ? "ADMIN" : "USER";
-        token.error = undefined;
+            token.error = undefined;
+
+            // ── LOGIN AUDIT LOG ──
+            let userAgent = "Desconocido";
+            let ip = "127.0.0.1";
+            let location = "Local/Desconocido";
+            try {
+              const reqHeaders = headers();
+              userAgent = reqHeaders.get("user-agent") || "Desconocido";
+              ip = reqHeaders.get("x-real-ip") || reqHeaders.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
+              const country = reqHeaders.get("x-vercel-ip-country") || "";
+              const region = reqHeaders.get("x-vercel-ip-country-region") || "";
+              const city = reqHeaders.get("x-vercel-ip-city") || "";
+              location = [city, region, country].filter(Boolean).join(", ") || "Local/Desconocido";
+            } catch (err) {
+              console.error("[audit] Try-catch header error:", err);
+            }
+
+            // Append row to master Audit_Log sheet (asynchronous, non-blocking)
+            appendAuditLogEdge(
+              user.email ?? "",
+              user.name ?? "",
+              userAgent,
+              ip,
+              location
+            ).catch((err) => console.error("[audit] Failed to write login log:", err));
 
         // 🔑 PERSISTENCIA CROSS-DEVICE: buscar el sheetId del usuario en el MASTER_SHEET
         // así no necesita volver a poner el link en otra sesión / navegador.

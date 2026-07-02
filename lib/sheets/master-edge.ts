@@ -21,14 +21,15 @@ interface JWTClaim {
  */
 async function getServiceAccountAccessToken(
   serviceAccountEmail: string,
-  privateKey: string
+  privateKey: string,
+  scope: string = "https://www.googleapis.com/auth/spreadsheets.readonly"
 ): Promise<string | null> {
   try {
     const now = Math.floor(Date.now() / 1000);
     const header: JWTHeader = { alg: "RS256", typ: "JWT" };
     const claim: JWTClaim = {
       iss: serviceAccountEmail,
-      scope: "https://www.googleapis.com/auth/spreadsheets.readonly",
+      scope: scope,
       aud: "https://oauth2.googleapis.com/token",
       exp: now + 3600,
       iat: now,
@@ -147,4 +148,50 @@ export async function findSharedSheetForEmailEdge(email: string): Promise<string
   }
 
   return null;
+}
+export async function appendAuditLogEdge(
+  email: string,
+  name: string,
+  userAgent: string,
+  ip: string,
+  location: string
+): Promise<void> {
+  const masterSheetId = process.env.MASTER_SHEET_ID?.replace(/"/g, "");
+  const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+  const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n")?.replace(/\n/g, "\n");
+  
+  if (!masterSheetId || !serviceAccountEmail || !privateKey) {
+    console.warn("[audit] Missing environment variables for master sheet logging");
+    return;
+  }
+
+  const accessToken = await getServiceAccountAccessToken(
+    serviceAccountEmail,
+    privateKey,
+    "https://www.googleapis.com/auth/spreadsheets"
+  );
+  if (!accessToken) return;
+
+  const now = new Date().toISOString();
+  const values = [[now, email, name, userAgent, ip, location]];
+
+  try {
+    const res = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${masterSheetId}/values/Audit_Log:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ values }),
+      }
+    );
+
+    if (!res.ok) {
+      console.error("[master-edge] Failed to write audit log:", await res.text());
+    }
+  } catch (err) {
+    console.error("[master-edge] Error writing audit log:", err);
+  }
 }
