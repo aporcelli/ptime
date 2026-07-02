@@ -5,6 +5,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.49] — 2026-06-22
+
+### Añadido
+- **Registro Interno de Auditoría de Logins**: Implementado un sistema de registro de auditoría de logins completamente server-side, asincrónico y no bloqueante.
+  - Cuando un usuario inicia sesión con éxito, Ptime utiliza la cuenta de servicio de Google para registrar los detalles del login en una pestaña llamada `Audit_Log` de tu planilla maestra global (`MASTER_SHEET_ID`).
+  - Los datos registrados son: `Timestamp` (fecha/hora), `Email`, `Nombre`, `Navegador (User-Agent)`, `IP de origen` y `Ubicación física` (país, región y ciudad, resueltos dinámicamente gracias a los encabezados de geolocalización de Vercel).
+  - Todo este flujo corre en segundo plano de forma 100% invisible para el usuario final y no afecta en nada el funcionamiento ni la velocidad del login.
+
 ## [1.2.48] — 2026-06-22
 
 ### Añadido

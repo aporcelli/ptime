@@ -226,10 +226,10 @@ export default function PrivacyPage() {
                 <p>
                   If you have any questions about this Privacy Policy, you can contact us at{" "}
                   <a
-                    href="mailto:soporte@tucloud.pro"
+                    href="mailto:info@tucloud.pro"
                     className="text-primary underline underline-offset-2 hover:text-primary/80"
                   >
-                    soporte@tucloud.pro
+                    info@tucloud.pro
                   </a>.
                 </p>
               </section>
@@ -387,10 +387,10 @@ export default function PrivacyPage() {
                 <p>
                   Si tenés alguna pregunta sobre esta Política de Privacidad, podés escribirnos a{" "}
                   <a
-                    href="mailto:soporte@tucloud.pro"
+                    href="mailto:info@tucloud.pro"
                     className="text-primary underline underline-offset-2 hover:text-primary/80"
                   >
-                    soporte@tucloud.pro
+                    info@tucloud.pro
                   </a>.
                 </p>
               </section>
