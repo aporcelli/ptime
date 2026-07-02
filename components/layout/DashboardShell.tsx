@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
+import OnboardingTour from "../onboarding/OnboardingTour";
 
 interface DashboardShellProps {
   role: string;
@@ -83,6 +84,8 @@ export function DashboardShell({ role, user, children }: DashboardShellProps) {
           {children}
         </main>
       </div>
+
+      <OnboardingTour sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
     </div>
   );
 }

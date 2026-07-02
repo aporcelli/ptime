@@ -77,7 +77,7 @@ export default function Sidebar({ role, onNavClick }: SidebarProps) {
             />
           </div>
         </a>
-        <p className="text-muted-foreground opacity-50 text-[10px] text-center">Ptime v1.2.47</p>
+        <p className="text-muted-foreground opacity-50 text-[10px] text-center">Ptime v1.2.48</p>
       </div>
     </aside>
   );
@@ -94,10 +94,18 @@ function NavItem({ item, pathname, onNavClick }: NavItemProps) {
     ? pathname === "/dashboard"
     : pathname.startsWith(item.href);
 
+  const tourKey = item.href === "/dashboard" ? "sidebar-dashboard" :
+                  item.href === "/horas" ? "sidebar-horas" :
+                  item.href === "/admin/clientes" ? "sidebar-clientes" :
+                  item.href === "/admin/proyectos" ? "sidebar-proyectos" :
+                  item.href === "/admin/tareas" ? "sidebar-tareas" :
+                  item.href === "/admin/configuracion" ? "sidebar-configuracion" : undefined;
+
   return (
     <Link
       href={item.href}
       onClick={onNavClick}
+      data-tour={tourKey}
       className={cn(
         "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all relative group",
         isActive

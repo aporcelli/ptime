@@ -30,13 +30,13 @@ export const translations = {
         desc: "Invite collaborators with OWNER, COLABORADOR, or VIEWER roles. Each user sees what they need.",
       },
       {
-        title: "Cross-device",
-        desc: "Log in from any browser and your data is there. Settings persist via JWT — no need to reconnect your sheet.",
-      },
-      {
-        title: "No database server",
-        desc: "Google Sheets is your database. Edit data directly from Google if you want, without going through the app.",
-      },
+            title: "Instant Cross-Device Access",
+            desc: "Set up once, log in from any device securely without ever needing to reconnect.",
+          },
+          {
+            title: "100% Data Sovereignty",
+            desc: "Your Google Sheet is your database. Back up, export, or edit your data directly from Google Sheets without external dependencies.",
+          },
     ],
     howItWorks: "How it works",
     steps: [
@@ -46,10 +46,10 @@ export const translations = {
         desc: "Use your Google account. We'll ask for permission to access your Google Sheets — only the one you configure.",
       },
       {
-        step: "2",
-        title: "Connect your sheet",
-        desc: "Paste your Google Sheet link. Ptime automatically creates the required tabs (Records, Projects, Clients, etc.).",
-      },
+            step: "2",
+            title: "Connect or Create Sheet",
+            desc: "Connect an existing Google Sheet, or let Ptime create a brand new pre-configured database in your Google Drive instantly with a single click.",
+          },
       {
         step: "3",
         title: "Start tracking",
@@ -86,13 +86,13 @@ export const translations = {
         desc: "Invitá colaboradores a tu workspace con roles de OWNER, COLABORADOR o VIEWER. Cada uno ve lo que necesita.",
       },
       {
-        title: "Multi-dispositivo",
-        desc: "Iniciá sesión desde cualquier navegador y tus datos están ahí. La configuración persiste vía JWT, no necesitás reconectar tu sheet.",
-      },
-      {
-        title: "Sin servidor de base de datos",
-        desc: "Google Sheets es tu base de datos. Podés editar datos directamente desde Google si querés, sin pasar por la app.",
-      },
+            title: "Acceso Multidispositivo",
+            desc: "Acceso instantáneo. Configuralo una sola vez y accedé desde cualquier dispositivo de forma segura.",
+          },
+          {
+            title: "100% Soberanía de Datos",
+            desc: "Tu Google Sheets es tu base de datos. Controlá, respaldá o editá tus datos directamente desde Google Sheets sin depender de nadie.",
+          },
     ],
     howItWorks: "Cómo funciona",
     steps: [
@@ -102,10 +102,10 @@ export const translations = {
         desc: "Usá tu cuenta de Google. Te pedirá permiso para acceder a tus Google Sheets — solo a la hoja que vos configures.",
       },
       {
-        step: "2",
-        title: "Conectá tu sheet",
-        desc: "Pegá el link de tu Google Sheet. Ptime crea automáticamente las pestañas necesarias (Registros, Proyectos, Clientes, etc.).",
-      },
+            step: "2",
+            title: "Conectá o Creá tu Sheet",
+            desc: "Conectá una planilla de Google Sheets existente, o dejá que Ptime cree una base de datos preconfigurada de cero en tu Google Drive al instante con un solo clic.",
+          },
       {
         step: "3",
         title: "Empezá a cargar horas",

@@ -6,6 +6,8 @@ import { useRouter }     from "next/navigation";
 import { motion }     from "framer-motion";
 import { validateAndSaveSheetId, createAndConnectNewSheet } from "@/app/actions/setup";
 import GoogleSheetPicker from "@/components/GoogleSheetPicker";
+import { useEffect, useCallback } from "react";
+import type { Locale } from "@/lib/onboarding-i18n";
 
 const Loader2 = ({ size = 16, className = "" }: { size?: number; className?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -44,6 +46,58 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
   const isDriveFile = process.env.NEXT_PUBLIC_OAUTH_SCOPE === "https://www.googleapis.com/auth/drive.file";
   const [showPicker, setShowPicker] = useState(isDriveFile);
   const [rawInput, setRawInput] = useState("");
+  const [locale, setLocale] = useState<Locale>("en");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("ptime-locale") as Locale | null;
+    if (saved === "en" || saved === "es") {
+      setLocale(saved);
+    } else {
+      localStorage.setItem("ptime-locale", "en");
+    }
+  }, []);
+
+  const changeLanguage = useCallback((lang: Locale) => {
+    setLocale(lang);
+    localStorage.setItem("ptime-locale", lang);
+    localStorage.setItem("landing-locale", lang); // sync with landing
+    document.cookie = `ptime-locale=${lang}; path=/; max-age=${365 * 24 * 60 * 60}`;
+    router.refresh();
+  }, [router]);
+
+  function renderLanguageSelector() {
+    return (
+      <div className="flex flex-col items-center justify-center p-4 bg-muted/30 border border-border rounded-xl text-center gap-2 mb-2">
+        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+          {locale === "en" ? "Select Language / Seleccionar Idioma" : "Seleccionar Idioma / Select Language"}
+        </p>
+        <div className="flex items-center gap-1.5 p-1 bg-background border border-border rounded-xl">
+          <button
+            type="button"
+            onClick={() => changeLanguage("en")}
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              locale === "en"
+                ? "bg-emerald-500 text-white shadow"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            English
+          </button>
+          <button
+            type="button"
+            onClick={() => changeLanguage("es")}
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              locale === "es"
+                ? "bg-emerald-500 text-white shadow"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Español
+          </button>
+        </div>
+      </div>
+    );
+  }
   const [status, setStatus]     = useState<"idle"|"loading"|"success"|"error">("idle");
   const [message, setMessage]   = useState("");
   const [showManual, setShowManual] = useState(!sharedSheetId);
@@ -104,6 +158,7 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
   if (!showManual && sharedSheetId) {
     return (
       <div className="flex flex-col gap-4">
+        {renderLanguageSelector()}
         <motion.button onClick={handleSharedSubmit} disabled={status === "loading" || status === "success"} whileTap={{ scale: 0.98 }}
           className="bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-semibold rounded-lg py-3 text-sm flex items-center justify-center gap-2 transition-colors">
           {status === "loading" && <Loader2 size={16} className="animate-spin mr-2" />}
@@ -133,6 +188,7 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
   if (showPicker && isDriveFile) {
     return (
       <div className="flex flex-col gap-5 text-center">
+        {renderLanguageSelector()}
         <div className="p-4 bg-muted/50 border border-border rounded-xl text-sm text-muted-foreground space-y-1">
           <p className="font-semibold text-foreground text-xs uppercase tracking-wide">Configure your database</p>
           <p className="text-xs">Select an existing sheet or let Ptime create a fresh one for you.</p>
@@ -184,6 +240,7 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
 
   return (
     <>
+      {renderLanguageSelector()}
       <div className="mb-6 p-4 bg-muted/50 border border-border rounded-xl text-sm text-muted-foreground space-y-2">
         <p className="font-semibold text-foreground text-xs uppercase tracking-wide">¿Cómo obtener el Sheet ID?</p>
         <ol className="list-decimal list-inside space-y-1 text-xs">

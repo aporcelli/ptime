@@ -4,6 +4,7 @@ import { getAppConfig } from "@/lib/sheets/queries";
 import { getPageCtx } from "@/lib/sheets/getPageCtx";
 import { cookies } from "next/headers";
 import ConfigForm from "./ConfigForm";
+import ResetTourButton from "@/components/onboarding/ResetTourButton";
 import { Settings, Database, ShieldCheck } from "lucide-react";
 
 export const metadata: Metadata = { title: "Configuración" };
@@ -71,9 +72,12 @@ export default async function ConfiguracionPage() {
               <p className="text-xs text-faint">{session?.user?.email}</p>
             </div>
           </div>
-          <span className={`badge ${session?.user?.role === "ADMIN" ? "badge-brand" : "badge-slate"}`}>
-            {session?.user?.role}
-          </span>
+          <div className="flex items-center gap-3">
+                <ResetTourButton />
+                <span className={`badge ${session?.user?.role === "ADMIN" ? "badge-brand" : "badge-slate"}`}>
+                  {session?.user?.role}
+                </span>
+              </div>
         </div>
       </section>
     </div>
