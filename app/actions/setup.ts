@@ -5,7 +5,7 @@
 'use server';
 
 import { auth } from "@/auth";
-import { validateSpreadsheet, initializeSpreadsheet } from "@/lib/sheets/client";
+import { validateSpreadsheet, initializeSpreadsheet, createSpreadsheet } from "@/lib/sheets/client";
 import { encode } from "next-auth/jwt";
 import { cookies } from "next/headers";
 
@@ -58,4 +58,35 @@ export async function getSheetIdFromCookie(): Promise<string | null> {
 export async function clearSheetId(): Promise<void> {
   const cookieStore = cookies();
   cookieStore.delete("ptime-sheet-id");
+}
+
+export async function createAndConnectNewSheet(): Promise<{ success: boolean; title?: string; error?: string }> {
+  try {
+    const session = await auth();
+    if (!session?.user?.accessToken) {
+      return { success: false, error: "No autenticado o token expirado. Por favor, inicia sesión nuevamente." };
+    }
+
+    const title = "Ptime — Control de Horas";
+    // 1. Crear planilla nueva en Google Sheets API
+    const sheetId = await createSpreadsheet(title, session.user.accessToken);
+
+    // 2. Inicializar hojas internas (Registros, Clientes, Proyectos, etc.)
+    await initializeSpreadsheet(sheetId, session.user.accessToken);
+
+    // 3. Guardar ID de planilla en cookie segura
+    const cookieStore = cookies();
+    cookieStore.set("ptime-sheet-id", sheetId, {
+      httpOnly:  true,
+      secure:    process.env.NODE_ENV === "production",
+      sameSite:  "lax",
+      path:      "/",
+      maxAge:    365 * 24 * 60 * 60, // 1 año
+    });
+
+    return { success: true, title };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Error desconocido al crear la planilla";
+    return { success: false, error: msg };
+  }
 }
