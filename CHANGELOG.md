@@ -5,6 +5,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.43] — 2026-06-22
+
+### Añadido
+- **Feature Toggle de Conexión (Opciones A y B)**: Creada una estructura paralela y robusta para alternar entre la Opción A (Spreadsheets clásica) y la Opción B (Drive File + Google Picker) de forma dinámica.
+  - El interruptor se controla mediante la variable de entorno `NEXT_PUBLIC_OAUTH_SCOPE` (si es `.../auth/drive.file` activa la Opción B; de lo contrario, la Opción A).
+  - El componente de login, la configuración de NextAuth en `auth.ts` y el formulario de setup se adaptan dinámicamente.
+  - En el formulario de Setup, si está activa la Opción B se muestra el botón verde del Picker, con un botón secundario para alternar a pegar URL manualmente de forma segura.
+
 ## [1.2.42] — 2026-06-22
 
 ### Corregido

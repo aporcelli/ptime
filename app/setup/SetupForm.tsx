@@ -5,6 +5,7 @@ import { useState }      from "react";
 import { useRouter }     from "next/navigation";
 import { motion }     from "framer-motion";
 import { validateAndSaveSheetId } from "@/app/actions/setup";
+import GoogleSheetPicker from "@/components/GoogleSheetPicker";
 
 const Loader2 = ({ size = 16, className = "" }: { size?: number; className?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -40,6 +41,8 @@ function isGoogleSheetsUrl(input: string): boolean {
 
 export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string }) {
   const router = useRouter();
+  const isDriveFile = process.env.NEXT_PUBLIC_OAUTH_SCOPE === "https://www.googleapis.com/auth/drive.file";
+  const [showPicker, setShowPicker] = useState(isDriveFile);
   const [rawInput, setRawInput] = useState("");
   const [status, setStatus]     = useState<"idle"|"loading"|"success"|"error">("idle");
   const [message, setMessage]   = useState("");
@@ -48,27 +51,37 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
   const extractedId = rawInput.trim() ? extractSheetId(rawInput) : "";
   const isUrl = isGoogleSheetsUrl(rawInput);
 
-  async function handleSharedSubmit() {
-    if (!sharedSheetId) return;
+  async function connectSheet(sheetId: string) {
     setStatus("loading");
     setMessage("");
-    const result = await validateAndSaveSheetId(sharedSheetId);
-    if (!result.success) { setStatus("error"); setMessage(result.error ?? "Error desconocido al unirse al workspace."); return; }
+    const result = await validateAndSaveSheetId(sheetId);
+    if (!result.success) {
+      setStatus("error");
+      setMessage(result.error ?? "Error desconocido");
+      return;
+    }
     setStatus("success");
-    setMessage(`Workspace "${result.title}" conectado. Entrando…`);
-    setTimeout(() => { router.push("/dashboard"); router.refresh(); }, 1200);
+    setMessage(`Sheet "${result.title}" conectado. Entrando…`);
+    setTimeout(() => {
+      router.push("/dashboard");
+      router.refresh();
+    }, 1200);
+  }
+
+  async function handleSharedSubmit() {
+    if (!sharedSheetId) return;
+    await connectSheet(sharedSheetId);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setStatus("loading"); setMessage("");
     const sheetId = extractSheetId(rawInput);
-    if (!sheetId) { setStatus("error"); setMessage("Pegá la URL completa de tu Google Sheet o el ID directamente."); return; }
-    const result = await validateAndSaveSheetId(sheetId);
-    if (!result.success) { setStatus("error"); setMessage(result.error ?? "Error desconocido"); return; }
-    setStatus("success");
-    setMessage(`Sheet "${result.title}" conectado. Entrando…`);
-    setTimeout(() => { router.push("/dashboard"); router.refresh(); }, 1200);
+    if (!sheetId) {
+      setStatus("error");
+      setMessage("Pegá la URL completa de tu Google Sheet o el ID directamente.");
+      return;
+    }
+    await connectSheet(sheetId);
   }
 
   if (!showManual && sharedSheetId) {
@@ -94,6 +107,36 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
         <div className="text-center mt-2">
           <button type="button" onClick={() => setShowManual(true)} className="text-xs text-muted-foreground hover:text-primary transition-colors">
             Usar otro Sheet distinto / Crear de cero
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (showPicker && isDriveFile) {
+    return (
+      <div className="flex flex-col gap-5 text-center">
+        <div className="p-4 bg-muted/50 border border-border rounded-xl text-sm text-muted-foreground space-y-1">
+          <p className="font-semibold text-foreground text-xs uppercase tracking-wide">Choose your Google Sheet</p>
+          <p className="text-xs">Select the spreadsheet you want to use as your Ptime database.</p>
+        </div>
+
+        <GoogleSheetPicker
+          onSelect={connectSheet}
+          disabled={status === "loading" || status === "success"}
+          label="Choose from Google Drive"
+        />
+
+        {status === "error" && (
+          <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">{message}</div>
+        )}
+        {status === "success" && (
+          <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-sm">{message}</div>
+        )}
+
+        <div className="text-center mt-2">
+          <button type="button" onClick={() => setShowPicker(false)} className="text-xs text-muted-foreground hover:text-primary transition-colors">
+            Or paste Google Sheet URL manually
           </button>
         </div>
       </div>
@@ -152,12 +195,20 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
           {status === "loading" ? "Verificando y configurando…" : "Conectar Sheet"}
         </motion.button>
 
-        <div className="text-center">
-          <a href="https://sheets.new" target="_blank" rel="noopener noreferrer"
-            className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1 transition-colors">
-            Crear nuevo Google Sheet <ExternalLink size={11} />
-          </a>
-        </div>
+        {isDriveFile ? (
+          <div className="text-center mt-2">
+            <button type="button" onClick={() => setShowPicker(true)} className="text-xs text-muted-foreground hover:text-primary transition-colors">
+              ← Back to Google Drive Picker
+            </button>
+          </div>
+        ) : (
+          <div className="text-center">
+            <a href="https://sheets.new" target="_blank" rel="noopener noreferrer"
+              className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1 transition-colors">
+              Crear nuevo Google Sheet <ExternalLink size={11} />
+            </a>
+          </div>
+        )}
       </form>
     </>
   );

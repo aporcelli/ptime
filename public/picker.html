@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Ptime — Select a Google Sheet</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0b1020; color: #e2e8f0; font-family: system-ui, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; }
+    .box { text-align: center; max-width: 340px; padding: 24px; }
+    h2 { font-size: 16px; margin-bottom: 8px; }
+    p { font-size: 13px; color: #94a3b8; margin-bottom: 12px; line-height: 1.5; }
+    .spinner { width: 32px; height: 32px; border: 3px solid #1e293b; border-top-color: #10b981; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .text-xs { font-size: 11px; }
+    .text-destructive { color: #ef4444; }
+    .text-muted-foreground { color: #64748b; }
+    .py-2 { padding-top: 8px; padding-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div id="spinner-loader" class="spinner"></div>
+    <h2 id="status-title">Loading Google Picker…</h2>
+    <p id="status-subtitle" class="text-xs text-muted-foreground">Connecting securely with Google Drive.</p>
+    <div id="error-container" class="py-2" style="display: none;">
+      <p id="error-msg" class="text-xs text-destructive"></p>
+    </div>
+  </div>
+
+  <script>
+    var params = new URLSearchParams(window.location.search);
+    var token = params.get("token");
+    var key = params.get("key");
+    var fileId = params.get("fileId") || null;
+
+    var $title = document.getElementById("status-title");
+    var $subtitle = document.getElementById("status-subtitle");
+    var $status = document.getElementById("status");
+    var $errorMsg = document.getElementById("error-msg");
+    var $errorContainer = document.getElementById("error-container");
+    var $spinner = document.getElementById("spinner-loader");
+
+    function showError(msg) {
+      $spinner.style.display = "none";
+      $title.textContent = "Error";
+      $subtitle.textContent = msg;
+      $errorContainer.style.display = "block";
+      $errorMsg.textContent = "Please close this window and use the manual URL paste option.";
+    }
+
+    function log(msg) { console.log(msg); }
+
+    function init() {
+      log("Step 1: validating parameters…");
+      if (!token || !key) {
+        showError("Missing OAuth token or API key. Please re-login.");
+        return;
+      }
+
+      log("Step 2: loading Google API script…");
+      var script = document.createElement("script");
+      script.src = "https://apis.google.com/js/api.js";
+
+      var loadTimeout = setTimeout(function() {
+        showError("Google API script timed out (15s). Check your connection or disable ad blockers.");
+      }, 15000);
+
+      script.onload = function() {
+        clearTimeout(loadTimeout);
+        log("Step 3: loading Picker module…");
+
+        if (!window.gapi || !window.gapi.load) {
+          showError("gapi not available after script load.");
+          return;
+        }
+
+        window.gapi.load("picker", {
+          callback: function() {
+            log("Step 4: Picker module loaded. Opening…");
+            $title.textContent = "Select a Google Sheet";
+            $subtitle.textContent = "Pick the spreadsheet you want to connect to Ptime";
+            $spinner.style.display = "none";
+
+            try {
+              var view = new google.picker.DocsView(google.picker.ViewId.SPREADSHEETS);
+              view.setMode(google.picker.DocsViewMode.LIST);
+
+              var builder = new google.picker.PickerBuilder()
+                .addView(view)
+                .setOAuthToken(token)
+                .setDeveloperKey(key);
+
+              builder.setCallback(function(data) {
+                console.log("[Picker result]", data);
+                if (data.action === google.picker.Action.PICKED && data.docs && data.docs[0]) {
+                  var doc = data.docs[0];
+                  console.log("[Picker] Selected:", doc.id, doc.name);
+                  localStorage.setItem("ptime-picker-result", JSON.stringify({ fileId: doc.id, fileName: doc.name || "Untitled" }));
+                  window.close();
+                } else if (data.action === google.picker.Action.CANCEL) {
+                  localStorage.setItem("ptime-picker-result", JSON.stringify({ cancelled: true }));
+                  window.close();
+                }
+              });
+
+              var picker = builder.build();
+              picker.setVisible(true);
+              $subtitle.textContent = "File picker should be open. If you don't see it, check for blocked popups.";
+            } catch (e) {
+              showError("Picker error: " + (e.message || e));
+            }
+          },
+          onerror: function() {
+            showError("Failed to load Picker module.");
+          }
+        });
+      };
+
+      script.onerror = function() {
+        clearTimeout(loadTimeout);
+        showError("Failed to load Google API script. Check your internet connection.");
+      };
+
+      document.head.appendChild(script);
+    }
+
+    init();
+  </script>
+</body>
+</html>

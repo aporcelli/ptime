@@ -85,7 +85,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         params: {
           scope: [
             "openid", "email", "profile",
-            "https://www.googleapis.com/auth/spreadsheets",
+            process.env.NEXT_PUBLIC_OAUTH_SCOPE || "https://www.googleapis.com/auth/spreadsheets",
           ].join(" "),
           access_type: "offline",
           prompt:      "select_account",
