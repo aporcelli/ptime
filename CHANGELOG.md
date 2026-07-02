@@ -5,6 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.44] — 2026-06-22
+
+### Corregido
+- **Políticas de Seguridad CSP en next.config.mjs**: Actualizada la política de seguridad `Content-Security-Policy` para permitir la carga y ejecución segura de los recursos y scripts externos oficiales de Google Picker (`apis.google.com`, `docs.google.com`, `ssl.gstatic.com`). Esto resuelve el bloqueo inmediato ("Failed to load Google API script") en todos los navegadores modernos, incluyendo Brave y Google Chrome Incognito.
+
 ## [1.2.43] — 2026-06-22
 
 ### Añadido
