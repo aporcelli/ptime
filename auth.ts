@@ -186,10 +186,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.user.name        = (token.name as string | undefined) ?? session.user.name;
       session.user.email       = (token.email as string | undefined) ?? session.user.email;
       session.user.image       = (token.picture as string | undefined) ?? session.user.image;
-      session.user.role        = token.role;
       session.user.id          = token.sub ?? session.user.email;
       session.user.accessToken = token.accessToken as string | undefined;
       session.user.sheetId     = token.sheetId as string | undefined;
+
+      // Calcular rol de forma dinámica:
+      // Si el email está en ADMIN_EMAIL, es ADMIN global.
+      // Si la planilla conectada es la del Master Sheet, los no-administradores son USER (colaboradores).
+      // Si la planilla es cualquier otra (el usuario conectó la suya), es el dueño y es ADMIN.
+      const adminEmails = (process.env.ADMIN_EMAILS ?? process.env.ADMIN_EMAIL ?? "")
+        .split(",").map((e) => e.trim().toLowerCase());
+      const globalMasterId = process.env.MASTER_SHEET_ID?.replace(/"/g, "");
+      const userEmail = (session.user.email as string | undefined)?.toLowerCase();
+
+      if (userEmail && adminEmails.includes(userEmail)) {
+        session.user.role = "ADMIN";
+      } else {
+        const currentSheetId = session.user.sheetId || "";
+        if (currentSheetId && currentSheetId === globalMasterId) {
+          session.user.role = "USER";
+        } else {
+          session.user.role = "ADMIN"; // Es dueño de su propio sheet
+        }
+      }
+
       // Propagar el error para que el cliente pueda re-login si es necesario
       if (token.error) session.error = token.error;
       return session;

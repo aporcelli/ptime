@@ -5,6 +5,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.47] — 2026-06-22
+
+### Corregido
+- **Roles de Administración Dinámicos (Multi-Workspace Access)**: Corregido el bug de bloqueo "Acceso denegado" en la pantalla de Configuración global (`/admin/configuracion`) para usuarios nuevos.
+  - El rol `"ADMIN"` ahora se calcula de forma dinámica en la sesión en base al `sheetId` conectado.
+  - Si un usuario tiene conectada la planilla maestra global de la app (`MASTER_SHEET_ID`), conserva el rol `"USER"` (colaborador) para proteger la base central.
+  - Si un usuario tiene conectada su propia planilla (creada de cero o seleccionada con el Picker), el sistema le otorga dinámicamente el rol `"ADMIN"` sobre su propio espacio de trabajo. Esto les permite configurar sus propios precios por hora y administrar sus tareas, proyectos e invitaciones de forma totalmente autónoma.
+
 ## [1.2.46] — 2026-06-22
 
 ### Añadido
