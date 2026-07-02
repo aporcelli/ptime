@@ -19,8 +19,8 @@ export default function ResetTourButton() {
 
   const handleReset = () => {
     localStorage.removeItem("ptime-onboarding-completed");
-    router.push("/dashboard");
-    router.refresh();
+    localStorage.setItem("ptime-is-new-user-setup", "true");
+    window.location.href = "/dashboard";
   };
 
   const t = onboardingTranslations[locale];

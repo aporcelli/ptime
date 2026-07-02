@@ -7,7 +7,7 @@ import { motion }     from "framer-motion";
 import { validateAndSaveSheetId, createAndConnectNewSheet } from "@/app/actions/setup";
 import GoogleSheetPicker from "@/components/GoogleSheetPicker";
 import { useEffect, useCallback } from "react";
-import type { Locale } from "@/lib/onboarding-i18n";
+import { onboardingTranslations, type Locale } from "@/lib/onboarding-i18n";
 
 const Loader2 = ({ size = 16, className = "" }: { size?: number; className?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -45,8 +45,10 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
   const router = useRouter();
   const isDriveFile = process.env.NEXT_PUBLIC_OAUTH_SCOPE === "https://www.googleapis.com/auth/drive.file";
   const [showPicker, setShowPicker] = useState(isDriveFile);
+
   const [rawInput, setRawInput] = useState("");
   const [locale, setLocale] = useState<Locale>("en");
+  const ot = onboardingTranslations[locale];
 
   useEffect(() => {
     const saved = localStorage.getItem("ptime-locale") as Locale | null;
@@ -114,8 +116,10 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
       setMessage(result.error ?? "Error desconocido");
       return;
     }
+    // Marcar que el usuario acaba de pasar por setup (desbloquea el tour)
+    localStorage.setItem("ptime-is-new-user-setup", "true");
     setStatus("success");
-    setMessage(`Sheet "${result.title}" conectado. Entrando…`);
+    setMessage(locale === "en" ? `Sheet "${result.title}" connected. Entering…` : `Sheet "${result.title}" conectado. Entrando…`);
     setTimeout(() => {
       router.push("/dashboard");
       router.refresh();
@@ -131,8 +135,10 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
       setMessage(result.error ?? "Error al crear la planilla");
       return;
     }
+    // Marcar que el usuario acaba de pasar por setup (desbloquea el tour)
+    localStorage.setItem("ptime-is-new-user-setup", "true");
     setStatus("success");
-    setMessage(`¡Planilla "${result.title}" creada con éxito! Entrando…`);
+    setMessage(locale === "en" ? `Sheet "${result.title}" created successfully! Entering…` : `¡Planilla "${result.title}" creada con éxito! Entrando…`);
     setTimeout(() => {
       router.push("/dashboard");
       router.refresh();
@@ -162,7 +168,7 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
         <motion.button onClick={handleSharedSubmit} disabled={status === "loading" || status === "success"} whileTap={{ scale: 0.98 }}
           className="bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-semibold rounded-lg py-3 text-sm flex items-center justify-center gap-2 transition-colors">
           {status === "loading" && <Loader2 size={16} className="animate-spin mr-2" />}
-          {status === "loading" ? "Conectando al Workspace…" : "Unirse al Workspace Compartido"}
+          {status === "loading" ? "{ot.setupConnectingWorkspace}" : "{ot.setupJoinWorkspace}"}
         </motion.button>
         {status === "error" && (
           <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
@@ -178,7 +184,7 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
         )}
         <div className="text-center mt-2">
           <button type="button" onClick={() => setShowManual(true)} className="text-xs text-muted-foreground hover:text-primary transition-colors">
-            Usar otro Sheet distinto / Crear de cero
+            {locale === "en" ? "Use another Sheet / Create from scratch" : "Usar otro Sheet distinto / Crear de cero"}
           </button>
         </div>
       </div>
@@ -190,15 +196,15 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
       <div className="flex flex-col gap-5 text-center">
         {renderLanguageSelector()}
         <div className="p-4 bg-muted/50 border border-border rounded-xl text-sm text-muted-foreground space-y-1">
-          <p className="font-semibold text-foreground text-xs uppercase tracking-wide">Configure your database</p>
-          <p className="text-xs">Select an existing sheet or let Ptime create a fresh one for you.</p>
+          <p className="font-semibold text-foreground text-xs uppercase tracking-wide">{ot.setupTitle}</p>
+          <p className="text-xs">{ot.setupDesc}</p>
         </div>
 
         <div className="flex flex-col gap-3">
           <GoogleSheetPicker
             onSelect={connectSheet}
             disabled={status === "loading" || status === "success"}
-            label="Select existing spreadsheet"
+            label="{ot.setupBtnSelectExisting}"
             variant="secondary"
           />
 
@@ -217,7 +223,7 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
             {status === "loading" ? (
               <Loader2 size={16} className="animate-spin" />
             ) : (
-              <span>✨ Create a brand new Google Sheet</span>
+              <span>✨ {ot.setupBtnCreateNew}</span>
             )}
           </button>
         </div>
@@ -231,7 +237,7 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
 
         <div className="text-center mt-2">
           <button type="button" onClick={() => setShowPicker(false)} className="text-xs text-muted-foreground hover:text-primary transition-colors">
-            Or paste Google Sheet URL manually
+            {ot.setupBtnManualUrl}
           </button>
         </div>
       </div>
@@ -242,21 +248,21 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
     <>
       {renderLanguageSelector()}
       <div className="mb-6 p-4 bg-muted/50 border border-border rounded-xl text-sm text-muted-foreground space-y-2">
-        <p className="font-semibold text-foreground text-xs uppercase tracking-wide">¿Cómo obtener el Sheet ID?</p>
+        <p className="font-semibold text-foreground text-xs uppercase tracking-wide">{ot.setupStepTitle}</p>
         <ol className="list-decimal list-inside space-y-1 text-xs">
-          <li>Andá a <a href="https://sheets.new" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">sheets.new</a> y creá una hoja vacía</li>
-          <li>Copiá el ID de la URL:<br/>
+          <li>{locale === "en" ? <>Go to <a href="https://sheets.new" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">sheets.new</a> and create a blank spreadsheet</> : <>Andá a <a href="https://sheets.new" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">sheets.new</a> y creá una hoja vacía</>}</li>
+          <li>{locale === "en" ? "Copy the ID from the URL" : "Copiá el ID de la URL"}:<br/>
             <code className="bg-background border border-border px-1.5 py-0.5 rounded text-[11px] break-all">
               sheets.google.com/d/<span className="text-emerald-500 font-bold">ID_AQUI</span>/edit
             </code>
           </li>
-          <li>Pegalo abajo — Ptime crea las hojas automáticamente</li>
+          <li>{locale === "en" ? "Paste it below — Ptime initializes the tabs automatically" : "Pegalo abajo — Ptime crea las hojas automáticamente"}</li>
         </ol>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-foreground">URL de Google Sheets</label>
+          <label className="text-sm font-medium text-foreground">{ot.setupUrlLabel}</label>
           <input type="text" value={rawInput}
             onChange={(e) => { setRawInput(e.target.value); setStatus("idle"); setMessage(""); }}
             placeholder="https://docs.google.com/spreadsheets/d/…"
@@ -266,10 +272,10 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
           {isUrl && extractedId && (
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500 shrink-0"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
-              <span>ID detectado: <code className="text-foreground bg-muted px-1 py-0.5 rounded text-[11px]">{extractedId}</code></span>
+              <span>{ot.setupIdDetected}: <code className="text-foreground bg-muted px-1 py-0.5 rounded text-[11px]">{extractedId}</code></span>
             </div>
           )}
-          <p className="text-xs text-muted-foreground">También podés pegar solo el ID del Sheet directamente.</p>
+          <p className="text-xs text-muted-foreground">{ot.setupIdHelper}</p>
         </div>
 
         {status === "error" && (
@@ -288,13 +294,13 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
         <motion.button type="submit" disabled={status === "loading" || status === "success" || !rawInput.trim()} whileTap={{ scale: 0.98 }}
           className="bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-semibold rounded-lg py-3 text-sm flex items-center justify-center gap-2 transition-colors">
           {status === "loading" && <Loader2 size={16} className="animate-spin" />}
-          {status === "loading" ? "Verificando y configurando…" : "Conectar Sheet"}
+          {status === "loading" ? status === "loading" ? ot.setupBtnCreating : ot.setupBtnVerify : ot.setupBtnVerify}
         </motion.button>
 
         {isDriveFile ? (
           <div className="text-center mt-2">
             <button type="button" onClick={() => setShowPicker(true)} className="text-xs text-muted-foreground hover:text-primary transition-colors">
-              ← Back to Google Drive Picker
+              ← {ot.setupBtnBackToPicker}
             </button>
           </div>
         ) : (
