@@ -5,6 +5,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.48] — 2026-06-22
+
+### Añadido
+- **Onboarding Tour Interactivo (Wizard)**: Implementado un tutorial de bienvenida guiado de un minuto (`OnboardingTour.tsx`) que se activa la primera vez que un usuario nuevo entra al Dashboard.
+  - El tour sombrea dinámicamente la pantalla y resalta secuencialmente cada uno de los menús laterales de navegación (Dashboard, Horas, Clientes, Proyectos, Tareas, Configuración) usando cajas de recorte inteligentes con `getBoundingClientRect` de alta performance.
+  - Ofrece controles completos de "Atrás", "Siguiente", "Omitir" y "Finalizar", y se integra de forma nativa con el estado del cajón lateral en dispositivos móviles para forzar su apertura y destaque en celulares.
+  - Se añadió un botón de **"Reiniciar tutorial de bienvenida"** en la tarjeta de perfil de la pantalla de Configuración para permitir revivir el tour cuando se desee.
+- **Onboarding de Selección de Idioma**: Agregado un selector de idioma limpio y segmentado (English | Español) en la parte superior de la pantalla de `/setup` que configura la preferencia global del usuario (`ptime-locale`) antes de conectar o crear su planilla.
+- **Copy de Landing Page Pulido**: Rediseñados los copies comerciales de la Landing Page en `lib/landing-i18n.ts` eliminando tecnicismos y resaltando la Soberanía de Datos del usuario y el Onboarding de un clic.
+
 ## [1.2.47] — 2026-06-22
 
 ### Corregido
