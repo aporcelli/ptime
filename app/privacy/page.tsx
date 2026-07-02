@@ -179,7 +179,7 @@ export default function PrivacyPage() {
                     <strong>Minimal Access & drive.file:</strong> Ptime operates strictly under the Google Drive File (<code>drive.file</code>) scope. We only access the specific spreadsheet you configure during setup or let Ptime create for you. We cannot see, browse, or edit any other documents in your Google Drive.
                   </li>
                   <li>
-                    <strong>Collaborator Sharing & Sovereignty:</strong> Ptime uses each user&apos;s personal Google account. For collaborators to read/write, the spreadsheet owner must manually grant them "Editor" access in Google Drive. This enforces total sovereignty over data access.
+                    <strong>Collaborator Sharing & Sovereignty:</strong> Ptime uses each user&apos;s personal Google account. For collaborators to read/write, the spreadsheet owner must manually grant them &quot;Editor&quot; access in Google Drive. This enforces total sovereignty over data access.
                   </li>
                   <li>
                     <strong>Immediate revocation:</strong> you can revoke Ptime&apos;s access to your Google account
@@ -352,7 +352,7 @@ export default function PrivacyPage() {
                     <strong>Acceso Mínimo y drive.file:</strong> Ptime opera bajo el alcance seguro Google Drive File (<code>drive.file</code>). Solo accedemos a la planilla que configures o que Ptime cree por vos. No podemos listar, leer ni editar ningún otro archivo de tu Google Drive.
                   </li>
                   <li>
-                    <strong>Compartido de Colaboradores y Soberanía:</strong> Ptime utiliza la cuenta de Google personal de cada colaborador. Para que un colaborador cargue horas, el dueño de la planilla debe compartirle el archivo en Google Drive con rol de "Editor". Esto garantiza que vos mantengas el control total.
+                    <strong>Compartido de Colaboradores y Soberanía:</strong> Ptime utiliza la cuenta de Google personal de cada colaborador. Para que un colaborador cargue horas, el dueño de la planilla debe compartirle el archivo en Google Drive con rol de &quot;Editor&quot;. Esto garantiza que vos mantengas el control total.
                   </li>
                 </ul>
               </section>
