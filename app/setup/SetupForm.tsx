@@ -67,6 +67,35 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
     router.refresh();
   }, [router]);
 
+  function renderCardHeader() {
+    if (sharedSheetId) {
+      return (
+        <div className="text-center mb-6">
+          <div className="text-4xl mb-3">🎉</div>
+          <h2 className="font-semibold text-xl mb-1">
+            {locale === "en" ? "You have a pending invitation!" : "¡Tenés una invitación pendiente!"}
+          </h2>
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            {locale === "en" ? "Someone has shared a workspace with you." : "Compartieron un espacio de trabajo con vos."}
+          </p>
+        </div>
+      );
+    }
+    return (
+      <div className="text-center mb-6">
+        <div className="text-4xl mb-3">📊</div>
+        <h2 className="font-semibold text-xl mb-1">
+          {locale === "en" ? "Connect your Google Sheet" : "Conectá tu Google Sheet"}
+        </h2>
+        <p className="text-muted-foreground text-sm leading-relaxed">
+          {locale === "en" 
+            ? "Ptime uses Google Sheets as a database. Create a new one or connect an existing one." 
+            : "Ptime usa un Google Sheet como base de datos. Creá uno nuevo o usá uno existente."}
+        </p>
+      </div>
+    );
+  }
+
   function renderLanguageSelector() {
     return (
       <div className="flex flex-col items-center justify-center p-4 bg-muted/30 border border-border rounded-xl text-center gap-2 mb-2">
@@ -165,6 +194,7 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
     return (
       <div className="flex flex-col gap-4">
         {renderLanguageSelector()}
+        {renderCardHeader()}
         <motion.button onClick={handleSharedSubmit} disabled={status === "loading" || status === "success"} whileTap={{ scale: 0.98 }}
           className="bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-semibold rounded-lg py-3 text-sm flex items-center justify-center gap-2 transition-colors">
           {status === "loading" && <Loader2 size={16} className="animate-spin mr-2" />}
@@ -195,6 +225,7 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
     return (
       <div className="flex flex-col gap-5 text-center">
         {renderLanguageSelector()}
+        {renderCardHeader()}
         <div className="p-4 bg-muted/50 border border-border rounded-xl text-sm text-muted-foreground space-y-1">
           <p className="font-semibold text-foreground text-xs uppercase tracking-wide">{ot.setupTitle}</p>
           <p className="text-xs">{ot.setupDesc}</p>
@@ -204,7 +235,7 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
           <GoogleSheetPicker
             onSelect={connectSheet}
             disabled={status === "loading" || status === "success"}
-            label="{ot.setupBtnSelectExisting}"
+            label={ot.setupBtnSelectExisting}
             variant="secondary"
           />
 
@@ -245,8 +276,9 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
   }
 
   return (
-    <>
+    <div className="flex flex-col gap-6">
       {renderLanguageSelector()}
+      {renderCardHeader()}
       <div className="mb-6 p-4 bg-muted/50 border border-border rounded-xl text-sm text-muted-foreground space-y-2">
         <p className="font-semibold text-foreground text-xs uppercase tracking-wide">{ot.setupStepTitle}</p>
         <ol className="list-decimal list-inside space-y-1 text-xs">
@@ -294,7 +326,7 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
         <motion.button type="submit" disabled={status === "loading" || status === "success" || !rawInput.trim()} whileTap={{ scale: 0.98 }}
           className="bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-semibold rounded-lg py-3 text-sm flex items-center justify-center gap-2 transition-colors">
           {status === "loading" && <Loader2 size={16} className="animate-spin" />}
-          {status === "loading" ? status === "loading" ? ot.setupBtnCreating : ot.setupBtnVerify : ot.setupBtnVerify}
+          {status === "loading" ? ot.setupBtnCreating : ot.setupBtnVerify}
         </motion.button>
 
         {isDriveFile ? (
@@ -312,6 +344,6 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
           </div>
         )}
       </form>
-    </>
+    </div>
   );
 }
