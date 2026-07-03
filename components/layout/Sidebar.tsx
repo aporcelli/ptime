@@ -4,6 +4,9 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { LayoutDashboard, Clock, BarChart3, Users, FolderKanban, CheckSquare, Settings, UserCog, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils/index";
+import { useState, useEffect } from "react";
+import type { Locale } from "@/lib/onboarding-i18n";
+import { dashboardTranslations } from "@/lib/dashboard-i18n";
 
 const navItems = [
   { href: "/dashboard",           label: "Dashboard",   icon: <LayoutDashboard size={18} /> },
@@ -28,6 +31,34 @@ interface SidebarProps {
 export default function Sidebar({ role, onNavClick }: SidebarProps) {
   const pathname = usePathname();
   const isAdmin  = role === "ADMIN";
+  const [locale, setLocale] = useState<Locale>("en");
+
+  useEffect(() => {
+    const checkLocale = () => {
+      const saved = localStorage.getItem("ptime-locale") as Locale | null;
+      if (saved === "en" || saved === "es") setLocale(saved);
+    };
+    checkLocale();
+    const interval = setInterval(checkLocale, 500);
+    return () => clearInterval(interval);
+  }, []);
+
+  const t = dashboardTranslations[locale];
+
+  const getLabel = (href: string) => {
+    switch (href) {
+      case "/dashboard": return t.menuDashboard;
+      case "/horas": return t.menuHoras;
+      case "/reportes": return t.menuReportes;
+      case "/admin/clientes": return t.menuClientes;
+      case "/admin/proyectos": return t.menuProyectos;
+      case "/admin/tareas": return t.menuTareas;
+      case "/admin/workspace": return t.menuWorkspace;
+      case "/admin/usuarios": return t.menuUsuarios;
+      case "/admin/configuracion": return t.menuConfiguracion;
+      default: return "";
+    }
+  };
 
   return (
     <aside className="flex flex-col w-[220px] shrink-0 h-full bg-card border-r border-border" aria-label="Navegación">
@@ -40,20 +71,20 @@ export default function Sidebar({ role, onNavClick }: SidebarProps) {
 
       <nav className="flex-1 px-3 py-2 overflow-y-auto flex flex-col gap-0.5">
         {navItems.map((item) => (
-          <NavItem key={item.href} item={item} pathname={pathname} onNavClick={onNavClick} />
-        ))}
+              <NavItem key={item.href} item={{...item, label: getLabel(item.href)}} pathname={pathname} onNavClick={onNavClick} />
+            ))}
 
         <div className="px-3 pt-5 pb-1">
           <span className="text-muted-foreground text-[10px] font-semibold uppercase tracking-widest">
-            Administración
+            {t.menuAdministration}
           </span>
         </div>
 
         {adminItems
-          .filter((item) => !item.adminOnly || isAdmin)
-          .map((item) => (
-            <NavItem key={item.href} item={item} pathname={pathname} onNavClick={onNavClick} />
-          ))}
+              .filter((item) => !item.adminOnly || isAdmin)
+              .map((item) => (
+                <NavItem key={item.href} item={{...item, label: getLabel(item.href)}} pathname={pathname} onNavClick={onNavClick} />
+              ))}
       </nav>
 
       <div className="px-4 py-4 flex flex-col items-center gap-3 border-t border-border mt-auto">

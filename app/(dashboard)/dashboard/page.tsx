@@ -25,6 +25,8 @@ import { getPageCtx } from "@/lib/sheets/getPageCtx";
 import { getLocalDevUser, getRequestUrlFromHeaders } from "@/lib/env/dev-access";
 import { DataPanel, MetricCard, PageShell, SectionCard, StatusPill } from "@/components/ui/structure";
 import { repriceMonthlyRecords, summarizeRecords } from "@/lib/hours/monthly";
+import { getLocale } from "@/lib/locale";
+import { dashboardTranslations } from "@/lib/dashboard-i18n";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -37,6 +39,8 @@ export default async function DashboardPage({
   const localUser = getLocalDevUser(getRequestUrlFromHeaders(headers()));
   const userName = session?.user?.name ?? localUser?.name ?? "";
   const ctx = await getPageCtx();
+  const locale = getLocale();
+  const t = dashboardTranslations[locale];
 
   try {
     const hoy = new Date();
@@ -95,17 +99,17 @@ export default async function DashboardPage({
 
     return (
       <PageShell
-        title="Dashboard"
+        title={locale === "en" ? "Dashboard" : "Dashboard"}
         description={`${format(selectedDate, "MMMM yyyy")} · Bienvenido, ${userName}`}
         actions={
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <DashboardMonthFilter months={uniqueMonths} selectedMonth={selectedMonth} />
             <Button asChild variant="outline">
-              <Link href="/reportes">Ver reportes</Link>
+              <Link href="/reportes">{locale === "en" ? "View reports" : "Ver reportes"}</Link>
             </Button>
             <Button asChild className="shadow-md">
               <Link href="/horas/nuevo">
-                <Plus className="mr-2 h-4 w-4" /> Cargar horas
+                <Plus className="mr-2 h-4 w-4" /> {locale === "en" ? "Log hours" : "Cargar horas"}
               </Link>
             </Button>
           </div>
@@ -118,14 +122,14 @@ export default async function DashboardPage({
           <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <MetricCard
               icon={<Clock size={20} className="text-blue-500" />}
-              label="Horas del mes"
+              label={locale === "en" ? "Monthly hours" : "Horas del mes"}
               value={formatHours(totalHoras)}
             >
               {registros.length > 0 && <Sparkline data={registros.slice(-7).map((r) => r.horas)} color="#3b82f6" height={30} />}
             </MetricCard>
             <MetricCard
               icon={<DollarSign size={20} className="text-emerald-500" />}
-              label="Ingresos del mes"
+              label={locale === "en" ? "Monthly income" : "Ingresos del mes"}
               value={formatCurrency(totalIngresos, config.moneda)}
               tone="success"
             >
@@ -133,13 +137,13 @@ export default async function DashboardPage({
             </MetricCard>
             <MetricCard
               icon={<TrendingUp size={20} className="text-amber-500" />}
-              label="Promedio diario"
+              label={locale === "en" ? "Daily average" : "Promedio diario"}
               value={`${promedioHoras}h`}
               tone="warning"
             />
             <MetricCard
               icon={<FolderOpen size={20} className="text-purple-500" />}
-              label="Proyectos activos"
+              label={locale === "en" ? "Active projects" : "Proyectos activos"}
               value={String(proyectos.length)}
             />
           </div>
@@ -158,10 +162,10 @@ export default async function DashboardPage({
             </div>
             <div>
               <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">
-                {proyectosEnTramo2.length} proyecto(s) en tarifa alta
+                {locale === "en" ? `${proyectosEnTramo2.length} project(s) at premium rate` : `${proyectosEnTramo2.length} proyecto(s) en tarifa alta`}
               </p>
               <p className="text-xs text-amber-600 dark:text-amber-400/80 mt-1">
-                {proyectosEnTramo2.map((p) => p.nombre).join(", ")} superaron el umbral de {config.umbralHoras}h este mes y están facturando a ${config.precioAlto}/h.
+                {proyectosEnTramo2.map((p) => p.nombre).join(", ")} {locale === "en" ? `exceeded the base threshold of ${config.umbralHoras}h this month and are billing at ${config.precioAlto}/h.` : `superaron el umbral de ${config.umbralHoras}h este mes y están facturando a ${config.precioAlto}/h.`}
               </p>
             </div>
           </div>
@@ -169,11 +173,11 @@ export default async function DashboardPage({
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Últimos registros */}
-          <SectionCard className="lg:col-span-2" title="Registros recientes" icon={<Clock className="h-4 w-4 text-primary" />}>
+          <SectionCard className="lg:col-span-2" title={t.dbSectionRecentLogs} icon={<Clock className="h-4 w-4 text-primary" />}>
             <div className="mb-4 flex justify-end">
                 <Button variant="ghost" size="sm" asChild>
                   <Link href="/horas" className="text-primary">
-                    Ver todos <ChevronRight className="ml-1 h-4 w-4" />
+                    {locale === "en" ? "View all" : "Ver todos"} <ChevronRight className="ml-1 h-4 w-4" />
                   </Link>
                 </Button>
               </div>
@@ -183,10 +187,10 @@ export default async function DashboardPage({
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/50 hover:bg-muted/50">
-                      <TableHead className="w-[100px]">Fecha</TableHead>
-                      <TableHead>Descripción</TableHead>
-                      <TableHead className="text-right">Horas</TableHead>
-                      <TableHead className="text-right">Monto</TableHead>
+                      <TableHead className="w-[100px]">{locale === "en" ? "Date" : "Fecha"}</TableHead>
+                      <TableHead>{locale === "en" ? "Description" : "Descripción"}</TableHead>
+                      <TableHead className="text-right">{locale === "en" ? "Hours" : "Horas"}</TableHead>
+                      <TableHead className="text-right">{locale === "en" ? "Amount" : "Monto"}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -211,16 +215,16 @@ export default async function DashboardPage({
               </DataPanel>
             ) : (
               <Card className="bg-muted/30 border-dashed flex flex-col items-center justify-center p-12 text-center">
-                <p className="text-muted-foreground text-sm mb-4">No hay registros este mes aún.</p>
+                <p className="text-muted-foreground text-sm mb-4">{locale === "en" ? "No logs this month yet." : "No hay registros este mes aún."}</p>
                 <Button asChild size="sm">
-                  <Link href="/horas/nuevo">Cargá tu primer registro</Link>
+                  <Link href="/horas/nuevo">{locale === "en" ? "Log your first entry" : "Cargá tu primer registro"}</Link>
                 </Button>
               </Card>
             )}
           </SectionCard>
 
           {/* Proyectos activos summary */}
-          <SectionCard title="Estado de proyectos" icon={<FolderOpen className="h-4 w-4 text-primary" />}>
+          <SectionCard title={locale === "en" ? "Projects status" : "Estado de proyectos"} icon={<FolderOpen className="h-4 w-4 text-primary" />}>
             <div className="space-y-3">
               {proyectos.slice(0, 5).map((p) => {
                 const horasMes = horasMesPorProyecto[p.id] ?? 0;
@@ -232,11 +236,11 @@ export default async function DashboardPage({
                         <div className="min-w-0">
                           <p className="text-sm font-semibold text-foreground truncate">{p.nombre}</p>
                           <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider mt-0.5">
-                            {horasMes}h este mes · {p.horas_acumuladas}h total
+                            {horasMes}h {locale === "en" ? "this month ·" : "este mes ·"} {p.horas_acumuladas}h {locale === "en" ? "total" : "total"}
                           </p>
                         </div>
                         <StatusPill tone={isHigh ? "warning" : "success"}>
-                          {isHigh ? "Tarifa Alta" : "Tarifa Base"}
+                          {locale === "en" ? (isHigh ? "Premium Rate" : "Base Rate") : (isHigh ? "Tarifa Alta" : "Tarifa Base")}
                         </StatusPill>
                       </div>
                       <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
@@ -251,7 +255,7 @@ export default async function DashboardPage({
               })}
               {proyectos.length > 5 && (
                 <Button variant="ghost" size="sm" className="w-full text-muted-foreground" asChild>
-                  <Link href="/admin/proyectos">Ver todos los proyectos</Link>
+                  <Link href="/admin/proyectos">{locale === "en" ? "View all projects" : "Ver todos los proyectos"}</Link>
                 </Button>
               )}
             </div>
@@ -263,8 +267,8 @@ export default async function DashboardPage({
     console.error("[Dashboard] Error fatal:", error);
     return (
       <div className="p-8 m-8 bg-red-50 text-red-900 rounded-lg border border-red-200">
-        <h2 className="text-xl font-bold mb-2">Error cargando el Dashboard</h2>
-        <p className="mb-4">Ocurrió un error al consultar Google Sheets en producción.</p>
+        <h2 className="text-xl font-bold mb-2">{locale === "en" ? "Error loading Dashboard" : "Error cargando el Dashboard"}</h2>
+        <p className="mb-4">{locale === "en" ? "An error occurred while querying Google Sheets in production." : "Ocurrió un error al consultar Google Sheets en producción."}</p>
         <pre className="bg-red-100 p-4 rounded text-sm overflow-auto">
           {error?.message || String(error)}
         </pre>
