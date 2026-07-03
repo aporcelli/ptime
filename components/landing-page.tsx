@@ -310,7 +310,7 @@ export default function LandingPage({ serverLoggedIn }: { serverLoggedIn: boolea
             className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
           >
             {t.features.map((feat, i) => (
-              <FeatureCard key={feat.title} title={feat.title} desc={feat.desc} index={i} />
+              <FeatureCard key={i} title={feat.title} desc={feat.desc} index={i} />
             ))}
           </motion.div>
         </section>

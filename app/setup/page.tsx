@@ -36,16 +36,6 @@ export default async function SetupPage() {
         </div>
 
         <div className="glass rounded-2xl p-8 shadow-2xl">
-          <div className="text-center mb-6">
-            <div className="text-4xl mb-3">{sharedSheetId ? "🎉" : "📊"}</div>
-            <h2 className="font-semibold text-xl mb-1">
-              {sharedSheetId ? "¡Tenés una invitación pendiente!" : "Conectá tu Google Sheet"}
-            </h2>
-            <p className="text-muted-foreground text-sm">
-              {sharedSheetId ? "Han compartido un workspace contigo." : "Ptime usa un Google Sheet como base de datos. Creá uno nuevo o usá uno existente."}
-            </p>
-          </div>
-
           <SetupForm sharedSheetId={sharedSheetId ?? undefined} />
         </div>
       </div>
