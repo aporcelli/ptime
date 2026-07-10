@@ -1,31 +1,48 @@
 import { NextResponse } from "next/server";
-import { parseBnaDolarBillete } from "@/lib/bna-dolar";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const BNA_URL = "https://www.bna.com.ar/Personas";
+const DOLAR_API_URL = "https://dolarapi.com/v1/dolares/oficial";
 
 export async function GET() {
   try {
-    const response = await fetch(BNA_URL, {
-      headers: { "user-agent": "ptime/1.0 (+https://www.bna.com.ar/Personas)" },
-      next: { revalidate: 60 * 30 },
+    const response = await fetch(DOLAR_API_URL, {
+      cache: "no-store",
+      headers: { "Content-Type": "application/json" },
     });
-    if (!response.ok) throw new Error(`BNA respondió HTTP ${response.status}`);
+    
+    if (!response.ok) {
+      throw new Error(`DolarApi respondió HTTP ${response.status}`);
+    }
 
-    const html = await response.text();
-    const rate = parseBnaDolarBillete(html);
+    const data = await response.json();
+    
+    if (!data || typeof data.compra !== "number" || typeof data.venta !== "number") {
+      throw new Error("Datos de cotización inválidos o vacíos recibidos de la API");
+    }
+
+    // Formatear la fecha en formato YYYY-MM-DD
+    const fecha = data.fechaActualizacion 
+      ? data.fechaActualizacion.slice(0, 10) 
+      : new Date().toISOString().slice(0, 10);
 
     return NextResponse.json({
       success: true,
-      source: BNA_URL,
+      source: DOLAR_API_URL,
       fetchedAt: new Date().toISOString(),
-      ...rate,
+      fecha,
+      compra: data.compra,
+      venta: data.venta,
     });
   } catch (error) {
+    console.error("[BNA Dollar API Error]:", error);
     return NextResponse.json(
-      { success: false, source: BNA_URL, error: error instanceof Error ? error.message : "Error consultando BNA" },
+      { 
+        success: false, 
+        source: DOLAR_API_URL, 
+        error: error instanceof Error ? error.message : "Error consultando la cotización" 
+      },
       { status: 502 },
     );
   }
