@@ -5,6 +5,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.50] — 2026-06-22
+
+### Corregido
+- **Resolución Estable de Dólar BNA hoy**: Reemplazado el scraper por expresiones regulares del Banco Nación Argentina (el cual fallaba de forma constante en producción por bloqueos de cortafuegos de Cloudflare sobre servidores en la nube) por una conexión ultra estable a la API de **DolarApi**.
+  - El endpoint `/api/bna-dolar` consulta de forma directa `https://dolarapi.com/v1/dolares/oficial`.
+  - Se formatea la fecha y la cotización de forma idéntica a la estructura esperada por el frontend de Ptime, garantizando que el widget del dólar vuelva a mostrar la cotización real en tiempo real de forma inmediata y sin demoras.
+- **Congelación de Auditoría**: Se retiró de forma temporal la lógica de auditoría interna de logins en la base de datos Maestra para mantener el código 100% libre de advertencias de conexión hasta que se decida configurar la Cuenta de Servicio de Google.
+
 ## [1.2.49] — 2026-06-22
 
 ### Añadido
