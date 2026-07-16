@@ -43,20 +43,20 @@ export async function validateAndSaveSheetId(
 
   if (!isGlobalAdmin) {
     try {
-      const usuariosRows = await getSheetRows(trimmed, session.user.accessToken, "Usuarios!A:G");
-      const hasOtherUsers = usuariosRows.some((r) => r[2] && r[2].toLowerCase() !== userEmail);
-      if (hasOtherUsers) {
+      const wmRows = await getSheetRows(trimmed, session.user.accessToken, "Workspace_Members!A:F");
+      const hasMembers = wmRows.some((r) => r[2] && r[2].toLowerCase() !== userEmail);
+      if (hasMembers) {
         isSharedWorkspace = true;
-        const isRegistered = usuariosRows.some((r) => r[2]?.toLowerCase() === userEmail);
-        if (!isRegistered) {
+        const isMember = wmRows.some((r) => r[0]?.toLowerCase() === userEmail);
+        if (!isMember) {
           return {
             success: false,
-            error: "Acceso denegado. Este Google Sheet pertenece a otro usuario. Solicitá una invitación al owner o seleccioná tu propio sheet.",
+            error: "Acceso denegado. No sos miembro de este workspace. Solicitá una invitación al owner o seleccioná tu propio sheet.",
           };
         }
       }
     } catch {
-      // Si no se puede leer Usuarios (sheet nuevo o sin permisos), permitir el acceso
+      // Si no se puede leer Workspace_Members, permitir el acceso
     }
   }
 
