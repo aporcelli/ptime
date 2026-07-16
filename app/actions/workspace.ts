@@ -3,7 +3,7 @@ import { revalidatePath }         from "next/cache";
 import { auth }                   from "@/auth";
 import { getSheetCtx }            from "@/lib/sheets/context";
 import { getWorkspaceMembers, getWorkspaceMemberByEmail } from "@/lib/sheets/queries";
-import { inviteWorkspaceMember, updateWorkspaceMemberRol, removeWorkspaceMember } from "@/lib/sheets/mutations";
+import { inviteWorkspaceMember, updateWorkspaceMemberRol, removeWorkspaceMember, deleteUsuario } from "@/lib/sheets/mutations";
 import { getSheetRows, appendSheetRow } from "@/lib/sheets/client";
 import type { ActionResult, WorkspaceMember, WorkspaceMemberRol } from "@/types/entities";
 
