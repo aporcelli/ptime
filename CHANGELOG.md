@@ -5,6 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.55] — 2026-07-10
+
+### Corregido
+- **Invitados registrados al instante en Usuarios**: Cuando el admin invita a un colaborador por Workspace, ahora también se registra automáticamente en la pestaña `Usuarios` del sheet usando la sesión del admin. Esto resuelve el problema donde colaboradores con acceso de solo lectura en Drive no podían auto-registrarse al iniciar sesión — el admin los ve en la tabla de Usuarios desde el momento en que los invita.
+
 ## [1.2.54] — 2026-07-10
 
 ### Añadido

@@ -4,7 +4,7 @@ import { auth }                   from "@/auth";
 import { getSheetCtx }            from "@/lib/sheets/context";
 import { getWorkspaceMembers, getWorkspaceMemberByEmail } from "@/lib/sheets/queries";
 import { inviteWorkspaceMember, updateWorkspaceMemberRol, removeWorkspaceMember } from "@/lib/sheets/mutations";
-import { getSheetRows }           from "@/lib/sheets/client";
+import { getSheetRows, appendSheetRow } from "@/lib/sheets/client";
 import type { ActionResult, WorkspaceMember, WorkspaceMemberRol } from "@/types/entities";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -46,6 +46,19 @@ export async function inviteMemberAction(
 
   const invitedBy = session.user.email;
   await inviteWorkspaceMember(ctx, emailNorm, rol, invitedBy);
+
+      // Registrar también en la pestaña Usuarios para que aparezca en el admin
+      try {
+        await appendSheetRow(ctx.sheetId, ctx.accessToken, "Usuarios!A:G", [
+          emailNorm,
+          emailNorm.split("@")[0],
+          emailNorm,
+          "USER",
+          "true",
+          new Date().toISOString(),
+          ctx.sheetId,
+        ]);
+      } catch { /* no bloquear la invitación si falla el registro */ }
 
   revalidatePath("/admin/workspace");
   return {
