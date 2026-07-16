@@ -14,9 +14,10 @@ const ROL_CONFIG: Record<WorkspaceMemberRol, { label: string; desc: string; colo
 interface Props {
   members:            WorkspaceMember[];
   currentUserEmail:   string;
+  isAdmin:            boolean;
 }
 
-export default function WorkspaceClient({ members: initMembers, currentUserEmail }: Props) {
+export default function WorkspaceClient({ members: initMembers, currentUserEmail, isAdmin }: Props) {
   const [members, setMembers]   = useState(initMembers);
   const [email, setEmail]       = useState("");
   const [rol, setRol]           = useState<WorkspaceMemberRol>("COLABORADOR");
