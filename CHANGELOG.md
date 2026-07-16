@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.52] — 2026-07-10
+
+### Corregido
+- **Roles de Workspace visualizados correctamente**: Arreglado el bug donde cualquier usuario logueado aparecía como OWNER en la pantalla de Workspace. Ahora solo el administrador real (según `ADMIN_EMAIL`) se muestra como Owner. Los colaboradores invitados ven su rol real (COLABORADOR o VIEWER) sin controles de admin.
+- **Controles de invitación ocultos para no-admins**: El formulario de invitar miembros, el selector de cambio de rol y el botón de remover miembro ahora solo son visibles para el administrador del workspace.
+
 ## [1.2.51] — 2026-07-10
 
 ### Corregido

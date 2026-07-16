@@ -12,7 +12,8 @@ export default async function WorkspacePage() {
   const session = await auth();
   const members = await getWorkspaceMembers(ctx);
   const ownerEmail = session?.user?.email?.trim().toLowerCase() ?? "";
-  const membersWithOwner: WorkspaceMember[] = ownerEmail
+  const isAdmin = session?.user?.role === "ADMIN";
+  const membersWithOwner: WorkspaceMember[] = isAdmin
     ? [
         {
           email: ownerEmail,
@@ -47,6 +48,7 @@ export default async function WorkspacePage() {
       <WorkspaceClient
         members={membersWithOwner}
         currentUserEmail={session?.user?.email ?? ""}
+        isAdmin={isAdmin}
       />
     </div>
   );
