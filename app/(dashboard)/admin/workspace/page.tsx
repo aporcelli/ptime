@@ -13,19 +13,24 @@ export default async function WorkspacePage() {
   const members = await getWorkspaceMembers(ctx);
   const ownerEmail = session?.user?.email?.trim().toLowerCase() ?? "";
   const isAdmin = session?.user?.role === "ADMIN";
-  const membersWithOwner: WorkspaceMember[] = isAdmin
-    ? [
-        {
-          email: ownerEmail,
-          sheet_id: ctx.sheetId,
-          rol: "OWNER",
-          invited_by: ownerEmail,
-          created_at: "",
-          updated_at: "",
-        },
-        ...members.filter((m) => m.email.trim().toLowerCase() !== ownerEmail),
-      ]
-    : members;
+
+  // Determinar el email del dueño real del workspace
+  const adminEmails = (process.env.ADMIN_EMAILS ?? process.env.ADMIN_EMAIL ?? "").split(",").map((e) => e.trim().toLowerCase());
+  const realOwnerEmail = adminEmails[0] ?? ownerEmail;
+
+  const membersWithOwner: WorkspaceMember[] = [
+    // Siempre mostrar al dueño real primero como OWNER
+    {
+      email: realOwnerEmail,
+      sheet_id: ctx.sheetId,
+      rol: "OWNER",
+      invited_by: realOwnerEmail,
+      created_at: "",
+      updated_at: "",
+    },
+    // Luego los miembros invitados, filtrando al dueño real
+    ...members.filter((m) => m.email.trim().toLowerCase() !== realOwnerEmail),
+  ];
 
   return (
     <div className="max-w-2xl mx-auto animate-fade-in">
