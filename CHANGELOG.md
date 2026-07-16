@@ -5,6 +5,22 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.58] — 2026-07-10
+
+### Corregido
+- **Detección de workspace compartido en sesión**: El callback de sesión de NextAuth ahora verifica la cookie `ptime-is-shared-workspace` (establecida durante el setup) para asignar correctamente el rol USER a colaboradores en workspaces compartidos. Antes, un colaborador que conectaba un sheet compartido (no master) obtenía rol ADMIN incorrectamente.
+
+## [1.2.57] — 2026-07-10
+
+### Añadido
+- **Gate de autorización al conectar un sheet**: Al validar un Google Sheet en `/setup`, Ptime ahora verifica que el usuario esté autorizado. Si el sheet ya tiene otros usuarios registrados en la pestaña `Usuarios` (es un workspace compartido), el usuario debe ser admin global o estar registrado en dicha pestaña. Si no, se rechaza con "Acceso denegado".
+- **Cookie de workspace compartido**: Al conectar un sheet que es un workspace compartido, se establece la cookie `ptime-is-shared-workspace` para que el sistema de sesión asigne el rol correcto.
+
+## [1.2.56] — 2026-07-10
+
+### Corregido
+- **Owner real siempre visible en Workspace**: La página de Workspace ahora siempre muestra al dueño real (según `ADMIN_EMAIL`) como OWNER al tope de la lista, tanto para admins como para colaboradores. Eliminada la lógica que solo mostraba al owner cuando el usuario logueado era admin.
+
 ## [1.2.55] — 2026-07-10
 
 ### Corregido
