@@ -277,11 +277,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.role = "ADMIN";
       } else {
         const currentSheetId = session.user.sheetId || "";
-        if (currentSheetId && currentSheetId === globalMasterId) {
-          session.user.role = "USER";
-        } else {
-          session.user.role = "ADMIN"; // Es dueño de su propio sheet
-        }
+            try {
+              const cookieStore = cookies();
+              if (cookieStore.get("ptime-is-shared-workspace")?.value === "true") {
+                session.user.role = "USER";
+              } else if (currentSheetId && currentSheetId === globalMasterId) {
+                session.user.role = "USER";
+              } else {
+                session.user.role = "ADMIN";
+              }
+            } catch {
+              if (currentSheetId && currentSheetId === globalMasterId) {
+                session.user.role = "USER";
+              } else {
+                session.user.role = "ADMIN";
+              }
+            }
       }
 
       // Propagar el error para que el cliente pueda re-login si es necesario
