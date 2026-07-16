@@ -72,6 +72,54 @@ async function fetchGoogleProfilePicture(accessToken?: string): Promise<string |
   }
 }
 
+
+// ── Registrar usuario en la pestaña Usuarios del sheet ─────────────────────────
+async function registerUserInSheet(
+  sheetId: string,
+  accessToken: string,
+  user: { id: string; nombre: string; email: string }
+): Promise<void> {
+  try {
+    const range = "Usuarios!A:G";
+    const now = new Date().toISOString();
+    
+    // Leer filas existentes para ver si el usuario ya está registrado
+    const readRes = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(range)}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+    if (!readRes.ok) return;
+    const data = await readRes.json();
+    const rows: string[][] = data.values ?? [];
+    const existingIdx = rows.findIndex((r) => r[2] === user.email);
+    
+    if (existingIdx === -1) {
+      // Usuario nuevo — append
+      await fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(range)}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ values: [[user.id, user.nombre, user.email, "USER", "true", now, sheetId]] }),
+        }
+      );
+    } else {
+      // Usuario existente — actualizar último acceso
+      const rowNum = existingIdx + 1;
+      await fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent("Usuarios!F" + rowNum)}?valueInputOption=USER_ENTERED`,
+        {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ values: [[now]] }),
+        }
+      );
+    }
+  } catch (err) {
+    console.error("[auth] registerUserInSheet error:", err);
+  }
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: process.env.AUTH_TRUST_HOST === "true" || process.env.VERCEL === "1",
   secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,

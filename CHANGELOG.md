@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.54] — 2026-07-10
+
+### Añadido
+- **Registro automático de usuarios en pestaña Usuarios**: Ahora cada usuario que inicia sesión queda registrado automáticamente en la pestaña `Usuarios` del Google Sheet compartido. El admin puede ver la lista completa de miembros del workspace con su rol de workspace (OWNER / COLABORADOR / VIEWER) en la sección Admin → Usuarios.
+- **Columna Rol Workspace en tabla de Usuarios**: Agregada la columna "Rol Workspace" que muestra el rol real de cada miembro (OWNER, COLABORADOR, VIEWER) cruzándolo con la tabla `Workspace_Members`.
+
 ## [1.2.53] — 2026-07-10
 
 ### Añadido

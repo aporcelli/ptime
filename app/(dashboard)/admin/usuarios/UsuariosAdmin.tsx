@@ -63,7 +63,7 @@ export default function UsuariosAdmin({ users, currentEmail }: { users: PtimeUse
           <table className="w-full text-sm">
             <thead>
               <tr className="table-head">
-                {["Usuario", "Email", "Rol", "Último acceso", "Sheet", "Estado", "Acciones"].map((h) => (
+                {["Usuario", "Email", "Rol Global", "Rol Workspace", "Último acceso", "Sheet", "Acciones"].map((h) => (
                   <th key={h} className="p-3 text-xs font-semibold uppercase tracking-wide whitespace-nowrap text-left"
                     style={{ color: "var(--text-muted)" }}>{h}</th>
                 ))}

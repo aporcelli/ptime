@@ -14,6 +14,7 @@ export interface PtimeUser {
   activo: boolean;
   ultimoAcceso: string;
   sheetId: string;
+  workspaceRole?: "OWNER" | "COLABORADOR" | "VIEWER";
 }
 
 const RANGE = "Usuarios!A:G";
@@ -65,6 +66,18 @@ export async function getUsers(): Promise<PtimeUser[]> {
   await requireAdmin();
   const ctx = await getSheetCtx();
   const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, RANGE);
+
+  // Leer Workspace_Members para obtener los roles de workspace
+  let workspaceRoles: Record<string, string> = {};
+  try {
+    const wmRows = await getSheetRows(ctx.sheetId, ctx.accessToken, "Workspace_Members!A:F");
+    for (const wr of wmRows) {
+      if (wr[0]) workspaceRoles[wr[0].trim().toLowerCase()] = wr[2] ?? "COLABORADOR";
+    }
+  } catch {}
+
+  const adminEmails = (process.env.ADMIN_EMAILS ?? process.env.ADMIN_EMAIL ?? "").split(",").map((e) => e.trim().toLowerCase());
+
   return rows.filter((r) => r[0]).map((r) => ({
     id: r[0],
     nombre: r[1],
@@ -73,6 +86,9 @@ export async function getUsers(): Promise<PtimeUser[]> {
     activo: r[4] === "true" || r[4] === "TRUE",
     ultimoAcceso: r[5] ?? "",
     sheetId: r[6] ?? "",
+    workspaceRole: adminEmails.includes((r[2] ?? "").toLowerCase())
+      ? "OWNER"
+      : (workspaceRoles[(r[2] ?? "").toLowerCase()] as "COLABORADOR" | "VIEWER") || "COLABORADOR",
   }));
 }
 

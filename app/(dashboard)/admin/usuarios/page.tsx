@@ -30,6 +30,7 @@ export default async function UsuariosPage() {
       activo:       true,
       ultimoAcceso: new Date().toISOString(),
       sheetId:      sheetId ?? "",
+          workspaceRole: "OWNER",
     };
     // Insertar al admin al principio de la lista
     users = [adminUser, ...users];

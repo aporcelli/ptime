@@ -1,6 +1,6 @@
 {
   "name": "ptime",
-  "version": "1.2.53",
+  "version": "1.2.54",
   "private": true,
   "engines": {
     "node": "24.x"
