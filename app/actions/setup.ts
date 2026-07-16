@@ -5,7 +5,7 @@
 'use server';
 
 import { auth } from "@/auth";
-import { validateSpreadsheet, initializeSpreadsheet, createSpreadsheet } from "@/lib/sheets/client";
+import { validateSpreadsheet, initializeSpreadsheet, createSpreadsheet, getSheetRows } from "@/lib/sheets/client";
 import { encode } from "next-auth/jwt";
 import { cookies } from "next/headers";
 

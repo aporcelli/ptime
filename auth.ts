@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import Google   from "next-auth/providers/google";
 import { findSharedSheetForEmailEdge, appendAuditLogEdge } from "@/lib/sheets/master-edge";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 
 declare module "next-auth" {
   interface Session {
