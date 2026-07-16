@@ -5,6 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.53] — 2026-07-10
+
+### Añadido
+- **Gating por rol implementado**: El middleware ahora bloquea las rutas `/admin/*` para usuarios no administradores (USER). Las acciones del servidor de horas (`createHour`, `updateHourAction`, `deleteHourAction`, `changeHourStatus`, `markMonthAsInvoiced`) verifican el rol ADMIN antes de ejecutar cualquier mutación.
+
 ## [1.2.52] — 2026-07-10
 
 ### Corregido
