@@ -32,9 +32,16 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/login?error=TokenExpired", req.url));
   }
 
-  // Admin routes — solo bloquear si el rol es explícitamente USER y la ruta es /admin
-  // (en esta versión todos los usuarios pueden acceder al admin de su propio sheet)
-  // Mantener para futuras implementaciones multi-tenant.
+  // Admin routes — bloquear para usuarios no-admin que estén en un workspace compartido
+  // Si el rol es USER (colaborador/viewer en workspace del master sheet), bloquear admin.
+  const isAdminRoute = pathname.startsWith("/admin");
+  const userRole = (session as { user?: { role?: string } })?.user?.role;
+  if (isAdminRoute && userRole !== "ADMIN") {
+    if (isApiRoute) {
+      return NextResponse.json({ success: false, error: "Acceso denegado: se requiere rol ADMIN" }, { status: 403 });
+    }
+    return NextResponse.redirect(new URL("/dashboard?error=unauthorized", req.url));
+  }
 
   // Sin sheet configurado → setup
   // Cada usuario tiene su propio Sheet — preferimos el JWT (persistente cross-device),

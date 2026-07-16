@@ -26,6 +26,7 @@ export async function createHour(rawData: unknown): Promise<ActionResult<Registr
   try {
     const user = await getActionUser();
     if (!user) return { success: false, error: "No autenticado" };
+    if (user.role !== "ADMIN") return { success: false, error: "Acceso denegado" };
 
     const result = await saveHourFromActionInput(rawData, {
       ctx: await getSheetCtx(),
