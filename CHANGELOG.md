@@ -5,6 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.51] — 2026-07-10
+
+### Corregido
+- **Sesion que expiraba prematuramente**: Agregado `maxAge: 7 * 24 * 60 * 60` a la cookie `sessionToken` de NextAuth. Antes, al no tener `maxAge`, el navegador trataba la cookie como "de sesion" y la eliminaba al cerrar la pestaña o suspender el dispositivo, forzando al usuario a re-loguerse constantemente. Ahora la sesion persiste los 7 dias completos aunque se cierre el navegador.
+
 ## [1.2.50] — 2026-06-22
 
 ### Corregido
