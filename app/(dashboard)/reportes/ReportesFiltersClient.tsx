@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition, useEffect } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, ChevronUp, FileDown, CalendarDays, X } from "lucide-react";
@@ -32,6 +32,8 @@ export function ReportesFiltersClient({
   const pathname   = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+      const [loc, setLoc] = useState("es");
+      useEffect(() => { const s = localStorage.getItem("ptime-locale"); if (s === "en" || s === "es") setLoc(s); }, []);
 
   // Filtros
   const [desde,      setDesde]      = useState(initDesde);
@@ -71,10 +73,14 @@ export function ReportesFiltersClient({
     return value.charAt(0).toUpperCase() + value.slice(1);
   };
 
-  const activeFilters = [
+  function getYearRange(y: number) { return { strDesde: `${y}-01-01`, strHasta: `${y}-12-31` }; }
+  const thisYear = getYearRange(new Date().getFullYear());
+
+      const activeFilters = [
     desde && { key: "desde", label: `Desde: ${desde}` },
     hasta && { key: "hasta", label: `Hasta: ${hasta}` },
     mesSeleccionado && { key: "mes", label: `Mes: ${mesSeleccionado}` },
+        (desde === thisYear.strDesde && hasta === thisYear.strHasta) && { key: "year", label: loc === "en" ? "This year" : "Este año" },
     clienteIdFiltro && { key: "cliente", label: `Cliente: ${clientes.find(c => c.id === clienteIdFiltro)?.nombre ?? "—"}` },
     proyectoId && { key: "proyecto", label: `Proyecto: ${proyectos.find(p => p.id === proyectoId)?.nombre ?? "—"}` },
     estado && { key: "estado", label: `Estado: ${estadoLabel(estado)}` },
@@ -172,11 +178,13 @@ export function ReportesFiltersClient({
 
   const isQuickEsteMes = desde === thisMonth.strDesde && hasta === thisMonth.strHasta;
   const isQuickMesPasado = desde === prevMonth.strDesde && hasta === prevMonth.strHasta;
+  const isQuickEsteAnio = desde === thisYear.strDesde && hasta === thisYear.strHasta;
 
   function handleQuickEsteMes() {
     setRangoMes(now.getFullYear(), now.getMonth() + 1);
   }
 
+  function handleQuickEsteAnio() { setDesde(thisYear.strDesde); setHasta(thisYear.strHasta); setMesSeleccionado(""); pushParams(thisYear.strDesde, thisYear.strHasta, clienteIdFiltro, proyectoId, estado); }
   function handleQuickMesPasado() {
     setRangoMes(prevMonthDate.getFullYear(), prevMonthDate.getMonth() + 1);
   }
