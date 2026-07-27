@@ -5,6 +5,17 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.60] — 2026-07-10
+
+### Añadido
+- **Filtro rápido "Este año" en Reportes**: Agregado un chip bilingüe ("Este año" / "This year") en la sección de filtros rápidos de Reportes. Al hacer clic, filtra desde el 1 de enero al 31 de diciembre del año actual mostrando todos los registros e ingresos del año completo.
+
+## [1.2.59] — 2026-07-10
+
+### Corregido
+- **Gate de autorización usa Workspace_Members**: El validador de acceso al conectar un sheet ahora verifica la pestaña `Workspace_Members` en lugar de `Usuarios` (que nunca se poblaba correctamente). Si un usuario no es miembro del workspace, se rechaza con "Acceso denegado".
+- **Limpieza de Usuarios al remover miembro**: Al eliminar un miembro del workspace, también se borra su entrada en la pestaña `Usuarios`.
+
 ## [1.2.58] — 2026-07-10
 
 ### Corregido
