@@ -5,6 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.60.1] — 2026-07-10
+
+### Corregido
+- **Renderizado del chip "Este año"**: Corregido bug donde el chip bilingüe de "Este año" / "This year" no se renderizaba en la interfaz de Reportes por un error en la inserción del JSX.
+
 ## [1.2.60] — 2026-07-10
 
 ### Añadido
