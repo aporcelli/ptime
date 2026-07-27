@@ -227,15 +227,15 @@ export function ReportesFiltersClient({
           className={`text-xs px-3 py-1.5 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-fixed/40 ${isQuickMesPasado ? "bg-primary-fixed text-white border-primary-fixed" : "bg-surface-low hover:bg-surface-high text-on-surface border-outline-variant"}`}
         >
           Mes pasado
-            <motion.button
-              type="button"
-              whileTap={{ scale: 0.98 }}
-              onClick={handleQuickEsteAnio}
-              aria-pressed={isQuickEsteAnio}
-              className={`text-xs px-3 py-1.5 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-fixed/40 ${isQuickEsteAnio ? "bg-primary-fixed text-white border-primary-fixed" : "bg-surface-low hover:bg-surface-high text-on-surface border-outline-variant"}`}
-            >
-              {loc === "en" ? "This year" : "Este año"}
-            </motion.button>
+        </motion.button>
+        <motion.button
+          type="button"
+          whileTap={{ scale: 0.98 }}
+          onClick={handleQuickEsteAnio}
+          aria-pressed={isQuickEsteAnio}
+          className={`text-xs px-3 py-1.5 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-fixed/40 ${isQuickEsteAnio ? "bg-primary-fixed text-white border-primary-fixed" : "bg-surface-low hover:bg-surface-high text-on-surface border-outline-variant"}`}
+        >
+          {loc === "en" ? "This year" : "Este año"}
         </motion.button>
       </div>
 
