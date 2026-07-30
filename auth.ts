@@ -148,7 +148,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // 1️⃣ Login inicial — guardar tokens + expiración
       if (account && user) {
         token.accessToken          = account.access_token;
-        token.refreshToken         = account.refresh_token;
+        if (account.refresh_token) {
+              token.refreshToken = account.refresh_token;
+            }
         token.name                 = user.name ?? token.name;
         token.email                = user.email ?? token.email;
         token.picture              = (user as { image?: string | null }).image ?? token.picture;
