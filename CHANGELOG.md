@@ -5,6 +5,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.61] — 2026-07-10
+
+### Corregido
+- **Persistencia del refresh token de Google**: 
+  - Protegido `refreshToken` en el JWT callback para que no se sobrescriba con `undefined` cuando Google no devuelve uno nuevo en re-logins (ej. desde otro navegador).
+  - Agregada captura de refresh token rotado durante el refresco automático del access token, evitando cierres de sesión inesperados cuando Google emite un refresh token nuevo.
+
 ## [1.2.60.1] — 2026-07-10
 
 ### Corregido
