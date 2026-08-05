@@ -77,14 +77,16 @@ export function ReportesFiltersClient({
   function getYearRange(y: number) { return { strDesde: `${y}-01-01`, strHasta: `${y}-12-31` }; }
   const thisYear = getYearRange(new Date().getFullYear());
 
-      const activeFilters = [
-    desde && { key: "desde", label: `Desde: ${desde}` },
-    hasta && { key: "hasta", label: `Hasta: ${hasta}` },
-    mesSeleccionado && { key: "mes", label: `Mes: ${mesSeleccionado}` },
-        (desde === thisYear.strDesde && hasta === thisYear.strHasta) && { key: "year", label: t.thisYear },
-    clienteIdFiltro && { key: "cliente", label: `Cliente: ${clientes.find(c => c.id === clienteIdFiltro)?.nombre ?? "—"}` },
-    proyectoId && { key: "proyecto", label: `Proyecto: ${proyectos.find(p => p.id === proyectoId)?.nombre ?? "—"}` },
-    estado && { key: "estado", label: `Estado: ${estadoLabel(estado)}` },
+      const isEn = locale === "en";
+
+  const activeFilters = [
+    desde && { key: "desde", label: `${isEn ? "From" : "Desde"}: ${desde}` },
+    hasta && { key: "hasta", label: `${isEn ? "To" : "Hasta"}: ${hasta}` },
+    mesSeleccionado && { key: "mes", label: `${isEn ? "Month" : "Mes"}: ${mesSeleccionado}` },
+    (desde === thisYear.strDesde && hasta === thisYear.strHasta) && { key: "year", label: t.thisYear },
+    clienteIdFiltro && { key: "cliente", label: `${isEn ? "Client" : "Cliente"}: ${clientes.find(c => c.id === clienteIdFiltro)?.nombre ?? "—"}` },
+    proyectoId && { key: "proyecto", label: `${isEn ? "Project" : "Proyecto"}: ${proyectos.find(p => p.id === proyectoId)?.nombre ?? "—"}` },
+    estado && { key: "estado", label: `${isEn ? "Status" : "Estado"}: ${estadoLabel(estado)}` },
   ].filter(Boolean) as Array<{ key: string; label: string }>;
 
   function clearSingleFilter(key: string) {
@@ -249,11 +251,11 @@ export function ReportesFiltersClient({
         className={`bg-surface-lowest rounded-xl p-4 shadow-ambient transition-opacity ${isPending ? "opacity-60" : ""}`}
       >
         <p className="sr-only" aria-live="polite">
-          {isPending ? "Actualizando reportes con filtros" : "Filtros listos"}
+          {isPending ? (isEn ? "Updating reports with filters" : "Actualizando reportes con filtros") : (isEn ? "Filters ready" : "Filtros listos")}
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           <div className="flex flex-col gap-1">
-            <label htmlFor="reportes-mes" className="text-xs font-medium text-on-surface-variant">Mes específico</label>
+            <label htmlFor="reportes-mes" className="text-xs font-medium text-on-surface-variant">{isEn ? "Specific month" : "Mes específico"}</label>
             <input
               id="reportes-mes"
               type="month"
@@ -265,7 +267,7 @@ export function ReportesFiltersClient({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
-              <label htmlFor="reportes-desde" className="text-xs font-medium text-on-surface-variant">Desde</label>
+              <label htmlFor="reportes-desde" className="text-xs font-medium text-on-surface-variant">{isEn ? "From" : "Desde"}</label>
               <input
                 id="reportes-desde"
                 type="date"
@@ -275,7 +277,7 @@ export function ReportesFiltersClient({
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label htmlFor="reportes-hasta" className="text-xs font-medium text-on-surface-variant">Hasta</label>
+              <label htmlFor="reportes-hasta" className="text-xs font-medium text-on-surface-variant">{isEn ? "To" : "Hasta"}</label>
               <input
                 id="reportes-hasta"
                 type="date"
@@ -288,44 +290,44 @@ export function ReportesFiltersClient({
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="flex flex-col gap-1">
-              <label htmlFor="reportes-cliente" className="text-xs font-medium text-on-surface-variant">Cliente</label>
+              <label htmlFor="reportes-cliente" className="text-xs font-medium text-on-surface-variant">{isEn ? "Client" : "Cliente"}</label>
               <select
                 id="reportes-cliente"
                 value={clienteIdFiltro}
                 onChange={e => handleClienteFiltroChange(e.target.value)}
                 className="h-9 px-2 rounded-lg bg-surface-low text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary-fixed/30"
               >
-                <option value="">Todos</option>
+                <option value="">{isEn ? "All" : "Todos"}</option>
                 {clientesOrdenados.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
               </select>
             </div>
 
             <div className="flex flex-col gap-1">
-              <label htmlFor="reportes-proyecto" className="text-xs font-medium text-on-surface-variant">Proyecto</label>
+              <label htmlFor="reportes-proyecto" className="text-xs font-medium text-on-surface-variant">{isEn ? "Project" : "Proyecto"}</label>
               <select
                 id="reportes-proyecto"
                 value={proyectoId}
                 onChange={e => handleProyectoChange(e.target.value)}
                 className="h-9 px-2 rounded-lg bg-surface-low text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary-fixed/30"
               >
-                <option value="">Todos</option>
+                <option value="">{isEn ? "All" : "Todos"}</option>
                 {proyectosOrdenados.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
               </select>
             </div>
 
             <div className="flex flex-col gap-1">
-              <label htmlFor="reportes-estado" className="text-xs font-medium text-on-surface-variant">Estado</label>
+              <label htmlFor="reportes-estado" className="text-xs font-medium text-on-surface-variant">{isEn ? "Status" : "Estado"}</label>
               <select
                 id="reportes-estado"
                 value={estado}
                 onChange={e => handleEstadoChange(e.target.value)}
                 className="h-9 px-2 rounded-lg bg-surface-low text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary-fixed/30"
               >
-                <option value="">Todos</option>
-                <option value="borrador">Borrador</option>
-                <option value="confirmado">Confirmado</option>
-                <option value="facturado">Facturado</option>
-                <option value="rechazado">Rechazado</option>
+                <option value="">{isEn ? "All" : "Todos"}</option>
+                <option value="borrador">{isEn ? "Draft" : "Borrador"}</option>
+                <option value="confirmado">{isEn ? "Confirmed" : "Confirmado"}</option>
+                <option value="facturado">{isEn ? "Billed" : "Facturado"}</option>
+                <option value="rechazado">{isEn ? "Rejected" : "Rechazado"}</option>
               </select>
             </div>
           </div>
@@ -334,15 +336,15 @@ export function ReportesFiltersClient({
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap gap-2">
             {activeFilters.length === 0 ? (
-              <span className="text-xs text-on-surface-variant">Sin filtros activos</span>
+              <span className="text-xs text-on-surface-variant">{isEn ? "No active filters" : "Sin filtros activos"}</span>
             ) : activeFilters.map((filter) => (
               <button
                 key={filter.key}
                 type="button"
                 onClick={() => clearSingleFilter(filter.key)}
-                aria-label={`Quitar ${filter.label}`}
+                aria-label={`${isEn ? "Remove" : "Quitar"} ${filter.label}`}
                 className="inline-flex items-center gap-1 rounded-full border border-outline-variant bg-surface-low px-2.5 py-1 text-xs text-on-surface hover:bg-surface-high transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-fixed/40"
-                title="Quitar filtro"
+                title={isEn ? "Remove filter" : "Quitar filtro"}
               >
                 {filter.label}
                 <X size={12} />
@@ -355,7 +357,7 @@ export function ReportesFiltersClient({
             onClick={limpiar}
             className="h-9 px-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-high text-sm rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-fixed/40"
           >
-            Limpiar filtros
+            {isEn ? "Clear filters" : "Limpiar filtros"}
           </button>
         </div>
       </motion.div>
@@ -371,7 +373,7 @@ export function ReportesFiltersClient({
         >
           <span className="flex items-center gap-2 text-sm font-medium text-on-surface">
             <FileDown size={15} className="text-primary-fixed" />
-            Exportar PDF
+            {isEn ? "Export PDF" : "Exportar PDF"}
           </span>
           {pdfOpen ? <ChevronUp size={15} className="text-on-surface-variant" /> : <ChevronDown size={15} className="text-on-surface-variant" />}
         </button>
@@ -388,21 +390,21 @@ export function ReportesFiltersClient({
             >
               <div className="px-4 pb-4 flex flex-col gap-3 border-t border-surface-high">
                 <div className="flex flex-col gap-1 pt-3">
-                  <label htmlFor="reporte-titulo" className="text-xs font-medium text-on-surface-variant">Título del reporte</label>
+                  <label htmlFor="reporte-titulo" className="text-xs font-medium text-on-surface-variant">{isEn ? "Report Title" : "Título del reporte"}</label>
                   <input
                     id="reporte-titulo"
                     type="text"
                     value={titulo}
                     onChange={e => setTitulo(e.target.value)}
-                    placeholder="Ej: Reporte de Horas Mensuales"
+                    placeholder={isEn ? "e.g., Monthly Hours Report" : "Ej: Reporte de Horas Mensuales"}
                     className="h-8 px-3 rounded-lg bg-surface-low text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary-fixed/30 focus:bg-surface-lowest transition-colors"
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label htmlFor="reporte-cliente-pdf" className="text-xs font-medium text-on-surface-variant">Cliente (opcional)</label>
+                  <label htmlFor="reporte-cliente-pdf" className="text-xs font-medium text-on-surface-variant">{isEn ? "Client (optional)" : "Cliente (opcional)"}</label>
                   <select id="reporte-cliente-pdf" value={clienteId} onChange={e => setClienteId(e.target.value)}
                     className="h-8 px-2 rounded-lg bg-surface-low text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary-fixed/30">
-                    <option value="">Sin cliente específico</option>
+                    <option value="">{isEn ? "No specific client" : "Sin cliente específico"}</option>
                     {clientesOrdenados.filter(c => c.activo).map(c => (
                       <option key={c.id} value={c.id}>{c.nombre}</option>
                     ))}
@@ -411,14 +413,14 @@ export function ReportesFiltersClient({
                 <label htmlFor="reporte-incluir-detalle" className="flex items-center gap-2 text-sm text-on-surface cursor-pointer">
                   <input id="reporte-incluir-detalle" type="checkbox" checked={incluirDet} onChange={e => setIncluirDet(e.target.checked)}
                     className="rounded accent-primary-fixed" />
-                  Incluir detalle de registros
+                  {isEn ? "Include log details" : "Incluir detalle de registros"}
                 </label>
 
                 {/* Preview del título */}
                 {(titulo || clienteSeleccionado) && (
                   <div className="bg-surface-low rounded-lg px-3 py-2 text-xs text-on-surface-variant">
                     <span className="font-medium text-on-surface">{titulo}</span>
-                    {clienteSeleccionado && <span className="ml-1">· Cliente: {clienteSeleccionado.nombre}</span>}
+                    {clienteSeleccionado && <span className="ml-1">· {isEn ? "Client" : "Cliente"}: {clienteSeleccionado.nombre}</span>}
                   </div>
                 )}
 
@@ -431,7 +433,7 @@ export function ReportesFiltersClient({
                   nombreEmpresa={nombreEmpresa}
                   tituloReporte={tituloFinal}
                   clienteNombre={clienteSeleccionado?.nombre}
-                  label="Descargar PDF"
+                  label={isEn ? "Download PDF" : "Descargar PDF"}
                   className="self-start"
                 />
               </div>

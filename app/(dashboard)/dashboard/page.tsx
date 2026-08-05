@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { getRegistrosHoras, getProyectos, getAppConfig } from "@/lib/sheets/queries";
 import { formatCurrency, formatDateShort, formatHours } from "@/lib/utils/index";
 import { format, startOfMonth, endOfMonth, parse } from "date-fns";
+import { enUS, es } from "date-fns/locale";
 import { Clock, DollarSign, FolderOpen, TrendingUp, AlertTriangle, Plus, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { Sparkline } from "@/components/charts/Sparkline";
@@ -95,19 +96,23 @@ export default async function DashboardPage({
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([fecha, horas]) => ({ fecha, horas }));
 
+    const isEn = locale === "en";
+    const dateFnsLocale = isEn ? enUS : es;
+    const formattedMonth = format(selectedDate, "MMMM yyyy", { locale: dateFnsLocale });
+
     return (
       <PageShell
-        title={locale === "en" ? "Dashboard" : "Dashboard"}
-        description={`${format(selectedDate, "MMMM yyyy")} · Bienvenido, ${userName}`}
+        title={isEn ? "Dashboard" : "Dashboard"}
+        description={`${formattedMonth[0].toUpperCase()}${formattedMonth.slice(1)} · ${isEn ? "Welcome" : "Bienvenido"}, ${userName}`}
         actions={
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <DashboardMonthFilter months={uniqueMonths} selectedMonth={selectedMonth} />
             <Button asChild variant="outline">
-              <Link href="/reportes">{locale === "en" ? "View reports" : "Ver reportes"}</Link>
+              <Link href="/reportes">{isEn ? "View reports" : "Ver reportes"}</Link>
             </Button>
             <Button asChild className="shadow-md">
               <Link href="/horas/nuevo">
-                <Plus className="mr-2 h-4 w-4" /> {locale === "en" ? "Log hours" : "Cargar horas"}
+                <Plus className="mr-2 h-4 w-4" /> {isEn ? "Log hours" : "Cargar horas"}
               </Link>
             </Button>
           </div>

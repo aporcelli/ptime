@@ -71,6 +71,8 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
   const [bnaLoading, setBnaLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
 
+  const isEn = locale === "en";
+
   const repricedRecords = useMemo(
     () => repriceMonthlyRecords(registros, proyectosMap, fallbackConfig),
     [registros, proyectosMap, fallbackConfig],
@@ -93,7 +95,6 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
       ? baseFiltered
       : baseFiltered.filter((r) => r.estado === filtroEstado);
 
-    // Vista default/tabla: siempre mostrar de más reciente a más antigua
     return sortByRecentDate(filtered);
   }, [baseFiltered, filtroEstado]);
 
@@ -102,8 +103,8 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
   const canInvoiceMonth = monthFilter !== "all" && clientFilter === "all" && !!invoiceSummary && invoiceSummary.eligibleCount > 0;
   const dolarRate = useMemo(() => parseExchangeRateInput(dolarRateInput), [dolarRateInput]);
   const totalArs = useMemo(() => convertUsdToArs(summary.totalAmount, dolarRate), [summary.totalAmount, dolarRate]);
-  const clientLabel = clientFilter === "all" ? "Todos los clientes" : (clientesMap[clientFilter]?.nombre ?? "Cliente");
-  const monthLabel = selectedMonth ? formatMonthShort(selectedMonth) : "Todos los meses";
+  const clientLabel = clientFilter === "all" ? (isEn ? "All clients" : "Todos los clientes") : (clientesMap[clientFilter]?.nombre ?? (isEn ? "Client" : "Cliente"));
+  const monthLabel = selectedMonth ? formatMonthShort(selectedMonth) : (isEn ? "All months" : "Todos los meses");
 
   useEffect(() => {
     setDolarRateInput(window.localStorage.getItem(DOLAR_RATE_STORAGE_KEY) ?? "");
@@ -156,7 +157,7 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
   }
 
   function handleDeleteHour(id: string) {
-    if (!window.confirm("¿Borrar este registro de horas? Esta acción resta las horas del proyecto.")) return;
+    if (!window.confirm(isEn ? "Delete this hour log? This will deduct worked hours from the project." : "¿Borrar este registro de horas? Esta acción resta las horas del proyecto.")) return;
     setError(null);
     startTransition(async () => {
       const result = await deleteHourAction(id);
@@ -218,7 +219,7 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
     },
     {
       key: "monto_total",
-      header: "Total",
+      header: isEn ? "Total" : "Total",
       sortable: true,
       align: "right",
       render: (r) => <span className="font-semibold text-primary">{formatCurrency(r.monto_total)}</span>,
@@ -280,20 +281,20 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
             <div className="rounded-2xl border bg-emerald-500/5 p-3 text-sm">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">BNA hoy · venta</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{isEn ? "BNA Today · Sell" : "BNA hoy · venta"}</p>
                   <p className="font-mono font-semibold text-foreground">
-                    {bnaLoading ? "Consultando…" : bnaRate ? `${formatCurrency(bnaRate.venta, "ARS")} / USD` : "No disponible"}
+                    {bnaLoading ? (isEn ? "Fetching…" : "Consultando…") : bnaRate ? `${formatCurrency(bnaRate.venta, "ARS")} / USD` : (isEn ? "Not available" : "No disponible")}
                   </p>
-                  {bnaRate?.fecha ? <p className="text-[11px] text-muted-foreground">Fecha BNA: {formatDateShort(bnaRate.fecha)}</p> : null}
+                  {bnaRate?.fecha ? <p className="text-[11px] text-muted-foreground">{isEn ? "BNA Date" : "Fecha BNA"}: {formatDateShort(bnaRate.fecha)}</p> : null}
                   {bnaError ? <p className="text-[11px] text-destructive">{bnaError}</p> : null}
                 </div>
                 <Button type="button" size="sm" variant="outline" onClick={useBnaRate} disabled={!bnaRate} className="shrink-0">
-                  Usar
+                  {isEn ? "Use" : "Usar"}
                 </Button>
               </div>
             </div>
             <div className="rounded-2xl border bg-background/60 p-3">
-              <Label htmlFor="dolar-rate-ars" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Cotización manual ($)</Label>
+              <Label htmlFor="dolar-rate-ars" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{isEn ? "Manual Rate ($)" : "Cotización manual ($)"}</Label>
               <div className="mt-2 flex items-center gap-2">
                 <Input
                   id="dolar-rate-ars"
@@ -306,7 +307,7 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
                 />
                 <span className="text-xs font-semibold text-muted-foreground">ARS/USD</span>
               </div>
-              {dolarRateInput && dolarRate === null ? <p className="mt-2 text-xs text-destructive">Cotización inválida</p> : null}
+              {dolarRateInput && dolarRate === null ? <p className="mt-2 text-xs text-destructive">{isEn ? "Invalid rate" : "Cotización inválida"}</p> : null}
             </div>
           </CardContent>
         </Card>
@@ -318,7 +319,7 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
                 <Calendar size={20} />
               </div>
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Horas facturables</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{isEn ? "Billable hours" : "Horas facturables"}</p>
                 <p className="text-2xl font-sans font-semibold text-foreground">{formatHours(summary.totalBillableHours)}</p>
               </div>
             </div>
@@ -328,8 +329,8 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
 
       <div className="space-y-4">
         <div className="flex flex-col gap-2">
-          <h2 className="text-lg font-semibold text-foreground">Listado detallado · {monthLabel} · {clientLabel} · {filtrados.length} registros</h2>
-          <p className="text-sm text-muted-foreground">Tarjetas, resumen, estados y tabla cambian con mes + cliente.</p>
+          <h2 className="text-lg font-semibold text-foreground">{isEn ? "Detailed list" : "Listado detallado"} · {monthLabel} · {clientLabel} · {filtrados.length} {isEn ? "records" : "registros"}</h2>
+          <p className="text-sm text-muted-foreground">{isEn ? "Cards, summary, statuses, and table update with month + client." : "Tarjetas, resumen, estados y tabla cambian con mes + cliente."}</p>
         </div>
 
         <div className="flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm">
@@ -342,7 +343,7 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
                 onClick={() => setMonthFilter(filter)}
                 className="rounded-full"
               >
-                {filter === "latest" ? "Último mes" : filter === "previous" ? "Mes anterior" : "Todos"}
+                {filter === "latest" ? (isEn ? "Latest month" : "Último mes") : filter === "previous" ? (isEn ? "Previous month" : "Mes anterior") : (isEn ? "All" : "Todos")}
               </Button>
             ))}
           </div>
@@ -351,10 +352,10 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
             <div className="w-full md:max-w-xs">
               <Select value={clientFilter} onValueChange={(value) => setClientFilter(value as ClientFilter)}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Todos los clientes" />
+                  <SelectValue placeholder={isEn ? "All clients" : "Todos los clientes"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos los clientes</SelectItem>
+                  <SelectItem value="all">{isEn ? "All clients" : "Todos los clientes"}</SelectItem>
                   {clientOptions.map((cliente) => (
                     <SelectItem key={cliente.id} value={cliente.id}>{cliente.nombre}</SelectItem>
                   ))}
@@ -363,23 +364,23 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
             </div>
 
             <div className="text-sm text-muted-foreground">
-              {clientFilter === "all" ? "Filtro por cliente apagado." : `Mostrando solo horas de ${clientLabel}.`}
+              {clientFilter === "all" ? (isEn ? "Client filter off." : "Filtro por cliente apagado.") : (isEn ? `Showing only hours for ${clientLabel}.` : `Mostrando solo horas de ${clientLabel}.`)}
             </div>
           </div>
         </div>
 
         <div className="flex items-center justify-between gap-3 rounded-xl border bg-card p-4 text-sm shadow-sm">
           <div>
-            <p className="font-semibold text-foreground">Resumen {monthLabel} · {clientLabel}</p>
+            <p className="font-semibold text-foreground">{isEn ? "Summary" : "Resumen"} {monthLabel} · {clientLabel}</p>
             <p className="text-muted-foreground">
-              Trabajadas {summary.totalWorkedHours}h · Facturables {summary.totalBillableHours}h · {formatCurrency(summary.totalAmount)}
+              {isEn ? "Worked" : "Trabajadas"} {summary.totalWorkedHours}h · {isEn ? "Billable" : "Facturables"} {summary.totalBillableHours}h · {formatCurrency(summary.totalAmount)}
             </p>
             {clientFilter !== "all" && selectedMonth ? (
-              <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">Facturación mensual desactivada con filtro cliente. Quitá filtro para facturar mes completo.</p>
+              <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">{isEn ? "Monthly billing disabled while client filter is active. Clear client filter to bill full month." : "Facturación mensual desactivada con filtro cliente. Quitá filtro para facturar mes completo."}</p>
             ) : null}
           </div>
           <Button disabled={!canInvoiceMonth} onClick={() => setConfirmOpen(true)}>
-            Marcar mes facturado
+            {isEn ? "Mark month as billed" : "Marcar mes facturado"}
           </Button>
         </div>
       </div>
@@ -391,7 +392,7 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
           onClick={() => setFiltroEstado(null)}
           className="rounded-full"
         >
-          Todos ({baseFiltered.length})
+          {isEn ? "All" : "Todos"} ({baseFiltered.length})
         </Button>
         {ESTADOS.map((estado) => {
           const count = baseFiltered.filter((r) => r.estado === estado).length;
@@ -404,7 +405,10 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
               onClick={() => setFiltroEstado(filtroEstado === estado ? null : estado)}
               className="rounded-full capitalize"
             >
-              {estado} ({count})
+              {estado === "borrador" ? (isEn ? "Draft" : "Borrador") :
+               estado === "confirmado" ? (isEn ? "Confirmed" : "Confirmado") :
+               estado === "facturado" ? (isEn ? "Billed" : "Facturado") :
+               estado === "rechazado" ? (isEn ? "Rejected" : "Rechazado") : estado} ({count})
             </Button>
           );
         })}
@@ -413,14 +417,14 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
       <DataTable
         columns={columns}
         data={filtrados}
-        emptyMessage="No hay registros para filtros actuales"
+        emptyMessage={isEn ? "No records for current filters" : "No hay registros para filtros actuales"}
         onRowClick={(r) => router.push(`/horas/${r.id}`)}
         actions={(r) => (
           <div className="flex items-center justify-end gap-2">
-            <Button variant="ghost" size="icon" onClick={() => router.push(`/horas/${r.id}`)} title="Ver detalle">
+            <Button variant="ghost" size="icon" onClick={() => router.push(`/horas/${r.id}`)} title={isEn ? "View details" : "Ver detalle"}>
               <Eye className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => router.push(`/horas/${r.id}/editar`)} title="Editar">
+            <Button variant="ghost" size="icon" onClick={() => router.push(`/horas/${r.id}/editar`)} title={isEn ? "Edit" : "Editar"}>
               <Edit2 className="h-4 w-4" />
             </Button>
             <Button
@@ -430,7 +434,7 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
                 event.stopPropagation();
                 handleDeleteHour(r.id);
               }}
-              title="Borrar"
+              title={isEn ? "Delete" : "Borrar"}
               disabled={isPending}
               className="text-destructive hover:text-destructive"
             >
@@ -443,15 +447,17 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirmar facturación mensual</DialogTitle>
+            <DialogTitle>{isEn ? "Confirm Monthly Billing" : "Confirmar facturación mensual"}</DialogTitle>
             <DialogDescription>
-              Se marcarán como facturados {invoiceSummary?.eligibleCount ?? 0} registros de {selectedMonth}. Total: {formatCurrency(invoiceSummary?.eligibleAmount ?? 0)}. No se modifican rechazados ni ya facturados.
+              {isEn
+                ? `${invoiceSummary?.eligibleCount ?? 0} records for ${selectedMonth} will be marked as billed. Total: ${formatCurrency(invoiceSummary?.eligibleAmount ?? 0)}. Rejected or already billed entries are untouched.`
+                : `Se marcarán como facturados ${invoiceSummary?.eligibleCount ?? 0} registros de ${selectedMonth}. Total: ${formatCurrency(invoiceSummary?.eligibleAmount ?? 0)}. No se modifican rechazados ni ya facturados.`}
             </DialogDescription>
           </DialogHeader>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
           <DialogFooter>
-            <DialogClose asChild><Button variant="outline" disabled={isPending}>Cancelar</Button></DialogClose>
-            <Button onClick={handleMarkMonth} disabled={isPending || !canInvoiceMonth}>{isPending ? "Facturando…" : "Confirmar"}</Button>
+            <DialogClose asChild><Button variant="outline" disabled={isPending}>{isEn ? "Cancel" : "Cancelar"}</Button></DialogClose>
+            <Button onClick={handleMarkMonth} disabled={isPending || !canInvoiceMonth}>{isPending ? (isEn ? "Invoicing…" : "Facturando…") : (isEn ? "Confirm" : "Confirmar")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

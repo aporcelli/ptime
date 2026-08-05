@@ -117,9 +117,11 @@ export default async function ReportesPage({
   const totalIngresos = registrosRepriced.reduce((s, r) => s + r.monto_total, 0);
   const proyectosEnPeriodo = new Set(registrosRepriced.map((r) => r.proyecto_id)).size;
 
+  const isEn = locale === "en";
+
   const mesesData = Object.entries(porMesMap)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([mes, d]) => ({ mes: formatMonthYearLabel(mes), ...d }));
+    .map(([mes, d]) => ({ mes: formatMonthYearLabel(mes, locale), ...d }));
 
   const proyectosData = Object.values(porProyectoMap).sort((a, b) => b.ingresos - a.ingresos);
   const tareasDataRaw = Object.values(porTareaMap).sort((a, b) => b.horas - a.horas);
@@ -178,7 +180,7 @@ export default async function ReportesPage({
     });
 
   return (
-    <PageShell title={t.reportsTitle} description={`${formatPeriodLabel(fechaDesde, fechaHasta)} · ${registrosRepriced.length} ${locale === "en" ? "records" : "registros"}`}>
+    <PageShell title={t.reportsTitle} description={`${formatPeriodLabel(fechaDesde, fechaHasta, locale)} · ${registrosRepriced.length} ${isEn ? "records" : "registros"}`}>
 
       <ReportesFiltersClient
         clientes={clientes}
@@ -195,7 +197,7 @@ export default async function ReportesPage({
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <MetricCard label={t.totalWorked} value={formatHours(totalHoras)} icon={<Clock size={16} />} />
         <MetricCard label={t.dbCardTotalIncome} value={formatCurrency(totalIngresos, config.moneda)} icon={<TrendingUp size={16} />} tone="success" />
-        <MetricCard label={locale === "en" ? "Avg Rate/h" : "Precio promedio/h"} value={formatCurrency(totalHoras > 0 ? totalIngresos / totalHoras : 0, config.moneda)} icon={<BarChart3 size={16} />} tone="warning" />
+        <MetricCard label={isEn ? "Avg Rate/h" : "Precio promedio/h"} value={formatCurrency(totalHoras > 0 ? totalIngresos / totalHoras : 0, config.moneda)} icon={<BarChart3 size={16} />} tone="warning" />
       </div>
 
       {/* ── Charts (ECharts, 4-panel) ── */}
@@ -212,7 +214,7 @@ export default async function ReportesPage({
           <TareasPieChart data={tareasData} />
         </SectionCard>
 
-        <SectionCard title={locale === "en" ? "Daily activity · rhythm and trend" : "Actividad diaria · ritmo y tendencia"}>
+        <SectionCard title={isEn ? "Daily activity · rhythm and trend" : "Actividad diaria · ritmo y tendencia"}>
           <ActividadHeatmap data={actividadDiariaData} />
         </SectionCard>
 
@@ -222,13 +224,13 @@ export default async function ReportesPage({
       </div>
 
       {/* ── Tabla por mes ── */}
-      <SectionCard title="Detalle por mes">
+      <SectionCard title={isEn ? "Monthly breakdown" : "Detalle por mes"}>
         <DataPanel>
           <table className="w-full text-sm">
-            <caption className="sr-only">Detalle mensual de horas e ingresos para el período seleccionado</caption>
+            <caption className="sr-only">{isEn ? "Monthly breakdown of hours and income" : "Detalle mensual de horas e ingresos para el período seleccionado"}</caption>
             <thead>
               <tr className="bg-surface-high">
-                {["Mes", "Horas", "Ingresos", "% del total"].map((h, i) => (
+                {[isEn ? "Month" : "Mes", isEn ? "Hours" : "Horas", isEn ? "Income" : "Ingresos", isEn ? "% of total" : "% del total"].map((h, i) => (
                   <th scope="col" key={h} className={`p-3 text-xs font-semibold uppercase tracking-wide text-on-surface-variant ${i === 0 ? "text-left" : "text-right"}`}>
                     {h}
                   </th>
@@ -237,12 +239,12 @@ export default async function ReportesPage({
             </thead>
             <tbody>
               {mesesOrdenados.length === 0 ? (
-                <tr><td colSpan={4} className="p-6 text-center text-on-surface-variant text-sm">Sin datos en el período</td></tr>
+                <tr><td colSpan={4} className="p-6 text-center text-on-surface-variant text-sm">{isEn ? "No data in period" : "Sin datos en el período"}</td></tr>
               ) : mesesOrdenados.map(([mes, d], i) => {
                 const pct = totalIngresos > 0 ? Math.round((d.ingresos / totalIngresos) * 100) : 0;
                 return (
                   <tr key={mes} className={`transition-colors hover:bg-surface-low ${i % 2 === 0 ? "bg-surface-lowest" : "bg-surface-low"}`}>
-                    <td className="p-3 font-mono text-on-surface font-medium">{formatMonthYearLabel(mes)}</td>
+                    <td className="p-3 font-mono text-on-surface font-medium">{formatMonthYearLabel(mes, locale)}</td>
                     <td className="p-3 text-right font-sans text-on-surface-variant">{formatHours(d.horas)}</td>
                     <td className="p-3 text-right font-sans text-primary-fixed font-semibold">{formatCurrency(d.ingresos, config.moneda)}</td>
                     <td className="p-3 text-right text-on-surface-variant text-xs">{pct}%</td>
@@ -255,13 +257,13 @@ export default async function ReportesPage({
       </SectionCard>
 
       {/* ── Tabla por proyecto ── */}
-      <SectionCard title="Detalle por proyecto">
+      <SectionCard title={isEn ? "Project breakdown" : "Detalle por proyecto"}>
         <DataPanel>
           <table className="w-full text-sm">
-            <caption className="sr-only">Detalle por proyecto de horas e ingresos del período seleccionado</caption>
+            <caption className="sr-only">{isEn ? "Project breakdown of hours and income" : "Detalle por proyecto de horas e ingresos del período seleccionado"}</caption>
             <thead>
               <tr className="bg-surface-high">
-                {["Proyecto", "Horas", "Ingresos"].map((h, i) => (
+                {[isEn ? "Project" : "Proyecto", isEn ? "Hours" : "Horas", isEn ? "Income" : "Ingresos"].map((h, i) => (
                   <th scope="col" key={h} className={`p-3 text-xs font-semibold uppercase tracking-wide text-on-surface-variant ${i === 0 ? "text-left" : "text-right"}`}>
                     {h}
                   </th>
@@ -270,7 +272,7 @@ export default async function ReportesPage({
             </thead>
             <tbody>
               {proyectosData.length === 0 ? (
-                <tr><td colSpan={3} className="p-6 text-center text-on-surface-variant text-sm">Sin datos en el período</td></tr>
+                <tr><td colSpan={3} className="p-6 text-center text-on-surface-variant text-sm">{isEn ? "No data in period" : "Sin datos en el período"}</td></tr>
               ) : proyectosData.map((p, i) => (
                 <tr key={p.nombre} className={`transition-colors hover:bg-surface-low ${i % 2 === 0 ? "bg-surface-lowest" : "bg-surface-low"}`}>
                   <td className="p-3 font-medium text-on-surface">{p.nombre}</td>

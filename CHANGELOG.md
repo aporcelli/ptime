@@ -5,6 +5,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.63.3] — 2026-08-05
+
+### Corregido
+- **Traducción Exhaustiva de Dashboard, Reportes y Registro de Horas**:
+  - Traducción bilingüe completa del formateador de meses (`August 2026` vs `Agosto 2026`) en `lib/utils/index.ts` y soporte de `date-fns/locale`.
+  - Traducción bilingüe de todos los textos, tablas ("Monthly breakdown", "Project breakdown"), filtros ("Specific month", "From", "To", "Client", "Project", "Status") y paneles de exportación PDF en Reportes.
+  - Traducción bilingüe de widgets de BNA, filtros por cliente/mes, resúmenes, diálogos de facturación mensual y listas detalladas en Horas.
+
 ## [1.2.63.2] — 2026-08-05
 
 ### Corregido
