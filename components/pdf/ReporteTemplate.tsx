@@ -456,7 +456,8 @@ interface DocProps {
     estado: string;
   }>;
   clienteNombre?: string;
-  tituloReporte?: string;  // nuevo
+  tituloReporte?: string;
+  locale?: string;
 }
 
 function ReporteDoc({
@@ -468,10 +469,12 @@ function ReporteDoc({
   registros = [],
   clienteNombre,
   tituloReporte,
+  locale = "es",
 }: DocProps) {
+  const isEn = locale === "en";
   const { kpis, porMes, porProyecto, porTarea, alertasTramo2, porCliente = [] } = data;
   const now = formatDateShort(new Date().toISOString().slice(0, 10));
-  const periodLabel = formatPeriodLabel(fechaDesde, fechaHasta);
+  const periodLabel = formatPeriodLabel(fechaDesde, fechaHasta, locale);
 
   // Datos para el bar chart (por proyecto — top 6)
   const barData = porProyecto.slice(0, 6).map(p => ({
@@ -493,9 +496,9 @@ function ReporteDoc({
 
   return (
     <Document
-      title={`Reporte Ptime — ${periodLabel}`}
+      title={`${isEn ? "Ptime Report" : "Reporte Ptime"} — ${periodLabel}`}
       author={nombreEmpresa}
-      subject="Reporte de horas y facturación"
+      subject={isEn ? "Hours and billing report" : "Reporte de horas y facturación"}
       creator="Ptime"
     >
       <Page size="A4" style={s.page}>
@@ -514,27 +517,27 @@ function ReporteDoc({
             </View>
             {/* Título personalizado */}
             <Text style={[s.brandTagline, { fontSize: 13, color: C.white, fontFamily: "Helvetica-Bold", marginTop: 4 }]}>
-              {tituloReporte ?? "Reporte de horas y facturación"}
+              {tituloReporte ?? (isEn ? "Hours & Billing Report" : "Reporte de horas y facturación")}
             </Text>
             {clienteNombre && (
               <Text style={[s.brandTagline, { color: C.teal, marginTop: 3 }]}>
-                Cliente: {clienteNombre}
+                {isEn ? "Client" : "Cliente"}: {clienteNombre}
               </Text>
             )}
           </View>
           <View style={s.metaBlock}>
             {fechaDesde && fechaHasta && (
               <View style={s.metaChip}>
-                <Text style={s.metaLabel}>Período</Text>
+                <Text style={s.metaLabel}>{isEn ? "Period" : "Período"}</Text>
                 <Text style={s.metaValue}>{periodLabel}</Text>
               </View>
             )}
             <View style={s.metaChip}>
-              <Text style={s.metaLabel}>Generado</Text>
+              <Text style={s.metaLabel}>{isEn ? "Generated" : "Generado"}</Text>
               <Text style={s.metaValue}>{now}</Text>
             </View>
             <View style={s.metaChip}>
-              <Text style={s.metaLabel}>Registros</Text>
+              <Text style={s.metaLabel}>{isEn ? "Records" : "Registros"}</Text>
               <Text style={s.metaValue}>{kpis.registrosTotales}</Text>
             </View>
           </View>
@@ -549,53 +552,50 @@ function ReporteDoc({
           <View style={[s.section, { marginTop: 20 }]}>
             <View style={s.sectionHeader}>
               <View style={s.sectionDot} />
-              <Text style={s.sectionTitle}>Resumen ejecutivo</Text>
+              <Text style={s.sectionTitle}>{isEn ? "Executive Summary" : "Resumen ejecutivo"}</Text>
             </View>
             <View style={s.kpiGrid}>
               <View style={s.kpiCard}>
-                <Text style={s.kpiLabel}>Horas Registradas</Text>
+                <Text style={s.kpiLabel}>{isEn ? "Hours Logged" : "Horas Registradas"}</Text>
                 <Text style={s.kpiValue}>{fmtH(kpis.totalHoras)}*</Text>
-                <Text style={s.kpiSub}>Trabajadas: {fmtH(kpis.totalHorasTrabajadas ?? kpis.totalHoras)}</Text>
-                <Text style={{ fontSize: 6.5, color: C.muted, marginTop: 1 }}>{kpis.registrosTotales} registros</Text>
+                <Text style={s.kpiSub}>{isEn ? "Worked" : "Trabajadas"}: {fmtH(kpis.totalHorasTrabajadas ?? kpis.totalHoras)}</Text>
+                <Text style={{ fontSize: 6.5, color: C.muted, marginTop: 1 }}>{kpis.registrosTotales} {isEn ? "records" : "registros"}</Text>
               </View>
               <View style={[s.kpiCard, { borderLeft: `3px solid ${C.teal}` }]}>
-                <Text style={s.kpiLabel}>Total facturado</Text>
+                <Text style={s.kpiLabel}>{isEn ? "Total Billed" : "Total facturado"}</Text>
                 <Text style={[s.kpiValue, { fontSize: 14 }]}>{fmt(kpis.totalIngresos, moneda)}</Text>
-                <Text style={s.kpiSub}>en el período</Text>
+                <Text style={s.kpiSub}>{isEn ? "in period" : "en el período"}</Text>
               </View>
               <View style={[s.kpiCard, s.kpiCardAmber]}>
-                <Text style={s.kpiLabel}>Promedio $/h</Text>
+                <Text style={s.kpiLabel}>{isEn ? "Average $/h" : "Promedio $/h"}</Text>
                 <Text style={[s.kpiValue, s.kpiValueAmber, { fontSize: 14 }]}>{fmt(promedioHora, moneda)}</Text>
-                <Text style={s.kpiSub}>tarifa efectiva</Text>
+                <Text style={s.kpiSub}>{isEn ? "effective rate" : "tarifa efectiva"}</Text>
               </View>
               <View style={[s.kpiCard, s.kpiCardPurple]}>
-                <Text style={s.kpiLabel}>Proyectos</Text>
+                <Text style={s.kpiLabel}>{isEn ? "Projects" : "Proyectos"}</Text>
                 <Text style={[s.kpiValue, s.kpiValuePurple]}>{kpis.proyectosActivos}</Text>
-                <Text style={s.kpiSub}>involucrados</Text>
+                <Text style={s.kpiSub}>{isEn ? "involved" : "involucrados"}</Text>
               </View>
             </View>
           </View>
-
-
 
           {/* ── Gráficos lado a lado ── */}
           {(barData.length > 0 || pieData.length > 0) && (
             <View style={[s.section]}>
               <View style={s.sectionHeader}>
                 <View style={s.sectionDot} />
-                <Text style={s.sectionTitle}>Análisis visual</Text>
+                <Text style={s.sectionTitle}>{isEn ? "Visual Analysis" : "Análisis visual"}</Text>
               </View>
               <View style={s.chartsRow}>
                 {/* Bar chart — horas por proyecto */}
                 {barData.length > 0 && (
                   <View style={[s.chartHalf, s.chartBox]}>
-                    <Text style={s.chartTitle}>Horas por proyecto</Text>
+                    <Text style={s.chartTitle}>{isEn ? "Hours by project" : "Horas por proyecto"}</Text>
                     <BarChartSvg data={barData} width={220} height={110} moneda={moneda} />
-                    {/* Leyenda colores */}
                     <View style={{ flexDirection: "row", gap: 4, marginTop: 6, flexWrap: "wrap" }}>
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
                         <View style={{ width: 8, height: 8, borderRadius: 2, backgroundColor: C.teal }} />
-                        <Text style={{ fontSize: 6.5, color: C.muted }}>Horas</Text>
+                        <Text style={{ fontSize: 6.5, color: C.muted }}>{isEn ? "Hours" : "Horas"}</Text>
                       </View>
                     </View>
                   </View>
@@ -604,7 +604,7 @@ function ReporteDoc({
                 {/* Pie chart — distribución por tarea */}
                 {pieData.length > 0 && (
                   <View style={[s.chartHalf, s.chartBox]}>
-                    <Text style={s.chartTitle}>Distribución por tarea</Text>
+                    <Text style={s.chartTitle}>{isEn ? "Task distribution" : "Distribución por tarea"}</Text>
                     <View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
                       <PieChartSvg data={pieData} size={88} />
                       <View style={{ flex: 1 }}>
@@ -631,14 +631,14 @@ function ReporteDoc({
             <View style={s.section}>
               <View style={s.sectionHeader}>
                 <View style={s.sectionDot} />
-                <Text style={s.sectionTitle}>Detalle por proyecto</Text>
+                <Text style={s.sectionTitle}>{isEn ? "Project breakdown" : "Detalle por proyecto"}</Text>
               </View>
               <View style={s.table}>
                 <View style={s.tableHeader}>
-                  <Text style={[s.tableHeaderCell, { flex: 3 }]}>Proyecto</Text>
-                  <Text style={[s.tableHeaderCell, { flex: 1.2, textAlign: "right" }]}>Horas</Text>
-                  <Text style={[s.tableHeaderCell, { flex: 2, textAlign: "right" }]}>Facturado</Text>
-                  <Text style={[s.tableHeaderCell, { flex: 1.2, textAlign: "right" }]}>Prom. USD/h</Text>
+                  <Text style={[s.tableHeaderCell, { flex: 3 }]}>{isEn ? "Project" : "Proyecto"}</Text>
+                  <Text style={[s.tableHeaderCell, { flex: 1.2, textAlign: "right" }]}>{isEn ? "Hours" : "Horas"}</Text>
+                  <Text style={[s.tableHeaderCell, { flex: 2, textAlign: "right" }]}>{isEn ? "Billed" : "Facturado"}</Text>
+                  <Text style={[s.tableHeaderCell, { flex: 1.2, textAlign: "right" }]}>{isEn ? "Avg USD/h" : "Prom. USD/h"}</Text>
                 </View>
                 {porProyecto.map((p, i) => {
                   const avg = p.horas > 0 ? p.ingresos / p.horas : 0;
@@ -653,7 +653,7 @@ function ReporteDoc({
                 })}
                 {/* Total row */}
                 <View style={[s.tableRow, { backgroundColor: C.surfaceHigh }]}>
-                  <Text style={[s.tableCell, { flex: 3, fontFamily: "Helvetica-Bold" }]}>TOTAL</Text>
+                  <Text style={[s.tableCell, { flex: 3, fontFamily: "Helvetica-Bold" }]}>{isEn ? "TOTAL" : "TOTAL"}</Text>
                   <Text style={[s.tableCell, { flex: 1.2, textAlign: "right", fontFamily: "Helvetica-Bold" }]}>{fmtH(kpis.totalHoras)}</Text>
                   <Text style={[s.tableCell, s.tableCellAccent, { flex: 2, textAlign: "right", fontFamily: "Helvetica-Bold" }]}>{fmt(kpis.totalIngresos, moneda)}</Text>
                   <Text style={[s.tableCell, { flex: 1.2, textAlign: "right" }]}>—</Text>
@@ -667,28 +667,27 @@ function ReporteDoc({
             <View style={s.section} break>
               <View style={s.sectionHeader}>
                 <View style={s.sectionDot} />
-                <Text style={s.sectionTitle}>Horas por cliente</Text>
+                <Text style={s.sectionTitle}>{isEn ? "Hours by client" : "Horas por cliente"}</Text>
               </View>
               <View style={[s.chartBox, { width: "100%" }]}>
                 <HorizontalBarChartSvg data={porCliente} width={480} height={Math.max(60, porCliente.filter(c => c.horas > 0).length * 16 + 20)} />
               </View>
             </View>
           )}
-  
 
           {/* ── Tabla por mes ── */}
           {porMes.length > 1 && (
             <View style={s.section}>
               <View style={s.sectionHeader}>
                 <View style={s.sectionDot} />
-                <Text style={s.sectionTitle}>Evolución mensual</Text>
+                <Text style={s.sectionTitle}>{isEn ? "Monthly trend" : "Evolución mensual"}</Text>
               </View>
               <View style={s.table}>
                 <View style={s.tableHeader}>
-                  <Text style={[s.tableHeaderCell, { flex: 2 }]}>Mes</Text>
-                  <Text style={[s.tableHeaderCell, { flex: 1, textAlign: "right" }]}>Horas</Text>
-                  <Text style={[s.tableHeaderCell, { flex: 2, textAlign: "right" }]}>Facturado</Text>
-                  <Text style={[s.tableHeaderCell, { flex: 1.5, textAlign: "right" }]}>% del total</Text>
+                  <Text style={[s.tableHeaderCell, { flex: 2 }]}>{isEn ? "Month" : "Mes"}</Text>
+                  <Text style={[s.tableHeaderCell, { flex: 1, textAlign: "right" }]}>{isEn ? "Hours" : "Horas"}</Text>
+                  <Text style={[s.tableHeaderCell, { flex: 2, textAlign: "right" }]}>{isEn ? "Billed" : "Facturado"}</Text>
+                  <Text style={[s.tableHeaderCell, { flex: 1.5, textAlign: "right" }]}>{isEn ? "% of total" : "% del total"}</Text>
                 </View>
                 {[...porMes].reverse().map((m, i) => {
                   const pct = kpis.totalIngresos > 0
@@ -696,7 +695,7 @@ function ReporteDoc({
                     : 0;
                   return (
                     <View key={m.mes} style={[s.tableRow, i % 2 === 1 ? s.tableRowAlt : {}]}>
-                      <Text style={[s.tableCell, { flex: 2, fontFamily: "Helvetica-Bold" }]}>{formatMonthYearLabel(m.mes)}</Text>
+                      <Text style={[s.tableCell, { flex: 2, fontFamily: "Helvetica-Bold" }]}>{formatMonthYearLabel(m.mes, locale)}</Text>
                       <Text style={[s.tableCell, s.tableCellMuted, { flex: 1, textAlign: "right" }]}>{fmtH(m.horas)}</Text>
                       <Text style={[s.tableCell, s.tableCellAccent, { flex: 2, textAlign: "right" }]}>{fmt(m.ingresos, moneda)}</Text>
                       <Text style={[s.tableCell, s.tableCellMuted, { flex: 1.5, textAlign: "right" }]}>{pct}%</Text>
@@ -707,23 +706,21 @@ function ReporteDoc({
             </View>
           )}
 
-
-
           {/* ── Detalle de registros (si se pasan) ── */}
           {registros.length > 0 && (
             <View style={[s.section, { marginTop: 18 }]} break>
               <View style={s.sectionHeader}>
                 <View style={s.sectionDot} />
-                <Text style={s.sectionTitle}>Detalle de registros ({registros.length})</Text>
+                <Text style={s.sectionTitle}>{isEn ? "Log details" : "Detalle de registros"} ({registros.length})</Text>
               </View>
               <View style={s.table}>
                 <View style={s.tableHeader}>
-                  <Text style={[s.tableHeaderCell, { flex: 1.05 }]}>Fecha</Text>
-                  <Text style={[s.tableHeaderCell, { flex: 1.5 }]}>Cliente</Text>
-                  <Text style={[s.tableHeaderCell, { flex: 1.5 }]}>Proyecto</Text>
-                  <Text style={[s.tableHeaderCell, { flex: 3.8, paddingLeft: 8 }]}>Descripción</Text>
-                  <Text style={[s.tableHeaderCell, { flex: 0.85, textAlign: "right" }]}>Horas</Text>
-                  <Text style={[s.tableHeaderCell, { flex: 1.3, textAlign: "right" }]}>Total</Text>
+                  <Text style={[s.tableHeaderCell, { flex: 1.05 }]}>{isEn ? "Date" : "Fecha"}</Text>
+                  <Text style={[s.tableHeaderCell, { flex: 1.5 }]}>{isEn ? "Client" : "Cliente"}</Text>
+                  <Text style={[s.tableHeaderCell, { flex: 1.5 }]}>{isEn ? "Project" : "Proyecto"}</Text>
+                  <Text style={[s.tableHeaderCell, { flex: 3.8, paddingLeft: 8 }]}>{isEn ? "Description" : "Descripción"}</Text>
+                  <Text style={[s.tableHeaderCell, { flex: 0.85, textAlign: "right" }]}>{isEn ? "Hours" : "Horas"}</Text>
+                  <Text style={[s.tableHeaderCell, { flex: 1.3, textAlign: "right" }]}>{isEn ? "Total" : "Total"}</Text>
                 </View>
                 {registros.map((r, i) => (
                   <View key={i} style={[s.registroRow, i % 2 === 1 ? s.tableRowAlt : { backgroundColor: C.white }]}>
@@ -741,12 +738,14 @@ function ReporteDoc({
 
         </View>
 
-        {/* Nota sobre Horas Facturables en el pie de página de la hoja 1 (render dinámico fijo) */}
+        {/* Nota sobre Horas Facturables en el pie de página de la hoja 1 */}
         <View render={({ pageNumber }) => (
           pageNumber === 1 ? (
             <View style={s.footnoteBox}>
               <Text style={{ fontSize: 6.5, color: C.muted, lineHeight: 1.25 }}>
-                * Nota sobre Horas Facturables: Las horas facturables pueden diferir de las horas trabajadas debido al algoritmo de redondeo y umbrales mensuales aplicados. En el tramo de tarifa base (primeras 20h), las fracciones se redondean a intervalos de 0.5h. En el tramo de tarifa alta (superado el umbral), las fracciones se redondean hacia arriba a la siguiente hora completa.
+                {isEn
+                  ? "* Note on Billable Hours: Billable hours may differ from worked hours due to rounding algorithms and monthly threshold rules applied. In base rate tier (first 20h), fractions round to 0.5h intervals. In high rate tier (above threshold), fractions round up to the next full hour."
+                  : "* Nota sobre Horas Facturables: Las horas facturables pueden diferir de las horas trabajadas debido al algoritmo de redondeo y umbrales mensuales aplicados. En el tramo de tarifa base (primeras 20h), las fracciones se redondean a intervalos de 0.5h. En el tramo de tarifa alta (superado el umbral), las fracciones se redondean hacia arriba a la siguiente hora completa."}
               </Text>
             </View>
           ) : null
@@ -756,7 +755,7 @@ function ReporteDoc({
         <View style={s.footer} fixed>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Text style={s.footerText}>
-              <Text style={s.footerAccent}>Ptime</Text> — Documento confidencial · {nombreEmpresa}
+              <Text style={s.footerAccent}>Ptime</Text> — {isEn ? "Confidential document" : "Documento confidencial"} · {nombreEmpresa}
             </Text>
             <View style={{ height: 8, width: 1, backgroundColor: C.outline, opacity: 0.3, marginHorizontal: 8 }} />
             <Text style={s.footerText}>Powered by</Text>
@@ -766,7 +765,7 @@ function ReporteDoc({
           </View>
           <Text
             style={s.footerText}
-            render={({ pageNumber, totalPages }) => `Página ${pageNumber} de ${totalPages}`}
+            render={({ pageNumber, totalPages }) => isEn ? `Page ${pageNumber} of ${totalPages}` : `Página ${pageNumber} de ${totalPages}`}
           />
         </View>
 

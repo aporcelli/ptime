@@ -5,6 +5,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.63.4] — 2026-08-05
+
+### Corregido
+- **Traducción Bilingüe Completa en el Reporte PDF Exportable**:
+  - Agregado soporte de prop `locale` a `ReporteTemplate.tsx` y `ReporteDoc`.
+  - Cuando la aplicación está en inglés, el PDF generado por `@react-pdf/renderer` se compila 100% en inglés (títulos de sección, tablas de resumen ejecutivo, desglose por proyecto/cliente/mes, encabezados de columnas, gráficos SVG y notas al pie).
+
 ## [1.2.63.3] — 2026-08-05
 
 ### Corregido
