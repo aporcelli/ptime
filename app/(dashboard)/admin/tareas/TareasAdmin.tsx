@@ -6,8 +6,11 @@ import { Plus, Loader2, X, CheckSquare, CheckCircle, ToggleLeft, ToggleRight, Pe
 import { createTareaAction, toggleTareaAction, updateTareaAction, deleteTareaAction } from "@/app/actions/tasks";
 import type { Tarea } from "@/types/entities";
 
+import { useLocale } from "@/components/providers/LocaleProvider";
+
 export default function TareasAdmin({ tareas }: { tareas: Tarea[] }) {
   const router = useRouter();
+  const { t, locale } = useLocale();
   const [sortKey, setSortKey] = useState<keyof Tarea>("nombre");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
@@ -48,10 +51,10 @@ export default function TareasAdmin({ tareas }: { tareas: Tarea[] }) {
     setOpen(true);
   }
 
-  function openEdit(t: Tarea) {
-    setEditing(t);
-    setNombre(t.nombre);
-    setCategoria(t.categoria ?? "");
+  function openEdit(tItem: Tarea) {
+    setEditing(tItem);
+    setNombre(tItem.nombre);
+    setCategoria(tItem.categoria ?? "");
     setError("");
     setOpen(true);
   }
@@ -93,11 +96,11 @@ export default function TareasAdmin({ tareas }: { tareas: Tarea[] }) {
     <div className="flex flex-col gap-6 animate-fade-in">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="font-display text-3xl text-heading">Tareas</h1>
-          <p className="text-sub mt-1">{tareas.length} tareas registradas</p>
+          <h1 className="font-display text-3xl text-heading">{t.menuTareas}</h1>
+          <p className="text-sub mt-1">{tareas.length} {locale === "en" ? "registered tasks" : "tareas registradas"}</p>
         </div>
         <button onClick={openCreate} className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold px-4 py-2.5 rounded-lg text-sm transition-colors">
-          <Plus size={16} /> Nueva tarea
+          <Plus size={16} /> {t.newTask}
         </button>
       </div>
 
@@ -105,8 +108,8 @@ export default function TareasAdmin({ tareas }: { tareas: Tarea[] }) {
         {tareas.length === 0 ? (
           <div className="p-12 text-center">
             <CheckSquare size={32} className="text-faint mx-auto mb-3" />
-            <p className="text-sub text-sm">No hay tareas aún.</p>
-            <button onClick={openCreate} className="text-brand-600 text-sm font-medium mt-2 hover:underline">Crear la primera →</button>
+            <p className="text-sub text-sm">{locale === "en" ? "No tasks yet." : "No hay tareas aún."}</p>
+            <button onClick={openCreate} className="text-brand-600 text-sm font-medium mt-2 hover:underline">{locale === "en" ? "Create the first one →" : "Crear la primera →"}</button>
           </div>
         ) : (
           <table className="w-full text-sm">

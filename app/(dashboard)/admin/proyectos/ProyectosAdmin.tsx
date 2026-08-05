@@ -20,8 +20,11 @@ const defaultForm = {
   precio_base: "35", precio_alto: "45", umbral_precio_alto: "20", estado: "activo",
 };
 
+import { useLocale } from "@/components/providers/LocaleProvider";
+
 export default function ProyectosAdmin({ proyectos, clientes }: Props) {
   const router = useRouter();
+  const { t, locale } = useLocale();
   const [sortKey, setSortKey] = useState<"nombre" | "cliente" | "presupuesto_horas" | "precio_base" | "precio_alto" | "estado">("nombre");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const sorted = useMemo(() => {
@@ -114,11 +117,11 @@ export default function ProyectosAdmin({ proyectos, clientes }: Props) {
     <div className="flex flex-col gap-6 animate-fade-in">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="font-display text-3xl font-extrabold text-on-surface tracking-tight">Proyectos</h1>
-          <p className="text-on-surface-variant mt-1">{proyectos.length} proyectos registrados</p>
+          <h1 className="font-display text-3xl font-extrabold text-on-surface tracking-tight">{t.menuProyectos}</h1>
+          <p className="text-on-surface-variant mt-1">{proyectos.length} {locale === "en" ? "registered projects" : "proyectos registrados"}</p>
         </div>
         <button onClick={openCreate} className="flex items-center gap-2 bg-primary-fixed hover:bg-secondary text-white font-semibold px-4 py-2.5 rounded-lg text-sm transition-colors">
-          <Plus size={16} /> Nuevo proyecto
+          <Plus size={16} /> {t.newProject}
         </button>
       </div>
 
@@ -126,8 +129,8 @@ export default function ProyectosAdmin({ proyectos, clientes }: Props) {
         {proyectos.length === 0 ? (
           <div className="p-12 text-center">
             <FolderKanban size={32} className="text-on-surface-variant mx-auto mb-3" />
-            <p className="text-on-surface-variant text-sm">No hay proyectos aún.</p>
-            <button onClick={openCreate} className="text-primary-fixed text-sm font-medium mt-2 hover:underline">Crear el primero →</button>
+            <p className="text-on-surface-variant text-sm">{locale === "en" ? "No projects yet." : "No hay proyectos aún."}</p>
+            <button onClick={openCreate} className="text-primary-fixed text-sm font-medium mt-2 hover:underline">{locale === "en" ? "Create the first one →" : "Crear el primero →"}</button>
           </div>
         ) : (
           <table className="w-full text-sm">

@@ -8,6 +8,8 @@ import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { updateConfig } from "@/app/actions/config";
 import type { AppConfig } from "@/types/entities";
 
+import { useLocale } from "@/components/providers/LocaleProvider";
+
 const schema = z.object({
   precioBase: z.coerce.number().positive("Debe ser positivo"),
   precioAlto: z.coerce.number().positive("Debe ser positivo"),
@@ -19,6 +21,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function ConfigForm({ defaultValues }: { defaultValues: AppConfig }) {
+  const { t, locale } = useLocale();
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -50,8 +53,8 @@ export default function ConfigForm({ defaultValues }: { defaultValues: AppConfig
         {/* Precio base */}
         <div className="flex flex-col gap-1.5">
           <div className="flex items-baseline justify-between">
-            <label className="text-sm font-medium text-heading">Precio base</label>
-            <span className="text-xs text-faint">hasta {umbral}h</span>
+            <label className="text-sm font-medium text-heading">{t.configLabelBasePrice}</label>
+            <span className="text-xs text-faint">{locale === "en" ? `up to ${umbral}h` : `hasta ${umbral}h`}</span>
           </div>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-faint text-sm font-mono">$</span>
@@ -63,8 +66,8 @@ export default function ConfigForm({ defaultValues }: { defaultValues: AppConfig
         {/* Precio alto */}
         <div className="flex flex-col gap-1.5">
           <div className="flex items-baseline justify-between">
-            <label className="text-sm font-medium text-heading">Precio alto</label>
-            <span className="text-xs text-faint">desde h {umbral}</span>
+            <label className="text-sm font-medium text-heading">{t.configLabelHighPrice}</label>
+            <span className="text-xs text-faint">{locale === "en" ? `from ${umbral}h` : `desde h ${umbral}`}</span>
           </div>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-faint text-sm font-mono">$</span>
@@ -75,7 +78,7 @@ export default function ConfigForm({ defaultValues }: { defaultValues: AppConfig
 
         {/* Umbral */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-heading">Umbral (horas)</label>
+          <label className="text-sm font-medium text-heading">{t.configLabelThreshold}</label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-faint text-sm font-mono">h</span>
             <input type="number" step="1" min="1" {...register("umbralHoras")} className={`${ic(!!errors.umbralHoras)} pl-7`} />
@@ -89,8 +92,11 @@ export default function ConfigForm({ defaultValues }: { defaultValues: AppConfig
         style={{ backgroundColor: "var(--bg-thead)" }}>
         <span>📊</span>
         <span>
-          Primeras <strong className="text-heading">{umbral}h</strong> por proyecto → <strong className="text-heading">${watch("precioBase")}/h</strong> ·
-          A partir de la hora {umbral} → <strong className="text-heading">${watch("precioAlto")}/h</strong>
+          {locale === "en" ? (
+            <>First <strong className="text-heading">{umbral}h</strong> per project → <strong className="text-heading">${watch("precioBase")}/h</strong> · From hour {umbral} onwards → <strong className="text-heading">${watch("precioAlto")}/h</strong></>
+          ) : (
+            <>Primeras <strong className="text-heading">{umbral}h</strong> por proyecto → <strong className="text-heading">${watch("precioBase")}/h</strong> · A partir de la hora {umbral} → <strong className="text-heading">${watch("precioAlto")}/h</strong></>
+          )}
         </span>
       </div>
 
@@ -102,14 +108,14 @@ export default function ConfigForm({ defaultValues }: { defaultValues: AppConfig
       {status === "success" && (
         <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
           className="flex items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 text-green-700 dark:text-green-400 text-sm">
-          <CheckCircle size={15} /> Configuración guardada.
+          <CheckCircle size={15} /> {locale === "en" ? "Settings saved." : "Configuración guardada."}
         </motion.div>
       )}
 
       <motion.button type="submit" disabled={status === "loading"} whileTap={{ scale: 0.98 }}
         className="bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white font-semibold rounded-lg py-2.5 text-sm flex items-center justify-center gap-2 transition-colors">
         {status === "loading" && <Loader2 size={15} className="animate-spin" />}
-        {status === "loading" ? "Guardando…" : "Guardar configuración"}
+        {status === "loading" ? (locale === "en" ? "Saving…" : "Guardando…") : (locale === "en" ? "Save settings" : "Guardar configuración")}
       </motion.button>
     </form>
   );

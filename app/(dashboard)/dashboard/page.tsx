@@ -66,8 +66,6 @@ export default async function DashboardPage({
       (r) => r.fecha >= fechaDesde && r.fecha <= fechaHasta
     );
 
-    const acceptLanguage = headers().get("accept-language") ?? "";
-    const locale = acceptLanguage.toLowerCase().includes("es") ? "es" : "en";
 
     const registrosRepriced = repriceMonthlyRecords(registros, Object.fromEntries(proyectos.map((p) => [p.id, p])), config);
     const monthSummary = summarizeRecords(registrosRepriced);

@@ -7,8 +7,11 @@ import { createClienteAction, updateClienteAction, deleteClienteAction } from "@
 import { useSort } from "@/hooks/useSort";
 import type { Cliente } from "@/types/entities";
 
+import { useLocale } from "@/components/providers/LocaleProvider";
+
 export default function ClientesAdmin({ clientes }: { clientes: Cliente[] }) {
   const router = useRouter();
+  const { t, locale } = useLocale();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Cliente | null>(null);
   const { sorted, SortHeader } = useSort(clientes, "nombre");
@@ -63,11 +66,11 @@ export default function ClientesAdmin({ clientes }: { clientes: Cliente[] }) {
     <div className="flex flex-col gap-6 animate-fade-in">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="font-display text-3xl text-heading">Clientes</h1>
-          <p className="text-sub mt-1">{clientes.length} clientes registrados</p>
+          <h1 className="font-display text-3xl text-heading">{t.menuClientes}</h1>
+          <p className="text-sub mt-1">{clientes.length} {locale === "en" ? "registered clients" : "clientes registrados"}</p>
         </div>
         <button onClick={openCreate} className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold px-4 py-2.5 rounded-lg text-sm transition-colors">
-          <Plus size={16} /> Nuevo cliente
+          <Plus size={16} /> {t.newClient}
         </button>
       </div>
 
@@ -75,16 +78,16 @@ export default function ClientesAdmin({ clientes }: { clientes: Cliente[] }) {
         {clientes.length === 0 ? (
           <div className="p-12 text-center">
             <Users size={32} className="text-faint mx-auto mb-3" />
-            <p className="text-sub text-sm">No hay clientes aún.</p>
-            <button onClick={openCreate} className="text-brand-600 text-sm font-medium mt-2 hover:underline">Crear el primero →</button>
+            <p className="text-sub text-sm">{locale === "en" ? "No clients yet." : "No hay clientes aún."}</p>
+            <button onClick={openCreate} className="text-brand-600 text-sm font-medium mt-2 hover:underline">{locale === "en" ? "Create the first one →" : "Crear el primero →"}</button>
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead><tr className="table-head">
-              <SortHeader colKey="nombre" label="Nombre" />
+              <SortHeader colKey="nombre" label={locale === "en" ? "Name" : "Nombre"} />
               <SortHeader colKey="email" label="Email" />
-              <SortHeader colKey="telefono" label="Teléfono" />
-              <SortHeader colKey="activo" label="Estado" />
+              <SortHeader colKey="telefono" label={locale === "en" ? "Phone" : "Teléfono"} />
+              <SortHeader colKey="activo" label={t.status} />
               <th className="p-3 text-xs font-semibold uppercase tracking-wide text-left" style={{ color: "var(--text-muted)" }} />
             </tr></thead>
             <tbody>
@@ -93,13 +96,13 @@ export default function ClientesAdmin({ clientes }: { clientes: Cliente[] }) {
                   <td className="p-3 font-medium text-heading">{c.nombre}</td>
                   <td className="p-3 text-sub">{c.email}</td>
                   <td className="p-3 text-sub">{c.telefono ?? "—"}</td>
-                  <td className="p-3"><span className={`badge ${c.activo ? "badge-green" : "badge-slate"}`}>{c.activo ? "Activo" : "Inactivo"}</span></td>
+                  <td className="p-3"><span className={`badge ${c.activo ? "badge-green" : "badge-slate"}`}>{c.activo ? t.active : t.inactive}</span></td>
                   <td className="p-3 text-right">
                     <div className="flex items-center gap-1 justify-end">
-                      <button onClick={() => openEdit(c)} className="p-1.5 rounded-lg text-sub hover:text-brand-600 transition-colors" title="Editar">
+                      <button onClick={() => openEdit(c)} className="p-1.5 rounded-lg text-sub hover:text-brand-600 transition-colors" title={t.edit}>
                         <Pencil size={14} />
                       </button>
-                      <button onClick={() => setDeleting(c)} className="p-1.5 rounded-lg text-sub hover:text-red-500 transition-colors" title="Eliminar">
+                      <button onClick={() => setDeleting(c)} className="p-1.5 rounded-lg text-sub hover:text-red-500 transition-colors" title={t.delete}>
                         <Trash2 size={14} />
                       </button>
                     </div>
