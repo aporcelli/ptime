@@ -434,6 +434,7 @@ export function ReportesFiltersClient({
                   tituloReporte={tituloFinal}
                   clienteNombre={clienteSeleccionado?.nombre}
                   label={isEn ? "Download PDF" : "Descargar PDF"}
+                  locale={locale}
                   className="self-start"
                 />
               </div>
