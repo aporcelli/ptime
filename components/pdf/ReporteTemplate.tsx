@@ -517,7 +517,9 @@ function ReporteDoc({
             </View>
             {/* Título personalizado */}
             <Text style={[s.brandTagline, { fontSize: 13, color: C.white, fontFamily: "Helvetica-Bold", marginTop: 4 }]}>
-              {tituloReporte ?? (isEn ? "Hours & Billing Report" : "Reporte de horas y facturación")}
+              {isEn && tituloReporte === "Reporte de Horas Mensuales"
+                ? "Monthly Hours Report"
+                : (tituloReporte ?? (isEn ? "Hours & Billing Report" : "Reporte de horas y facturación"))}
             </Text>
             {clienteNombre && (
               <Text style={[s.brandTagline, { color: C.teal, marginTop: 3 }]}>

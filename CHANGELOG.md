@@ -5,6 +5,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.63.5] — 2026-08-05
+
+### Corregido
+- **Traducción Dinámica del Título del Reporte PDF**:
+  - Reemplazado el valor estático `"Reporte de Horas Mensuales"` en el estado por un título reactivo (`"Monthly Hours Report"` en modo inglés, `"Reporte de Horas Mensuales"` en modo español).
+  - Agregada conversión fallback en `ReporteTemplate.tsx` para garantizar la renderización en inglés.
+
 ## [1.2.63.4] — 2026-08-05
 
 ### Corregido
