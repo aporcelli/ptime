@@ -92,12 +92,14 @@ export default function TareasAdmin({ tareas }: { tareas: Tarea[] }) {
     router.refresh();
   }
 
+  const isEn = locale === "en";
+
   return (
     <div className="flex flex-col gap-6 animate-fade-in">
       <div className="flex items-start justify-between">
         <div>
           <h1 className="font-display text-3xl text-heading">{t.menuTareas}</h1>
-          <p className="text-sub mt-1">{tareas.length} {locale === "en" ? "registered tasks" : "tareas registradas"}</p>
+          <p className="text-sub mt-1">{tareas.length} {isEn ? "registered tasks" : "tareas registradas"}</p>
         </div>
         <button onClick={openCreate} className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold px-4 py-2.5 rounded-lg text-sm transition-colors">
           <Plus size={16} /> {t.newTask}
@@ -108,16 +110,16 @@ export default function TareasAdmin({ tareas }: { tareas: Tarea[] }) {
         {tareas.length === 0 ? (
           <div className="p-12 text-center">
             <CheckSquare size={32} className="text-faint mx-auto mb-3" />
-            <p className="text-sub text-sm">{locale === "en" ? "No tasks yet." : "No hay tareas aún."}</p>
-            <button onClick={openCreate} className="text-brand-600 text-sm font-medium mt-2 hover:underline">{locale === "en" ? "Create the first one →" : "Crear la primera →"}</button>
+            <p className="text-sub text-sm">{isEn ? "No tasks yet." : "No hay tareas aún."}</p>
+            <button onClick={openCreate} className="text-brand-600 text-sm font-medium mt-2 hover:underline">{isEn ? "Create the first one →" : "Crear la primera →"}</button>
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead><tr className="table-head">
-              <SortH col="nombre" label="Nombre" />
-              <SortH col="categoria" label="Categoría" />
-              <SortH col="horas_acumuladas" label="Horas acum." />
-              <SortH col="activa" label="Estado" />
+              <SortH col="nombre" label={isEn ? "Name" : "Nombre"} />
+              <SortH col="categoria" label={isEn ? "Category" : "Categoría"} />
+              <SortH col="horas_acumuladas" label={isEn ? "Accum. Hours" : "Horas acum."} />
+              <SortH col="activa" label={isEn ? "Status" : "Estado"} />
               <th className="p-3 text-xs font-semibold uppercase tracking-wide text-left" style={{ color: "var(--text-muted)" }} />
               <th className="p-3 text-xs font-semibold uppercase tracking-wide text-left" style={{ color: "var(--text-muted)" }} />
             </tr></thead>
@@ -129,14 +131,14 @@ export default function TareasAdmin({ tareas }: { tareas: Tarea[] }) {
                   <td className="p-3 font-mono text-sub">{t.horas_acumuladas ?? 0}h</td>
                   <td className="p-3">
                     <span className={`badge ${t.activa ? "badge-green" : "badge-slate"}`}>
-                      {t.activa ? "Activa" : "Inactiva"}
+                      {t.activa ? (isEn ? "Active" : "Activa") : (isEn ? "Inactive" : "Inactiva")}
                     </span>
                   </td>
                   <td className="p-3">
                     <button onClick={() => handleToggle(t.id, t.activa)}
                       disabled={toggling === t.id}
                       className="text-sub hover:text-brand-600 transition-colors disabled:opacity-50"
-                      title={t.activa ? "Desactivar" : "Activar"}>
+                      title={t.activa ? (isEn ? "Deactivate" : "Desactivar") : (isEn ? "Activate" : "Activar")}>
                       {toggling === t.id
                         ? <Loader2 size={16} className="animate-spin" />
                         : t.activa ? <ToggleRight size={20} className="text-green-500" /> : <ToggleLeft size={20} />}
@@ -144,10 +146,10 @@ export default function TareasAdmin({ tareas }: { tareas: Tarea[] }) {
                   </td>
                   <td className="p-3 text-right">
                     <div className="flex items-center gap-1 justify-end">
-                      <button onClick={() => openEdit(t)} className="p-1.5 rounded-lg text-sub hover:text-brand-600 transition-colors" title="Editar">
+                      <button onClick={() => openEdit(t)} className="p-1.5 rounded-lg text-sub hover:text-brand-600 transition-colors" title={isEn ? "Edit" : "Editar"}>
                         <Pencil size={14} />
                       </button>
-                      <button onClick={() => setDeleting(t)} className="p-1.5 rounded-lg text-sub hover:text-red-500 transition-colors" title="Eliminar">
+                      <button onClick={() => setDeleting(t)} className="p-1.5 rounded-lg text-sub hover:text-red-500 transition-colors" title={isEn ? "Delete" : "Eliminar"}>
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -167,26 +169,26 @@ export default function TareasAdmin({ tareas }: { tareas: Tarea[] }) {
             <motion.div initial={{ scale: 0.95, y: 10 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95 }}
               className="modal-panel max-w-sm">
               <div className="flex items-center justify-between mb-5">
-                <h2 className="font-semibold text-lg text-heading">{editing ? "Editar tarea" : "Nueva tarea"}</h2>
+                <h2 className="font-semibold text-lg text-heading">{editing ? (isEn ? "Edit task" : "Editar tarea") : (isEn ? "New task" : "Nueva tarea")}</h2>
                 <button onClick={() => setOpen(false)} className="text-sub hover:text-heading"><X size={18} /></button>
               </div>
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-sub">Nombre *</label>
+                  <label className="text-xs font-medium text-sub">{isEn ? "Name *" : "Nombre *"}</label>
                   <input className="input-field" value={nombre} onChange={(e) => setNombre(e.target.value)}
-                    placeholder="Ej: Desarrollo Backend" onKeyDown={(e) => e.key === "Enter" && handleSave()} />
+                    placeholder={isEn ? "e.g. Backend Development" : "Ej: Desarrollo Backend"} onKeyDown={(e) => e.key === "Enter" && handleSave()} />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-sub">Categoría (opcional)</label>
+                  <label className="text-xs font-medium text-sub">{isEn ? "Category (optional)" : "Categoría (opcional)"}</label>
                   <input className="input-field" value={categoria} onChange={(e) => setCategoria(e.target.value)}
-                    placeholder="Ej: Técnico, Diseño, Gestión" />
+                    placeholder={isEn ? "e.g. Technical, Design, Management" : "Ej: Técnico, Diseño, Gestión"} />
                 </div>
                 {error && <p className="text-red-500 text-sm">{error}</p>}
                 <button onClick={handleSave} disabled={saving || ok || !nombre.trim()}
                   className="w-full bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-semibold rounded-lg py-2.5 text-sm flex items-center justify-center gap-2 transition-colors">
                   {saving && <Loader2 size={15} className="animate-spin" />}
                   {ok && <CheckCircle size={15} />}
-                  {ok ? "¡Guardada!" : saving ? "Guardando…" : editing ? "Guardar cambios" : "Crear tarea"}
+                  {ok ? (isEn ? "Saved!" : "¡Guardada!") : saving ? (isEn ? "Saving…" : "Guardando…") : editing ? (isEn ? "Save changes" : "Guardar cambios") : (isEn ? "Create task" : "Crear tarea")}
                 </button>
               </div>
             </motion.div>
@@ -206,20 +208,20 @@ export default function TareasAdmin({ tareas }: { tareas: Tarea[] }) {
                   <AlertTriangle size={20} className="text-red-500" />
                 </div>
                 <div>
-                  <h2 className="font-semibold text-heading">Eliminar tarea</h2>
-                  <p className="text-sm text-sub">Esta acción no se puede deshacer</p>
+                  <h2 className="font-semibold text-heading">{isEn ? "Delete task" : "Eliminar tarea"}</h2>
+                  <p className="text-sm text-sub">{isEn ? "This action cannot be undone" : "Esta acción no se puede deshacer"}</p>
                 </div>
               </div>
               <p className="text-sm text-sub mb-5">
-                ¿Eliminar <strong className="text-heading">{deleting.nombre}</strong>?
+                {isEn ? "Delete " : "¿Eliminar "}<strong className="text-heading">{deleting.nombre}</strong>?
               </p>
               {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
               <div className="flex gap-3">
                 <button onClick={() => setDeleting(null)} className="flex-1 py-2.5 rounded-lg text-sm font-medium border text-heading transition-colors"
-                  style={{ borderColor: "var(--border-default)" }}>Cancelar</button>
+                  style={{ borderColor: "var(--border-default)" }}>{isEn ? "Cancel" : "Cancelar"}</button>
                 <button onClick={handleDelete} disabled={saving}
                   className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg py-2.5 text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50">
-                  {saving && <Loader2 size={15} className="animate-spin" />} Eliminar
+                  {saving && <Loader2 size={15} className="animate-spin" />} {isEn ? "Delete" : "Eliminar"}
                 </button>
               </div>
             </motion.div>

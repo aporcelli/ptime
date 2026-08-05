@@ -5,6 +5,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.63.1] — 2026-08-05
+
+### Corregido
+- **Traducción de Encabezados y Modales en Proyectos, Tareas y Clientes**:
+  - Traducción bilingüe completa para los encabezados de columnas ordenables en las tablas de Proyectos (`Nombre`, `Cliente`, `Presupuesto`, `$/h base`, `$/h alto`, `Estado`) y Tareas (`Nombre`, `Categoría`, `Horas acum.`, `Estado`).
+  - Traducción bilingüe de todos los formularios modales de creación, edición y eliminación en Proyectos, Tareas y Clientes.
+
 ## [1.2.63] — 2026-08-05
 
 ### Mejorado

@@ -113,12 +113,14 @@ export default function ProyectosAdmin({ proyectos, clientes }: Props) {
     router.refresh();
   }
 
+  const isEn = locale === "en";
+
   return (
     <div className="flex flex-col gap-6 animate-fade-in">
       <div className="flex items-start justify-between">
         <div>
           <h1 className="font-display text-3xl font-extrabold text-on-surface tracking-tight">{t.menuProyectos}</h1>
-          <p className="text-on-surface-variant mt-1">{proyectos.length} {locale === "en" ? "registered projects" : "proyectos registrados"}</p>
+          <p className="text-on-surface-variant mt-1">{proyectos.length} {isEn ? "registered projects" : "proyectos registrados"}</p>
         </div>
         <button onClick={openCreate} className="flex items-center gap-2 bg-primary-fixed hover:bg-secondary text-white font-semibold px-4 py-2.5 rounded-lg text-sm transition-colors">
           <Plus size={16} /> {t.newProject}
@@ -129,25 +131,28 @@ export default function ProyectosAdmin({ proyectos, clientes }: Props) {
         {proyectos.length === 0 ? (
           <div className="p-12 text-center">
             <FolderKanban size={32} className="text-on-surface-variant mx-auto mb-3" />
-            <p className="text-on-surface-variant text-sm">{locale === "en" ? "No projects yet." : "No hay proyectos aún."}</p>
-            <button onClick={openCreate} className="text-primary-fixed text-sm font-medium mt-2 hover:underline">{locale === "en" ? "Create the first one →" : "Crear el primero →"}</button>
+            <p className="text-on-surface-variant text-sm">{isEn ? "No projects yet." : "No hay proyectos aún."}</p>
+            <button onClick={openCreate} className="text-primary-fixed text-sm font-medium mt-2 hover:underline">{isEn ? "Create the first one →" : "Crear el primero →"}</button>
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-surface-high">
-                <SortHeader col="nombre" label="Nombre" />
-                <SortHeader col="cliente" label="Cliente" />
-                <SortHeader col="presupuesto_horas" label="Presupuesto" />
-                <SortHeader col="precio_base" label="$/h base" />
-                <SortHeader col="precio_alto" label="$/h alto" />
-                <SortHeader col="estado" label="Estado" />
+                <SortHeader col="nombre" label={isEn ? "Name" : "Nombre"} />
+                <SortHeader col="cliente" label={isEn ? "Client" : "Cliente"} />
+                <SortHeader col="presupuesto_horas" label={isEn ? "Budget" : "Presupuesto"} />
+                <SortHeader col="precio_base" label={isEn ? "Base $/h" : "$/h base"} />
+                <SortHeader col="precio_alto" label={isEn ? "High $/h" : "$/h alto"} />
+                <SortHeader col="estado" label={isEn ? "Status" : "Estado"} />
                 <th className="p-3 text-xs font-semibold uppercase tracking-wide text-left text-on-surface-variant" />
               </tr>
             </thead>
             <tbody>
               {sorted.map((p, i) => {
                 const cliente = clientes.find((c) => c.id === p.cliente_id);
+                const statusLabel = isEn
+                  ? (p.estado === "activo" ? "Active" : p.estado === "pausado" ? "Paused" : "Closed")
+                  : p.estado;
                 return (
                   <tr key={p.id} className={`transition-colors hover:bg-surface-low ${i % 2 === 0 ? "bg-surface-lowest" : "bg-surface-low"}`}>
                     <td className="p-3 font-medium text-on-surface">{p.nombre}</td>
@@ -159,18 +164,18 @@ export default function ProyectosAdmin({ proyectos, clientes }: Props) {
                           presupuestoHoras={p.presupuesto_horas}
                         />
                       ) : (
-                        <span className="font-mono text-on-surface-variant text-xs">{p.horas_acumuladas}h acum.</span>
+                        <span className="font-mono text-on-surface-variant text-xs">{p.horas_acumuladas}h {isEn ? "accum." : "acum."}</span>
                       )}
                     </td>
                     <td className="p-3 font-mono text-on-surface-variant">${p.precio_base}</td>
                     <td className="p-3 font-mono text-on-surface-variant">${p.precio_alto}</td>
-                    <td className="p-3"><span className={ESTADO_BADGE[p.estado] ?? "badge badge-slate"}>{p.estado}</span></td>
+                    <td className="p-3"><span className={ESTADO_BADGE[p.estado] ?? "badge badge-slate"}>{statusLabel}</span></td>
                     <td className="p-3 text-right">
                       <div className="flex items-center gap-1 justify-end">
-                        <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg text-on-surface-variant hover:text-primary-fixed transition-colors" title="Editar">
+                        <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg text-on-surface-variant hover:text-primary-fixed transition-colors" title={isEn ? "Edit" : "Editar"}>
                           <Pencil size={14} />
                         </button>
-                        <button onClick={() => setDeleting(p)} className="p-1.5 rounded-lg text-on-surface-variant hover:text-red-500 transition-colors" title="Eliminar">
+                        <button onClick={() => setDeleting(p)} className="p-1.5 rounded-lg text-on-surface-variant hover:text-red-500 transition-colors" title={isEn ? "Delete" : "Eliminar"}>
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -191,39 +196,39 @@ export default function ProyectosAdmin({ proyectos, clientes }: Props) {
             <motion.div initial={{ scale: 0.95, y: 10 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95 }}
               className="modal-panel max-w-md">
               <div className="flex items-center justify-between mb-5">
-                <h2 className="font-semibold text-lg text-heading">{editing ? "Editar proyecto" : "Nuevo proyecto"}</h2>
+                <h2 className="font-semibold text-lg text-heading">{editing ? (isEn ? "Edit project" : "Editar proyecto") : (isEn ? "New project" : "Nuevo proyecto")}</h2>
                 <button onClick={() => setOpen(false)} className="text-sub hover:text-heading"><X size={18} /></button>
               </div>
 
               <div className="flex flex-col gap-4">
-                <Field label="Nombre del proyecto *">
-                  <input className="input-field" value={form.nombre} onChange={(e) => set("nombre", e.target.value)} placeholder="Ej: Rediseño web 2026" />
+                <Field label={isEn ? "Project Name *" : "Nombre del proyecto *"}>
+                  <input className="input-field" value={form.nombre} onChange={(e) => set("nombre", e.target.value)} placeholder={isEn ? "e.g. Web Redesign 2026" : "Ej: Rediseño web 2026"} />
                 </Field>
-                <Field label="Cliente">
+                <Field label={isEn ? "Client" : "Cliente"}>
                   <select className="input-field" value={form.cliente_id} onChange={(e) => set("cliente_id", e.target.value)}>
-                    <option value="">Sin cliente asignado</option>
+                    <option value="">{isEn ? "No client assigned" : "Sin cliente asignado"}</option>
                     {clientes.filter((c) => c.activo).map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
                   </select>
                 </Field>
                 <div className="grid grid-cols-3 gap-3">
-                  <Field label="$/h base">
+                  <Field label={isEn ? "Base $/h" : "$/h base"}>
                     <input type="number" className="input-field" value={form.precio_base} onChange={(e) => set("precio_base", e.target.value)} />
                   </Field>
-                  <Field label="$/h alto">
+                  <Field label={isEn ? "High $/h" : "$/h alto"}>
                     <input type="number" className="input-field" value={form.precio_alto} onChange={(e) => set("precio_alto", e.target.value)} />
                   </Field>
-                  <Field label="Umbral (h)">
+                  <Field label={isEn ? "Threshold (h)" : "Umbral (h)"}>
                     <input type="number" className="input-field" value={form.umbral_precio_alto} onChange={(e) => set("umbral_precio_alto", e.target.value)} />
                   </Field>
                 </div>
-                <Field label="Presupuesto de horas (opcional)">
+                <Field label={isEn ? "Hours Budget (optional)" : "Presupuesto de horas (opcional)"}>
                   <input type="number" className="input-field" value={form.presupuesto_horas} onChange={(e) => set("presupuesto_horas", e.target.value)} placeholder="Ej: 100" />
                 </Field>
-                <Field label="Estado">
+                <Field label={isEn ? "Status" : "Estado"}>
                   <select className="input-field" value={form.estado} onChange={(e) => set("estado", e.target.value)}>
-                    <option value="activo">Activo</option>
-                    <option value="pausado">Pausado</option>
-                    <option value="cerrado">Cerrado</option>
+                    <option value="activo">{isEn ? "Active" : "Activo"}</option>
+                    <option value="pausado">{isEn ? "Paused" : "Pausado"}</option>
+                    <option value="cerrado">{isEn ? "Closed" : "Cerrado"}</option>
                   </select>
                 </Field>
 
@@ -233,7 +238,7 @@ export default function ProyectosAdmin({ proyectos, clientes }: Props) {
                   className="w-full bg-primary-fixed hover:bg-secondary disabled:opacity-50 text-white font-semibold rounded-lg py-2.5 text-sm flex items-center justify-center gap-2 transition-colors mt-1">
                   {saving && <Loader2 size={15} className="animate-spin" />}
                   {ok && <CheckCircle size={15} />}
-                  {ok ? "¡Guardado!" : saving ? "Guardando…" : editing ? "Guardar cambios" : "Crear proyecto"}
+                  {ok ? (isEn ? "Saved!" : "¡Guardado!") : saving ? (isEn ? "Saving…" : "Guardando…") : editing ? (isEn ? "Save changes" : "Guardar cambios") : (isEn ? "Create project" : "Crear proyecto")}
                 </button>
               </div>
             </motion.div>
@@ -253,20 +258,20 @@ export default function ProyectosAdmin({ proyectos, clientes }: Props) {
                   <AlertTriangle size={20} className="text-red-500" />
                 </div>
                 <div>
-                  <h2 className="font-semibold text-heading">Eliminar proyecto</h2>
-                  <p className="text-sm text-sub">Esta acción no se puede deshacer</p>
+                  <h2 className="font-semibold text-heading">{isEn ? "Delete project" : "Eliminar proyecto"}</h2>
+                  <p className="text-sm text-sub">{isEn ? "This action cannot be undone" : "Esta acción no se puede deshacer"}</p>
                 </div>
               </div>
               <p className="text-sm text-sub mb-5">
-                ¿Eliminar <strong className="text-heading">{deleting.nombre}</strong>?
+                {isEn ? "Delete " : "¿Eliminar "}<strong className="text-heading">{deleting.nombre}</strong>?
               </p>
               {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
               <div className="flex gap-3">
                 <button onClick={() => setDeleting(null)} className="flex-1 py-2.5 rounded-lg text-sm font-medium border text-heading transition-colors"
-                  style={{ borderColor: "var(--border-default)" }}>Cancelar</button>
+                  style={{ borderColor: "var(--border-default)" }}>{isEn ? "Cancel" : "Cancelar"}</button>
                 <button onClick={handleDelete} disabled={saving}
                   className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg py-2.5 text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50">
-                  {saving && <Loader2 size={15} className="animate-spin" />} Eliminar
+                  {saving && <Loader2 size={15} className="animate-spin" />} {isEn ? "Delete" : "Eliminar"}
                 </button>
               </div>
             </motion.div>
