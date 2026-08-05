@@ -32,6 +32,8 @@ declare module "@auth/core/jwt" {
 async function refreshGoogleToken(refreshToken: string): Promise<{
   access_token: string;
   expires_in: number;
+  refresh_token?: string;
+  is_invalid_grant?: boolean;
 } | null> {
   try {
     const res = await fetch("https://oauth2.googleapis.com/token", {
@@ -48,12 +50,17 @@ async function refreshGoogleToken(refreshToken: string): Promise<{
     const data = await res.json();
     if (!res.ok) {
       console.error("[auth] Token refresh failed:", data);
-      return null;
+      const isInvalidGrant = data?.error === "invalid_grant" || data?.error_description?.includes("revoked");
+      return { access_token: "", expires_in: 0, is_invalid_grant: isInvalidGrant };
     }
-    return { access_token: data.access_token, expires_in: data.expires_in };
+    return {
+      access_token: data.access_token,
+      expires_in: data.expires_in,
+      refresh_token: data.refresh_token,
+    };
   } catch (err) {
-    console.error("[auth] Token refresh error:", err);
-    return null;
+    console.error("[auth] Token refresh network error:", err);
+    return null; // Error de red/servidor (temporal): NO marcar como invalid_grant
   }
 }
 
@@ -123,7 +130,7 @@ async function registerUserInSheet(
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: process.env.AUTH_TRUST_HOST === "true" || process.env.VERCEL === "1",
   secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
-  session: { strategy: "jwt", maxAge: 7 * 24 * 60 * 60 },
+  session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 }, // 30 días de persistencia continua (estilo Gmail)
   pages:   { signIn: "/login", error: "/login" },
 
   providers: [
@@ -137,7 +144,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             process.env.NEXT_PUBLIC_OAUTH_SCOPE || "https://www.googleapis.com/auth/spreadsheets",
           ].join(" "),
           access_type: "offline",
-          prompt:      "select_account",
+          prompt:      "consent",
         },
       },
     }),
@@ -149,53 +156,47 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (account && user) {
         token.accessToken          = account.access_token;
         if (account.refresh_token) {
-              token.refreshToken = account.refresh_token;
-            }
+          token.refreshToken = account.refresh_token;
+        }
         token.name                 = user.name ?? token.name;
         token.email                = user.email ?? token.email;
         token.picture              = (user as { image?: string | null }).image ?? token.picture;
         if (!token.picture) {
           token.picture = await fetchGoogleProfilePicture(token.accessToken as string | undefined) ?? token.picture;
         }
-        // Google devuelve expires_in en segundos — convertimos a timestamp absoluto
         token.accessTokenExpiresAt = account.expires_at ??
           Math.floor(Date.now() / 1000) + (account.expires_in as number ?? 3600);
 
         const adminEmails = (process.env.ADMIN_EMAILS ?? process.env.ADMIN_EMAIL ?? "")
           .split(",").map((e) => e.trim().toLowerCase());
         token.role  = adminEmails.includes((user.email ?? "").toLowerCase()) ? "ADMIN" : "USER";
-            token.error = undefined;
+        token.error = undefined;
 
-            // ── LOGIN AUDIT LOG ──
-            let userAgent = "Desconocido";
-            let ip = "127.0.0.1";
-            let location = "Local/Desconocido";
-            try {
-              const reqHeaders = headers();
-              userAgent = reqHeaders.get("user-agent") || "Desconocido";
-              ip = reqHeaders.get("x-real-ip") || reqHeaders.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
-              const country = reqHeaders.get("x-vercel-ip-country") || "";
-              const region = reqHeaders.get("x-vercel-ip-country-region") || "";
-              const city = reqHeaders.get("x-vercel-ip-city") || "";
-              location = [city, region, country].filter(Boolean).join(", ") || "Local/Desconocido";
-            } catch (err) {
-              console.error("[audit] Try-catch header error:", err);
-            }
+        // ── LOGIN AUDIT LOG ──
+        let userAgent = "Desconocido";
+        let ip = "127.0.0.1";
+        let location = "Local/Desconocido";
+        try {
+          const reqHeaders = headers();
+          userAgent = reqHeaders.get("user-agent") || "Desconocido";
+          ip = reqHeaders.get("x-real-ip") || reqHeaders.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
+          const country = reqHeaders.get("x-vercel-ip-country") || "";
+          const region = reqHeaders.get("x-vercel-ip-country-region") || "";
+          const city = reqHeaders.get("x-vercel-ip-city") || "";
+          location = [city, region, country].filter(Boolean).join(", ") || "Local/Desconocido";
+        } catch (err) {
+          console.error("[audit] Try-catch header error:", err);
+        }
 
-            // Append row to master Audit_Log sheet (asynchronous, non-blocking)
-            appendAuditLogEdge(
-              user.email ?? "",
-              user.name ?? "",
-              userAgent,
-              ip,
-              location
-            ).catch((err) => console.error("[audit] Failed to write login log:", err));
+        appendAuditLogEdge(
+          user.email ?? "",
+          user.name ?? "",
+          userAgent,
+          ip,
+          location
+        ).catch((err) => console.error("[audit] Failed to write login log:", err));
 
-        // 🔑 PERSISTENCIA CROSS-DEVICE: buscar el sheetId del usuario en el MASTER_SHEET
-        // así no necesita volver a poner el link en otra sesión / navegador.
-        // Usamos la versión Edge-compatible (sin googleapis pesado).
         if (user.email) {
-          // Admin: usar MASTER_SHEET_ID directamente
           if (token.role === "ADMIN") {
             const masterId = process.env.MASTER_SHEET_ID?.replace(/"/g, "");
             if (masterId) token.sheetId = masterId;
@@ -230,13 +231,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return token;
       }
 
-      // 3️⃣ Token vencido — intentar refresh con retry (post-sleep resilience)
+      // 3️⃣ Token vencido — intentar refresh con retry (resiliencia ante micro-cortes de red)
       if (!token.refreshToken) {
-        console.error("[auth] No refresh token available");
+        console.error("[auth] No refresh token available in JWT token");
         return { ...token, error: "RefreshTokenError" as const };
       }
 
-      // Retry up to 3 times with 2s delay (handles post-sleep network recovery)
       let refreshed = null;
       for (let attempt = 0; attempt < 3; attempt++) {
         refreshed = await refreshGoogleToken(token.refreshToken);
@@ -244,7 +244,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (attempt < 2) await new Promise(r => setTimeout(r, 2000));
       }
 
+      // Fallo de red/servidor (refreshed === null): NO envenenar el token con error
       if (!refreshed) {
+        console.warn("[auth] Transient network error during refreshGoogleToken; retaining current token");
+        return token;
+      }
+
+      // Fallo definitivo de revogación por Google (invalid_grant)
+      if (refreshed.is_invalid_grant) {
+        console.error("[auth] Google refresh token is invalid or revoked (invalid_grant)");
         return { ...token, error: "RefreshTokenError" as const };
       }
 
@@ -252,9 +260,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return {
         ...token,
         accessToken:          refreshed.access_token,
+        refreshToken:         refreshed.refresh_token ?? token.refreshToken,
         accessTokenExpiresAt: Math.floor(Date.now() / 1000) + refreshed.expires_in,
         picture:              refreshedPicture,
-        error:                undefined,
+        error:                undefined, // Limpia errores si se renovó exitosamente
       };
     },
 
@@ -266,10 +275,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.user.accessToken = token.accessToken as string | undefined;
       session.user.sheetId     = token.sheetId as string | undefined;
 
-      // Calcular rol de forma dinámica:
-      // Si el email está en ADMIN_EMAIL, es ADMIN global.
-      // Si la planilla conectada es la del Master Sheet, los no-administradores son USER (colaboradores).
-      // Si la planilla es cualquier otra (el usuario conectó la suya), es el dueño y es ADMIN.
       const adminEmails = (process.env.ADMIN_EMAILS ?? process.env.ADMIN_EMAIL ?? "")
         .split(",").map((e) => e.trim().toLowerCase());
       const globalMasterId = process.env.MASTER_SHEET_ID?.replace(/"/g, "");
@@ -279,25 +284,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.role = "ADMIN";
       } else {
         const currentSheetId = session.user.sheetId || "";
-            try {
-              const cookieStore = cookies();
-              if (cookieStore.get("ptime-is-shared-workspace")?.value === "true") {
-                session.user.role = "USER";
-              } else if (currentSheetId && currentSheetId === globalMasterId) {
-                session.user.role = "USER";
-              } else {
-                session.user.role = "ADMIN";
-              }
-            } catch {
-              if (currentSheetId && currentSheetId === globalMasterId) {
-                session.user.role = "USER";
-              } else {
-                session.user.role = "ADMIN";
-              }
-            }
+        try {
+          const cookieStore = cookies();
+          if (cookieStore.get("ptime-is-shared-workspace")?.value === "true") {
+            session.user.role = "USER";
+          } else if (currentSheetId && currentSheetId === globalMasterId) {
+            session.user.role = "USER";
+          } else {
+            session.user.role = "ADMIN";
+          }
+        } catch {
+          if (currentSheetId && currentSheetId === globalMasterId) {
+            session.user.role = "USER";
+          } else {
+            session.user.role = "ADMIN";
+          }
+        }
       }
 
-      // Propagar el error para que el cliente pueda re-login si es necesario
       if (token.error) session.error = token.error;
       return session;
     },
@@ -305,7 +309,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
   cookies: {
     sessionToken: {
-      options: { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 7 * 24 * 60 * 60 },
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        secure:   process.env.NODE_ENV === "production",
+        path:     "/",
+        maxAge:   30 * 24 * 60 * 60, // Cookie de 30 días estilo Google/Gmail
+      },
     },
   },
 });

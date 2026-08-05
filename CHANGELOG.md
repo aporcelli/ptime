@@ -5,6 +5,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.63.2] — 2026-08-05
+
+### Corregido
+- **Resiliencia de Sesión OAuth Google y Persistencia Continua (Estilo Gmail)**:
+  - Extendida la duración máxima de sesión JWT y cookie a 30 días (`maxAge: 30d`).
+  - Corregido fallo que envenenaba el token con `RefreshTokenError` ante cortes micro-temporales de red o timeouts. Ahora solo se fuerza el re-login si Google devuelve explícitamente `invalid_grant` (token revocado).
+  - Captura y persistencia de rotación de refresh tokens y parámetro `prompt: "consent"` para asegurar la entrega de `refresh_token` offline de Google.
+
 ## [1.2.63.1] — 2026-08-05
 
 ### Corregido
