@@ -6,9 +6,15 @@ import { Plus } from "lucide-react";
 import { HorasClientList } from "./HorasClientList";
 import { Button } from "@/components/ui/button";
 
+import { getLocale } from "@/lib/locale";
+import { dashboardTranslations } from "@/lib/dashboard-i18n";
+
 export const metadata: Metadata = { title: "Mis Horas" };
 
 export default async function HorasPage() {
+  const locale = getLocale();
+  const t = dashboardTranslations[locale];
+
   try {
     const ctx = await getPageCtx();
 
@@ -43,15 +49,15 @@ export default async function HorasPage() {
         <div className="flex flex-col gap-4 justify-between md:flex-row md:items-center">
           <div>
             <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">
-              Mis registros de horas
+              {t.myHoursTitle}
             </h1>
             <p className="mt-1 text-muted-foreground">
-              Gestioná y visualizá tu tiempo trabajado
+              {t.myHoursSubtitle}
             </p>
           </div>
           <Button asChild className="w-full shadow-md transition-all active:scale-95 md:w-auto">
             <Link href="/horas/nuevo">
-              <Plus className="mr-2 h-4 w-4" /> Cargar horas
+              <Plus className="mr-2 h-4 w-4" /> {t.formTitleNew}
             </Link>
           </Button>
         </div>

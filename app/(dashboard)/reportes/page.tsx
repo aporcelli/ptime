@@ -15,6 +15,9 @@ import type { HoraEstado } from "@/types/entities";
 import { DataPanel, MetricCard, PageShell, SectionCard } from "@/components/ui/structure";
 import { repriceMonthlyRecords } from "@/lib/hours/monthly";
 
+import { getLocale } from "@/lib/locale";
+import { dashboardTranslations } from "@/lib/dashboard-i18n";
+
 export const metadata: Metadata = { title: "Reportes" };
 
 export default async function ReportesPage({
@@ -22,6 +25,8 @@ export default async function ReportesPage({
 }: {
   searchParams: { [key: string]: string | undefined };
 }) {
+  const locale = getLocale();
+  const t = dashboardTranslations[locale];
   const ctx = await getPageCtx();
   const defaultFechaDesde = format(startOfMonth(new Date()), "yyyy-MM-dd");
   const defaultFechaHasta = format(new Date(), "yyyy-MM-dd");
@@ -79,7 +84,7 @@ export default async function ReportesPage({
     const horasFact = r.horas_a_cobrar ?? r.horas;
     if (!acc[r.tarea_id]) {
       const t = tareasMap.get(r.tarea_id);
-      acc[r.tarea_id] = { nombre: t?.nombre ?? "Sin tarea", horas: 0 };
+      acc[r.tarea_id] = { nombre: t?.nombre ?? (locale === "en" ? "No task" : "Sin tarea"), horas: 0 };
     }
     acc[r.tarea_id].horas += horasFact;
     return acc;
@@ -89,7 +94,7 @@ export default async function ReportesPage({
   const porClienteMap = registrosRepriced.reduce<Record<string, { nombre: string; horas: number; ingresos: number }>>((acc, r) => {
     const proyecto = proyectosMap.get(r.proyecto_id);
     const clienteId = r.cliente_id ?? proyecto?.cliente_id ?? "__sin_cliente__";
-    const nombre = clientesMap.get(clienteId)?.nombre ?? "Sin cliente";
+    const nombre = clientesMap.get(clienteId)?.nombre ?? (locale === "en" ? "No client" : "Sin cliente");
     const horasFact = r.horas_a_cobrar ?? r.horas;
     if (!acc[clienteId]) acc[clienteId] = { nombre, horas: 0, ingresos: 0 };
     acc[clienteId].horas += horasFact;
@@ -173,7 +178,7 @@ export default async function ReportesPage({
     });
 
   return (
-    <PageShell title="Reportes" description={`${formatPeriodLabel(fechaDesde, fechaHasta)} · ${registrosRepriced.length} registros`}>
+    <PageShell title={t.reportsTitle} description={`${formatPeriodLabel(fechaDesde, fechaHasta)} · ${registrosRepriced.length} ${locale === "en" ? "records" : "registros"}`}>
 
       <ReportesFiltersClient
         clientes={clientes}
@@ -188,30 +193,30 @@ export default async function ReportesPage({
 
       {/* ── KPIs ── */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <MetricCard label="Total horas" value={formatHours(totalHoras)} icon={<Clock size={16} />} />
-        <MetricCard label="Total ingresos" value={formatCurrency(totalIngresos, config.moneda)} icon={<TrendingUp size={16} />} tone="success" />
-        <MetricCard label="Precio promedio/h" value={formatCurrency(totalHoras > 0 ? totalIngresos / totalHoras : 0, config.moneda)} icon={<BarChart3 size={16} />} tone="warning" />
+        <MetricCard label={t.totalWorked} value={formatHours(totalHoras)} icon={<Clock size={16} />} />
+        <MetricCard label={t.dbCardTotalIncome} value={formatCurrency(totalIngresos, config.moneda)} icon={<TrendingUp size={16} />} tone="success" />
+        <MetricCard label={locale === "en" ? "Avg Rate/h" : "Precio promedio/h"} value={formatCurrency(totalHoras > 0 ? totalIngresos / totalHoras : 0, config.moneda)} icon={<BarChart3 size={16} />} tone="warning" />
       </div>
 
       {/* ── Charts (ECharts, 4-panel) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <SectionCard title="Tendencia de ingresos" icon={<TrendingUp size={16} className="text-primary" />}>
+        <SectionCard title={t.incomeTrend} icon={<TrendingUp size={16} className="text-primary" />}>
           <IngresosLineChart data={mesesData} moneda={config.moneda} showHoras />
         </SectionCard>
 
-        <SectionCard title="Horas e ingresos por proyecto" icon={<BarChart3 size={16} className="text-primary" />}>
+        <SectionCard title={t.hoursByProject} icon={<BarChart3 size={16} className="text-primary" />}>
           <HorasPorProyecto data={proyectosData} moneda={config.moneda} />
         </SectionCard>
 
-        <SectionCard title="Distribución por tarea">
+        <SectionCard title={t.hoursByTask}>
           <TareasPieChart data={tareasData} />
         </SectionCard>
 
-        <SectionCard title="Actividad diaria · ritmo y tendencia">
+        <SectionCard title={locale === "en" ? "Daily activity · rhythm and trend" : "Actividad diaria · ritmo y tendencia"}>
           <ActividadHeatmap data={actividadDiariaData} />
         </SectionCard>
 
-        <SectionCard title="Ingresos por cliente" icon={<TrendingUp size={16} className="text-primary" />} className="lg:col-span-2">
+        <SectionCard title={t.hoursByClient} icon={<TrendingUp size={16} className="text-primary" />} className="lg:col-span-2">
           <IngresosPorCliente data={clientesData} moneda={config.moneda} />
         </SectionCard>
       </div>

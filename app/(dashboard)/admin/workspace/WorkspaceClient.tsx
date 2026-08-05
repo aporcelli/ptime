@@ -5,6 +5,8 @@ import { inviteMemberAction, updateMemberRolAction, removeMemberAction } from "@
 import type { WorkspaceMember, WorkspaceMemberRol } from "@/types/entities";
 import { formatDateShort } from "@/lib/utils/index";
 
+import { useLocale } from "@/components/providers/LocaleProvider";
+
 const ROL_CONFIG: Record<WorkspaceMemberRol, { label: string; desc: string; color: string; icon: React.ReactNode }> = {
   OWNER:       { label: "Owner",        desc: "Control total",            color: "text-primary-fixed bg-primary-fixed/10",   icon: <Shield size={12} /> },
   COLABORADOR: { label: "Colaborador",  desc: "Carga y edita horas",      color: "text-green-600 bg-green-100",              icon: <Users size={12} /> },
@@ -18,6 +20,7 @@ interface Props {
 }
 
 export default function WorkspaceClient({ members: initMembers, currentUserEmail, isAdmin }: Props) {
+  const { t, locale } = useLocale();
   const [members, setMembers]   = useState(initMembers);
   const [email, setEmail]       = useState("");
   const [rol, setRol]           = useState<WorkspaceMemberRol>("COLABORADOR");

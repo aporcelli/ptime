@@ -5,6 +5,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.62.1] — 2026-08-05
+
+### Corregido
+- **Internacionalización Global Completa (i18n)**:
+  - Eliminado override duplicado de `accept-language` en `dashboard/page.tsx` que forzaba el idioma del Dashboard a la configuración del navegador e ignoraba la cookie de preferencia `ptime-locale`.
+  - Conectadas todas las vistas de administración (`ClientesAdmin`, `ProyectosAdmin`, `TareasAdmin`, `UsuariosAdmin`, `WorkspaceClient`, `ConfiguracionPage`, `ConfigForm`), la lista de horas (`HorasPage`) y reportes (`ReportesPage`) al sistema global de `useLocale()` / `getLocale()`.
+
 ## [1.2.62] — 2026-08-04
 
 ### Mejorado

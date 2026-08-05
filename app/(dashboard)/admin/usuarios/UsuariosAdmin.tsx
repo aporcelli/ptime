@@ -7,8 +7,11 @@ import { setUserRole, setUserActivo, deleteUserAction } from "@/app/actions/user
 import type { PtimeUser } from "@/app/actions/users";
 import { formatDateShort } from "@/lib/utils/index";
 
+import { useLocale } from "@/components/providers/LocaleProvider";
+
 export default function UsuariosAdmin({ users, currentEmail }: { users: PtimeUser[]; currentEmail: string }) {
   const router = useRouter();
+  const { t, locale } = useLocale();
   const [loading, setLoading] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<PtimeUser | null>(null);
   const [saving, setSaving] = useState(false);
@@ -41,15 +44,16 @@ export default function UsuariosAdmin({ users, currentEmail }: { users: PtimeUse
   return (
     <div className="flex flex-col gap-6 animate-fade-in">
       <div>
-        <h1 className="font-display text-3xl text-heading">Usuarios</h1>
-        <p className="text-sub mt-1">{users.length} usuarios registrados</p>
+        <h1 className="font-display text-3xl text-heading">{t.menuUsuarios}</h1>
+        <p className="text-sub mt-1">{users.length} {locale === "en" ? "registered users" : "usuarios registrados"}</p>
       </div>
 
       <div className="alert-amber">
-        <strong className="text-heading">¿Cómo funciona?</strong>
+        <strong className="text-heading">{locale === "en" ? "How it works" : "¿Cómo funciona?"}</strong>
         <span className="text-sub text-sm ml-1">
-          Cada usuario que ingresa a Ptime con Google conecta su propio Google Sheet.
-          Como admin podés cambiar roles o suspender acceso.
+          {locale === "en"
+            ? "Each user connecting with Google links their own Google Sheet. As admin you can manage roles or suspend access."
+            : "Cada usuario que ingresa a Ptime con Google conecta su propio Google Sheet. Como admin podés cambiar roles o suspender acceso."}
         </span>
       </div>
 
