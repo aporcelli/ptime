@@ -35,6 +35,7 @@ export function ReportesFiltersClient({
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const { t, locale } = useLocale();
+  const isEn = locale === "en";
 
   // Filtros
   const [desde,      setDesde]      = useState(initDesde);
@@ -49,10 +50,13 @@ export function ReportesFiltersClient({
   const [mesSeleccionado, setMesSeleccionado] = useState(currentMonthValue);
 
   // Panel PDF
-  const [pdfOpen,    setPdfOpen]    = useState(false);
-  const [titulo,     setTitulo]     = useState("Reporte de Horas Mensuales");
-  const [clienteId,  setClienteId]  = useState("");
-  const [incluirDet, setIncluirDet] = useState(true);
+  const [pdfOpen,       setPdfOpen]       = useState(false);
+  const [customTitulo,  setCustomTitulo]  = useState<string | null>(null);
+  const [clienteId,     setClienteId]     = useState("");
+  const [incluirDet,    setIncluirDet]    = useState(true);
+
+  const defaultTitulo = isEn ? "Monthly Hours Report" : "Reporte de Horas Mensuales";
+  const titulo = customTitulo ?? defaultTitulo;
 
   const clienteSeleccionado = clientes.find(c => c.id === clienteId);
 
@@ -76,8 +80,6 @@ export function ReportesFiltersClient({
 
   function getYearRange(y: number) { return { strDesde: `${y}-01-01`, strHasta: `${y}-12-31` }; }
   const thisYear = getYearRange(new Date().getFullYear());
-
-      const isEn = locale === "en";
 
   const activeFilters = [
     desde && { key: "desde", label: `${isEn ? "From" : "Desde"}: ${desde}` },
@@ -395,7 +397,7 @@ export function ReportesFiltersClient({
                     id="reporte-titulo"
                     type="text"
                     value={titulo}
-                    onChange={e => setTitulo(e.target.value)}
+                    onChange={e => setCustomTitulo(e.target.value)}
                     placeholder={isEn ? "e.g., Monthly Hours Report" : "Ej: Reporte de Horas Mensuales"}
                     className="h-8 px-3 rounded-lg bg-surface-low text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary-fixed/30 focus:bg-surface-lowest transition-colors"
                   />
