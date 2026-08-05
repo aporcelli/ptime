@@ -28,22 +28,12 @@ interface SidebarProps {
   onNavClick?: () => void;
 }
 
+import { useLocale } from "@/components/providers/LocaleProvider";
+
 export default function Sidebar({ role, onNavClick }: SidebarProps) {
   const pathname = usePathname();
   const isAdmin  = role === "ADMIN";
-  const [locale, setLocale] = useState<Locale>("en");
-
-  useEffect(() => {
-    const checkLocale = () => {
-      const saved = localStorage.getItem("ptime-locale") as Locale | null;
-      if (saved === "en" || saved === "es") setLocale(saved);
-    };
-    checkLocale();
-    const interval = setInterval(checkLocale, 500);
-    return () => clearInterval(interval);
-  }, []);
-
-  const t = dashboardTranslations[locale];
+  const { t }    = useLocale();
 
   const getLabel = (href: string) => {
     switch (href) {
@@ -108,7 +98,7 @@ export default function Sidebar({ role, onNavClick }: SidebarProps) {
             />
           </div>
         </a>
-        <p className="text-muted-foreground opacity-50 text-[10px] text-center">Ptime v1.2.61</p>
+        <p className="text-muted-foreground opacity-50 text-[10px] text-center">Ptime v1.2.62</p>
       </div>
     </aside>
   );

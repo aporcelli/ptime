@@ -13,6 +13,6 @@ describe("ActionResult JSON safety", () => {
     const err = actionError(new Error("Sheets failed"));
 
     expect(ok).toEqual({ success: true, data: { at: "2026-04-27T12:00:00.000Z" } });
-    expect(err).toEqual({ success: false, error: "Sheets failed" });
+    expect(err).toEqual({ success: false, error: "Sheets failed", debug: { name: "Error", message: "Sheets failed" } });
   });
 });

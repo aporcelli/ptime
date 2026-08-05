@@ -5,6 +5,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.62] — 2026-08-04
+
+### Mejorado
+- **Detalle de Monto Estimado en Carga de Horas (`HorasForm.tsx`)**:
+  - Se actualizaron las horas acumuladas mostradas en el banner inferior de Monto Estimado para reflejar las **horas acumuladas del mes actual del usuario** (`horasAcumuladasMes`), en lugar del total histórico del proyecto.
+  - Se agregó una etiqueta dinámica que muestra explícitamente el tramo tarifario aplicado: **Precio Base** (`$X/h`) cuando las horas del mes están por debajo del umbral, o **Precio Alto** (`$Y/h`) cuando se ha superado el umbral.
+- **Internacionalización Global Reactiva (i18n)**:
+  - Implementado `LocaleProvider` y `LocaleContext` con eventos reactivos personalizados (`ptime-locale-change`) para sincronizar el idioma de forma instantánea en todo el sitio (Dashboard, Mis Horas, Formulario de Carga, Reportes y Administración) al alternar con el selector `EN | ES` del Topbar.
+  - Ampliado el diccionario `dashboardTranslations` en `lib/dashboard-i18n.ts` con traducciones bilingües para todos los componentes e interfaces.
+
 ## [1.2.61] — 2026-07-10
 
 ### Corregido

@@ -55,5 +55,5 @@ export function StatusPill({ children, tone = "neutral" }: { children: ReactNode
     warning: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
     danger: "bg-red-500/10 text-red-700 dark:text-red-300",
   };
-  return <span className={cn("inline-flex min-h-7 items-center rounded-full px-3 text-xs font-semibold", tones[tone])}>{children}</span>;
+  return <span className={cn("inline-flex min-h-7 items-center rounded-full px-3 text-xs font-semibold transition-colors", tones[tone])}>{children}</span>;
 }
