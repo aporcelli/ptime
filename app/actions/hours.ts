@@ -222,10 +222,10 @@ export async function deleteHourAction(id: string): Promise<ActionResult> {
       }
     }
 
-    // revalidatePath("/horas");
-    // revalidatePath("/dashboard");
-    // revalidatePath("/reportes");
-    // revalidatePath(`/horas/${id}`);
+    revalidatePath("/horas");
+    revalidatePath("/dashboard");
+    revalidatePath("/reportes");
+    revalidatePath(`/horas/${id}`);
     return actionDone();
   } catch (e: unknown) {
     console.error("[deleteHourAction] Error:", e);

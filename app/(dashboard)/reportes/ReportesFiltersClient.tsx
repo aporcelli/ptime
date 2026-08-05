@@ -9,6 +9,8 @@ import type { ReportData } from "@/types/api";
 
 const ReporteTemplate = dynamic(() => import("@/components/pdf/ReporteTemplate"), { ssr: false });
 
+import { useLocale } from "@/components/providers/LocaleProvider";
+
 interface Props {
   clientes: Cliente[];
   proyectos: Proyecto[];
@@ -32,8 +34,7 @@ export function ReportesFiltersClient({
   const pathname   = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
-      const [loc, setLoc] = useState("es");
-      useEffect(() => { const s = localStorage.getItem("ptime-locale"); if (s === "en" || s === "es") setLoc(s); }, []);
+  const { t, locale } = useLocale();
 
   // Filtros
   const [desde,      setDesde]      = useState(initDesde);
@@ -80,7 +81,7 @@ export function ReportesFiltersClient({
     desde && { key: "desde", label: `Desde: ${desde}` },
     hasta && { key: "hasta", label: `Hasta: ${hasta}` },
     mesSeleccionado && { key: "mes", label: `Mes: ${mesSeleccionado}` },
-        (desde === thisYear.strDesde && hasta === thisYear.strHasta) && { key: "year", label: loc === "en" ? "This year" : "Este año" },
+        (desde === thisYear.strDesde && hasta === thisYear.strHasta) && { key: "year", label: t.thisYear },
     clienteIdFiltro && { key: "cliente", label: `Cliente: ${clientes.find(c => c.id === clienteIdFiltro)?.nombre ?? "—"}` },
     proyectoId && { key: "proyecto", label: `Proyecto: ${proyectos.find(p => p.id === proyectoId)?.nombre ?? "—"}` },
     estado && { key: "estado", label: `Estado: ${estadoLabel(estado)}` },
@@ -208,7 +209,7 @@ export function ReportesFiltersClient({
       {/* Filtros rápidos */}
       <div className="flex gap-2 items-center flex-wrap">
         <span className="text-sm font-medium text-on-surface-variant flex items-center gap-1">
-          <CalendarDays size={16}/> Filtros rápidos:
+          <CalendarDays size={16}/> {t.quickFilters}:
         </span>
         <motion.button
           type="button"
@@ -217,7 +218,7 @@ export function ReportesFiltersClient({
           aria-pressed={isQuickEsteMes}
           className={`text-xs px-3 py-1.5 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-fixed/40 ${isQuickEsteMes ? "bg-primary-fixed text-white border-primary-fixed" : "bg-surface-low hover:bg-surface-high text-on-surface border-outline-variant"}`}
         >
-          Este mes
+          {t.thisMonth}
         </motion.button>
         <motion.button
           type="button"
@@ -226,7 +227,7 @@ export function ReportesFiltersClient({
           aria-pressed={isQuickMesPasado}
           className={`text-xs px-3 py-1.5 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-fixed/40 ${isQuickMesPasado ? "bg-primary-fixed text-white border-primary-fixed" : "bg-surface-low hover:bg-surface-high text-on-surface border-outline-variant"}`}
         >
-          Mes pasado
+          {t.lastMonth}
         </motion.button>
         <motion.button
           type="button"
@@ -235,7 +236,7 @@ export function ReportesFiltersClient({
           aria-pressed={isQuickEsteAnio}
           className={`text-xs px-3 py-1.5 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-fixed/40 ${isQuickEsteAnio ? "bg-primary-fixed text-white border-primary-fixed" : "bg-surface-low hover:bg-surface-high text-on-surface border-outline-variant"}`}
         >
-          {loc === "en" ? "This year" : "Este año"}
+          {t.thisYear}
         </motion.button>
       </div>
 

@@ -13,23 +13,17 @@ interface Props {
   onMenuClick?: () => void;
 }
 
+import { useLocale } from "@/components/providers/LocaleProvider";
+
 export default function Topbar({ user, onMenuClick }: Props) {
   const { data: session } = useSession();
   const [sessionAvatarFromApi, setSessionAvatarFromApi] = useState<string | null>(null);
-  const [locale, setLocale] = useState<Locale>("en");
+  const { locale, setLocale } = useLocale();
   const router = useRouter();
-
-  useEffect(() => {
-    const saved = localStorage.getItem("ptime-locale") as Locale | null;
-    if (saved === "en" || saved === "es") setLocale(saved);
-  }, []);
 
   const toggleLanguage = () => {
     const next = locale === "en" ? "es" : "en";
     setLocale(next);
-    localStorage.setItem("ptime-locale", next);
-    localStorage.setItem("landing-locale", next);
-    document.cookie = `ptime-locale=${next}; path=/; max-age=${365 * 24 * 60 * 60}`;
     router.refresh();
   };
 

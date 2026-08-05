@@ -38,9 +38,12 @@ interface Props {
   sheetId?:             string;
 }
 
+import { useLocale } from "@/components/providers/LocaleProvider";
+
 export default function HorasForm({ clientes: initClientes, tareas: initTareas, proyectos: initProyectos, defaultConfig, horasAcumuladasMes, initialData, sheetId }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useLocale();
   const debugMode = searchParams.get("debug") === "1";
   const [status, setStatus]     = useState<"idle"|"loading"|"success"|"error">("idle");
   const [serverError, setServerError] = useState<string|null>(null);
@@ -294,11 +297,18 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
   }
 
   const selectedP = proyectos.find((p) => p.id === watchedProyectoId);
+  const umbral = selectedP?.umbral_precio_alto || defaultConfig.umbralHoras;
+  const pBase  = selectedP?.precio_base || defaultConfig.precioBase;
+  const pAlto  = selectedP?.precio_alto || defaultConfig.precioAlto;
+  const isHighTier = horasAcumuladasMes >= umbral;
+  const appliedRate = isHighTier ? pAlto : pBase;
+  const tierName = isHighTier ? t.highRate : t.baseRate;
+
   const buttonConfig = {
-    idle: { label: "Guardar registro", disabled: false },
-    loading: { label: "Guardando…", disabled: true },
-    success: { label: "¡Guardado!", disabled: true },
-    error: { label: "Reintentar", disabled: false },
+    idle: { label: t.saveRecord, disabled: false },
+    loading: { label: t.saving, disabled: true },
+    success: { label: t.saved, disabled: true },
+    error: { label: t.retry, disabled: false },
   } as const;
   const currentButton = buttonConfig[status];
 
@@ -306,11 +316,9 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
     <>
       <form onSubmit={handleSubmit(onSubmit)} className="bg-card text-card-foreground rounded-2xl border border-border p-6 md:p-8 flex flex-col gap-6" noValidate>
 
-
-
         {/* Cliente */}
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="cliente_id">Cliente</Label>
+          <Label htmlFor="cliente_id">{t.client}</Label>
           <Controller
             name="cliente_id"
             control={control}
@@ -319,9 +327,9 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
                 options={clientesOrdenados.map(c => ({ value: c.id, label: c.nombre }))}
                 value={field.value}
                 onValueChange={field.onChange}
-                placeholder="Seleccionar cliente..."
+                placeholder={t.selectClient}
                 onCreateNew={() => setModalCliente(true)}
-                createNewText="Crear nuevo cliente..."
+                createNewText={`${t.newClient}...`}
                 className={errors.cliente_id ? "border-red-400" : ""}
               />
             )}
@@ -331,7 +339,7 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
 
         {/* Proyecto */}
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="proyecto_id">Proyecto</Label>
+          <Label htmlFor="proyecto_id">{t.project}</Label>
           <Controller
             name="proyecto_id"
             control={control}
@@ -340,10 +348,10 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
                 options={proyectosFiltrados.map(p => ({ value: p.id, label: `${p.nombre} (${p.horas_acumuladas}h)` }))}
                 value={field.value}
                 onValueChange={field.onChange}
-                placeholder={watchedClienteId ? "Seleccionar proyecto..." : "Seleccioná un cliente primero"}
+                placeholder={watchedClienteId ? t.selectProject : t.selectClientFirst}
                 disabled={!watchedClienteId}
                 onCreateNew={() => setModalProyecto(true)}
-                createNewText="Crear nuevo proyecto..."
+                createNewText={`${t.newProject}...`}
                 emptyText={watchedClienteId && proyectosFiltrados.length === 0
                   ? "Este cliente no tiene proyectos aún. Creá uno nuevo."
                   : "No se encontraron resultados."
@@ -357,18 +365,18 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
 
         {/* Tarea */}
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="tarea_id">Tarea</Label>
+          <Label htmlFor="tarea_id">{t.task}</Label>
           <Controller
             name="tarea_id"
             control={control}
             render={({ field }) => (
               <Combobox
-                options={tareasOrdenadas.map(t => ({ value: t.id, label: t.nombre + (t.categoria ? ` (${t.categoria})` : "") }))}
+                options={tareasOrdenadas.map(tItem => ({ value: tItem.id, label: tItem.nombre + (tItem.categoria ? ` (${tItem.categoria})` : "") }))}
                 value={field.value}
                 onValueChange={field.onChange}
-                placeholder="Seleccionar tarea..."
+                placeholder={t.selectTask}
                 onCreateNew={() => setModalTarea(true)}
-                createNewText="Crear nueva tarea..."
+                createNewText={`${t.newTask}...`}
                 className={errors.tarea_id ? "border-red-400" : ""}
               />
             )}
@@ -379,14 +387,14 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
         {/* Fecha + Horas */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="fecha">Fecha</Label>
+            <Label htmlFor="fecha">{t.date}</Label>
             <Input type="date" {...register("fecha")} className={errors.fecha ? "border-red-400" : ""} />
             {errors.fecha && <Err msg={errors.fecha.message} />}
           </div>
           <div className="flex flex-col gap-1.5">
             <div className="flex items-baseline justify-between">
-              <Label htmlFor="horas">Horas</Label>
-              <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Min 0.25</span>
+              <Label htmlFor="horas">{t.hours}</Label>
+              <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">{t.minHours}</span>
             </div>
             <Input type="number" step="0.25" min="0.25" max="24"
               {...register("horas", { valueAsNumber: true })}
@@ -397,9 +405,9 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
 
         {/* Descripción */}
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="descripcion">Descripción del trabajo</Label>
+          <Label htmlFor="descripcion">{t.description}</Label>
           <Textarea {...register("descripcion")} rows={3}
-            placeholder="Describe brevemente el trabajo realizado…"
+            placeholder={t.descriptionPlaceholder}
             className={errors.descripcion ? "border-red-400" : ""} />
           {errors.descripcion && <Err msg={errors.descripcion.message} />}
         </div>
@@ -408,18 +416,18 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
         <AnimatePresence>
           {watchedProyectoId && watchedHoras > 0 && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-              <div className="bg-blue-500/10 border border-blue-100 rounded-xl p-4 flex items-center justify-between">
+              <div className="bg-blue-500/10 border border-blue-100 dark:border-blue-900/40 rounded-xl p-4 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-primary">
                   <DollarSign size={15} />
-                  <span className="text-sm font-medium">Monto estimado</span>
+                  <span className="text-sm font-medium">{t.estimatedAmount}</span>
                 </div>
                 <div className="text-right">
                   <span className="text-xl font-semibold font-mono text-primary">
                     {formatCurrency(previewAmount, defaultConfig.moneda)}
                   </span>
                   {selectedP && (
-                    <p className="text-xs text-brand-500 mt-0.5 flex items-center gap-1 justify-end">
-                      <Clock size={10} /> {selectedP.horas_acumuladas}h acum. · umbral {selectedP.umbral_precio_alto || defaultConfig.umbralHoras}h
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-0.5 flex items-center gap-1 justify-end">
+                      <Clock size={11} /> {horasAcumuladasMes}h {t.monthlyAcum} · {t.threshold} {umbral}h · {tierName} ({formatCurrency(appliedRate, defaultConfig.moneda)}/h)
                     </p>
                   )}
                 </div>
@@ -449,7 +457,7 @@ export default function HorasForm({ clientes: initClientes, tareas: initTareas, 
             {currentButton.label}
           </Button>
           <Button variant="outline" type="button" onClick={() => router.back()}>
-            Cancelar
+            {t.cancel}
           </Button>
         </div>
       </form>

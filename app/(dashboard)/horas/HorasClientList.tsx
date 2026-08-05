@@ -55,8 +55,11 @@ interface Props {
   fallbackConfig: PricingConfig;
 }
 
+import { useLocale } from "@/components/providers/LocaleProvider";
+
 export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMap, fallbackConfig }: Props) {
   const router = useRouter();
+  const { t, locale } = useLocale();
   const [filtroEstado, setFiltroEstado] = useState<Estado | null>(null);
   const [monthFilter, setMonthFilter] = useState<MonthFilter>("latest");
   const [clientFilter, setClientFilter] = useState<ClientFilter>("all");
@@ -168,38 +171,38 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
   const columns: Column<RegistroHoras>[] = [
     {
       key: "fecha",
-      header: "Fecha",
+      header: t.tableHeaderDate,
       sortable: true,
       render: (r) => formatDateShort(r.fecha),
       className: "font-mono text-xs",
     },
     {
       key: "cliente_id",
-      header: "Cliente",
+      header: t.tableHeaderClient,
       sortable: true,
       render: (r) => clientesMap[r.cliente_id ?? ""]?.nombre ?? "—",
       className: "font-medium",
     },
     {
       key: "proyecto_id",
-      header: "Proyecto",
+      header: t.tableHeaderProject,
       sortable: true,
       render: (r) => proyectosMap[r.proyecto_id]?.nombre ?? "—",
       className: "font-medium",
     },
     {
       key: "tarea_id",
-      header: "Tarea",
+      header: t.tableHeaderTask,
       render: (r) => tareasMap[r.tarea_id]?.nombre ?? "—",
     },
     {
       key: "descripcion",
-      header: "Descripción",
+      header: t.description,
       className: "max-w-[200px] truncate text-muted-foreground",
     },
     {
       key: "horas",
-      header: "Horas",
+      header: t.tableHeaderHours,
       sortable: true,
       align: "right",
       render: (r) => `${r.horas_trabajadas ?? r.horas}h`,
@@ -207,7 +210,7 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
     },
     {
       key: "horas_a_cobrar",
-      header: "A cobrar",
+      header: t.tableHeaderAmount,
       sortable: true,
       align: "right",
       render: (r) => `${r.horas_a_cobrar ?? r.horas}h`,
@@ -223,10 +226,12 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
     },
     {
       key: "estado",
-      header: "Estado",
+      header: t.tableHeaderStatus,
       render: (r) => (
         <Badge variant={ESTADO_VARIANT[r.estado] ?? "secondary"} className="capitalize">
-          {r.estado}
+          {r.estado === "confirmado" ? t.statusConfirmed :
+           r.estado === "facturado" ? t.statusBilled :
+           r.estado === "rechazado" ? t.statusRejected : r.estado}
         </Badge>
       ),
     },
@@ -235,9 +240,9 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
   if (repricedRecords.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-border bg-muted/30 p-12 text-center">
-        <p className="text-sm text-muted-foreground">No hay registros aún.</p>
+        <p className="text-sm text-muted-foreground">{t.noRecords}</p>
         <Button variant="link" asChild className="mt-2">
-          <Link href="/horas/nuevo">Cargá tu primer registro →</Link>
+          <Link href="/horas/nuevo">{t.newEntry} →</Link>
         </Button>
       </div>
     );
@@ -253,7 +258,7 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
                 <Clock size={20} />
               </div>
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Horas trabajadas</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t.totalWorked}</p>
                 <p className="text-2xl font-sans font-semibold text-foreground">{formatHours(summary.totalWorkedHours)}</p>
               </div>
             </div>
@@ -267,7 +272,7 @@ export function HorasClientList({ registros, proyectosMap, tareasMap, clientesMa
                 <TrendingUp size={20} />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">A cobrar</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t.totalToBill}</p>
                 <p className="text-2xl font-sans font-semibold text-emerald-600 dark:text-emerald-400">{formatCurrency(summary.totalAmount)}</p>
                 <p className="mt-1 text-sm font-semibold text-foreground">{totalArs !== null ? formatCurrency(totalArs, "ARS") : "ARS —"}</p>
               </div>

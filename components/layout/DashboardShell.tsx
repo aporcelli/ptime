@@ -13,6 +13,8 @@ interface DashboardShellProps {
   children: React.ReactNode;
 }
 
+import { LocaleProvider } from "../providers/LocaleProvider";
+
 export function DashboardShell({ role, user, children }: DashboardShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -36,56 +38,58 @@ export function DashboardShell({ role, user, children }: DashboardShellProps) {
   }, [sidebarOpen]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background text-foreground">
-      {/* Desktop: sidebar permanente */}
-      <div className="hidden md:flex">
-        <Sidebar role={role} />
+    <LocaleProvider>
+      <div className="flex h-screen overflow-hidden bg-background text-foreground">
+        {/* Desktop: sidebar permanente */}
+        <div className="hidden md:flex">
+          <Sidebar role={role} />
+        </div>
+
+        {/* Mobile: Drawer animado con Framer Motion */}
+        <AnimatePresence>
+          {sidebarOpen && (
+            <>
+              {/* Overlay */}
+              <motion.div
+                key="overlay"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="md:hidden fixed inset-0 z-40 bg-black/50"
+                onClick={() => setSidebarOpen(false)}
+                aria-hidden="true"
+              />
+              {/* Drawer */}
+              <motion.div
+                key="drawer"
+                initial={{ x: "-100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "-100%" }}
+                transition={{ type: "spring", stiffness: 400, damping: 40 }}
+                className="md:hidden fixed left-0 top-0 bottom-0 z-50 w-[220px] bg-card border-r border-border shadow-2xl"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Navegación"
+              >
+                <Sidebar role={role} onNavClick={() => setSidebarOpen(false)} />
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <Topbar
+            user={user}
+            onMenuClick={() => setSidebarOpen(true)}
+          />
+          <main className="flex-1 overflow-y-auto p-6 md:p-8 bg-background">
+            {children}
+          </main>
+        </div>
+
+        <OnboardingTour sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
       </div>
-
-      {/* Mobile: Drawer animado con Framer Motion */}
-      <AnimatePresence>
-        {sidebarOpen && (
-          <>
-            {/* Overlay */}
-            <motion.div
-              key="overlay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="md:hidden fixed inset-0 z-40 bg-black/50"
-              onClick={() => setSidebarOpen(false)}
-              aria-hidden="true"
-            />
-            {/* Drawer */}
-            <motion.div
-              key="drawer"
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "spring", stiffness: 400, damping: 40 }}
-              className="md:hidden fixed left-0 top-0 bottom-0 z-50 w-[220px] bg-card border-r border-border shadow-2xl"
-              role="dialog"
-              aria-modal="true"
-              aria-label="Navegación"
-            >
-              <Sidebar role={role} onNavClick={() => setSidebarOpen(false)} />
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <Topbar
-          user={user}
-          onMenuClick={() => setSidebarOpen(true)}
-        />
-        <main className="flex-1 overflow-y-auto p-6 md:p-8 bg-background">
-          {children}
-        </main>
-      </div>
-
-      <OnboardingTour sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-    </div>
+    </LocaleProvider>
   );
 }
