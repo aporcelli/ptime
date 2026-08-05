@@ -122,14 +122,14 @@ export default function ClientesAdmin({ clientes }: { clientes: Cliente[] }) {
             <motion.div initial={{ scale: 0.95, y: 10 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95 }}
               className="modal-panel max-w-sm">
               <div className="flex items-center justify-between mb-5">
-                <h2 className="font-semibold text-lg text-heading">{editing ? "Editar cliente" : "Nuevo cliente"}</h2>
+                <h2 className="font-semibold text-lg text-heading">{editing ? (locale === "en" ? "Edit client" : "Editar cliente") : (locale === "en" ? "New client" : "Nuevo cliente")}</h2>
                 <button onClick={() => setOpen(false)} className="text-sub hover:text-heading"><X size={18} /></button>
               </div>
               <div className="flex flex-col gap-4">
                 {[
-                  { k: "nombre", label: "Nombre *", placeholder: "Empresa S.A." },
-                  { k: "email", label: "Email *", placeholder: "contacto@empresa.com" },
-                  { k: "telefono", label: "Teléfono", placeholder: "+54 11 1234-5678" },
+                  { k: "nombre", label: locale === "en" ? "Name *" : "Nombre *", placeholder: "Company Inc." },
+                  { k: "email", label: "Email *", placeholder: "contact@company.com" },
+                  { k: "telefono", label: locale === "en" ? "Phone" : "Teléfono", placeholder: "+1 555-0199" },
                 ].map(({ k, label, placeholder }) => (
                   <div key={k} className="flex flex-col gap-1">
                     <label className="text-xs font-medium text-sub">{label}</label>
@@ -142,7 +142,7 @@ export default function ClientesAdmin({ clientes }: { clientes: Cliente[] }) {
                   className="w-full bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-semibold rounded-lg py-2.5 text-sm flex items-center justify-center gap-2 transition-colors">
                   {saving && <Loader2 size={15} className="animate-spin" />}
                   {ok && <CheckCircle size={15} />}
-                  {ok ? "¡Guardado!" : saving ? "Guardando…" : editing ? "Guardar cambios" : "Crear cliente"}
+                  {ok ? (locale === "en" ? "Saved!" : "¡Guardado!") : saving ? (locale === "en" ? "Saving…" : "Guardando…") : editing ? (locale === "en" ? "Save changes" : "Guardar cambios") : (locale === "en" ? "Create client" : "Crear cliente")}
                 </button>
               </div>
             </motion.div>
@@ -162,23 +162,23 @@ export default function ClientesAdmin({ clientes }: { clientes: Cliente[] }) {
                   <AlertTriangle size={20} className="text-red-500" />
                 </div>
                 <div>
-                  <h2 className="font-semibold text-heading">Eliminar cliente</h2>
-                  <p className="text-sm text-sub">Esta acción no se puede deshacer</p>
+                  <h2 className="font-semibold text-heading">{locale === "en" ? "Delete client" : "Eliminar cliente"}</h2>
+                  <p className="text-sm text-sub">{locale === "en" ? "This action cannot be undone" : "Esta acción no se puede deshacer"}</p>
                 </div>
               </div>
               <p className="text-sm text-sub mb-5">
-                ¿Estás seguro de eliminar a <strong className="text-heading">{deleting.nombre}</strong>?
+                {locale === "en" ? "Are you sure you want to delete " : "¿Estás seguro de eliminar a "}<strong className="text-heading">{deleting.nombre}</strong>?
               </p>
               {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
               <div className="flex gap-3">
                 <button onClick={() => setDeleting(null)} className="flex-1 py-2.5 rounded-lg text-sm font-medium border text-heading transition-colors"
                   style={{ borderColor: "var(--border-default)" }}>
-                  Cancelar
+                  {locale === "en" ? "Cancel" : "Cancelar"}
                 </button>
                 <button onClick={handleDelete} disabled={saving}
                   className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg py-2.5 text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50">
                   {saving && <Loader2 size={15} className="animate-spin" />}
-                  Eliminar
+                  {locale === "en" ? "Delete" : "Eliminar"}
                 </button>
               </div>
             </motion.div>
