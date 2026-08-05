@@ -6,9 +6,16 @@ import { auth } from "@/auth";
 import HorasForm from "@/components/forms/HorasForm";
 import { getMonthlyWorkedHoursAccumulated } from "@/lib/hours/accounting";
 
+import { getLocale } from "@/lib/locale";
+import { dashboardTranslations } from "@/lib/dashboard-i18n";
+
 export const metadata: Metadata = { title: "Editar Horas" };
 
 export default async function EditarHoraPage({ params }: { params: { id: string } }) {
+  const locale = getLocale();
+  const t = dashboardTranslations[locale];
+  const isEn = locale === "en";
+
   try {
     const ctx     = await getPageCtx();
     const session = await auth();
@@ -49,8 +56,8 @@ export default async function EditarHoraPage({ params }: { params: { id: string 
     if (!registro) {
       return (
         <div className="p-8 m-8 bg-amber-50 text-amber-900 rounded-lg border border-amber-200">
-          <h2 className="text-xl font-bold mb-2">Registro no encontrado</h2>
-          <p>No pudimos encontrar el registro solicitado o la API no devolvió datos.</p>
+          <h2 className="text-xl font-bold mb-2">{isEn ? "Log not found" : "Registro no encontrado"}</h2>
+          <p>{isEn ? "Could not find requested log." : "No pudimos encontrar el registro solicitado o la API no devolvió datos."}</p>
         </div>
       );
     }
@@ -75,8 +82,8 @@ export default async function EditarHoraPage({ params }: { params: { id: string 
     return (
       <div className="max-w-2xl mx-auto animate-fade-in">
         <div className="mb-8">
-          <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">Editar registro</h1>
-          <p className="text-muted-foreground mt-1">Modificá los detalles de este registro.</p>
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">{t.formTitleEdit}</h1>
+          <p className="text-muted-foreground mt-1">{isEn ? "Modify the details of this log." : "Modificá los detalles de este registro."}</p>
         </div>
         <HorasForm
           clientes={clientes}

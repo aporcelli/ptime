@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { onboardingTranslations, type Locale } from "@/lib/onboarding-i18n";
 import { X, ChevronRight, ChevronLeft, Award } from "lucide-react";
+import { useLocale } from "@/components/providers/LocaleProvider";
 
 interface OnboardingTourProps {
   sidebarOpen: boolean;
@@ -33,7 +34,7 @@ export default function OnboardingTour({ sidebarOpen, setSidebarOpen }: Onboardi
   const [mounted, setMounted] = useState(false);
   const [active, setActive] = useState(false);
   const [step, setStep] = useState(0);
-  const [locale, setLocale] = useState<Locale>("en");
+  const { locale } = useLocale();
   const [highlightRect, setHighlightRect] = useState<HighlightRect | null>(null);
   
   const setSidebarOpenRef = useRef(setSidebarOpen);
@@ -44,8 +45,6 @@ export default function OnboardingTour({ sidebarOpen, setSidebarOpen }: Onboardi
     setMounted(true);
     const completed = localStorage.getItem("ptime-onboarding-completed") === "true";
     const isNewUser = localStorage.getItem("ptime-is-new-user-setup") === "true";
-    const activeLocale = (localStorage.getItem("ptime-locale") as Locale | null) || "en";
-    setLocale(activeLocale);
     
     if (isNewUser && !completed) {
       // Small timeout to let dashboard load before starting tour

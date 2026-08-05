@@ -9,9 +9,16 @@ import { formatCurrency, formatDateShort, formatDateTimeShort, formatHours } fro
 import { ArrowLeft, Calendar, Clock, DollarSign, FileText, Tag } from "lucide-react";
 import HoraStatusEditor from "./HoraStatusEditor";
 
+import { getLocale } from "@/lib/locale";
+import { dashboardTranslations } from "@/lib/dashboard-i18n";
+
 export const metadata: Metadata = { title: "Detalle de registro" };
 
 export default async function HoraDetailPage({ params }: { params: { id: string } }) {
+  const locale = getLocale();
+  const t = dashboardTranslations[locale];
+  const isEn = locale === "en";
+
   try {
     const ctx = await getPageCtx();
 
@@ -54,7 +61,7 @@ export default async function HoraDetailPage({ params }: { params: { id: string 
                 <Link href="/horas" className="text-muted-foreground hover:text-foreground transition-colors">
                     <ArrowLeft size={20} />
                 </Link>
-                <h1 className="font-display text-3xl text-foreground font-semibold tracking-tight">Detalle del registro</h1>
+                <h1 className="font-display text-3xl text-foreground font-semibold tracking-tight">{isEn ? "Log Details" : "Detalle del registro"}</h1>
             </div>
 
             <div className="bg-card text-card-foreground rounded-2xl border border-border p-6 md:p-8 flex flex-col gap-6">
@@ -64,7 +71,7 @@ export default async function HoraDetailPage({ params }: { params: { id: string 
                         {/* Cliente — box destacado */}
                         <div className="mb-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-brand-500/10 border border-brand-500/20">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-brand-500 shrink-0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                            <span className="text-base font-semibold text-brand-600 dark:text-brand-400">{cliente?.nombre ?? "Sin cliente"}</span>
+                            <span className="text-base font-semibold text-brand-600 dark:text-brand-400">{cliente?.nombre ?? (isEn ? "No client" : "Sin cliente")}</span>
                         </div>
                         <p className="font-semibold text-foreground text-lg">{proyecto?.nombre ?? "—"}</p>
                         <p className="text-muted-foreground text-sm">{tarea?.nombre ?? "—"}</p>
@@ -76,13 +83,13 @@ export default async function HoraDetailPage({ params }: { params: { id: string 
 
                 {/* Detalles */}
                 <div className="grid grid-cols-2 gap-4">
-                    <InfoItem icon={<Calendar size={15} />} label="Fecha" value={formatDateShort(registro.fecha)} />
-                    <InfoItem icon={<Clock size={15} />} label="Horas trabajadas" value={`${registro.horas_trabajadas ?? registro.horas}h`} />
-                    <InfoItem icon={<Clock size={15} />} label="Horas a cobrar" value={`${registro.horas_a_cobrar ?? registro.horas}h`} />
-                    <InfoItem icon={<DollarSign size={15} />} label="Precio aplicado" value={`$${registro.precio_hora_aplicado}/h`} />
+                    <InfoItem icon={<Calendar size={15} />} label={t.date} value={formatDateShort(registro.fecha)} />
+                    <InfoItem icon={<Clock size={15} />} label={isEn ? "Hours worked" : "Horas trabajadas"} value={`${registro.horas_trabajadas ?? registro.horas}h`} />
+                    <InfoItem icon={<Clock size={15} />} label={isEn ? "Hours to bill" : "Horas a cobrar"} value={`${registro.horas_a_cobrar ?? registro.horas}h`} />
+                    <InfoItem icon={<DollarSign size={15} />} label={isEn ? "Applied rate" : "Precio aplicado"} value={`$${registro.precio_hora_aplicado}/h`} />
                     <InfoItem
                         icon={<DollarSign size={15} />}
-                        label="Total"
+                        label={isEn ? "Total" : "Total"}
                         value={formatCurrency(registro.monto_total)}
                         highlight
                     />
@@ -91,7 +98,7 @@ export default async function HoraDetailPage({ params }: { params: { id: string 
                 {/* Descripción */}
                 <div>
                     <div className="flex items-center gap-1.5 text-muted-foreground mb-1.5 text-xs font-semibold uppercase tracking-wide">
-                        <FileText size={13} /> Descripción
+                        <FileText size={13} /> {t.description}
                     </div>
                     <p className="text-foreground text-sm bg-muted/30 border border-dashed border-border rounded-lg p-4 leading-relaxed">
                         {registro.descripcion}
@@ -101,10 +108,10 @@ export default async function HoraDetailPage({ params }: { params: { id: string 
                 {/* Auditoría */}
                 <div className="text-xs text-muted-foreground font-mono pt-4 border-t border-border flex flex-col gap-1">
                     <p>ID: {registro.id}</p>
-                    <p>Usuario: {registro.usuario_id}</p>
-                    <p>Creado: {formatDateTimeShort(registro.created_at)}</p>
+                    <p>{isEn ? "User" : "Usuario"}: {registro.usuario_id}</p>
+                    <p>{isEn ? "Created" : "Creado"}: {formatDateTimeShort(registro.created_at)}</p>
                     {registro.updated_at !== registro.created_at && (
-                        <p>Actualizado: {formatDateTimeShort(registro.updated_at)}</p>
+                        <p>{isEn ? "Updated" : "Actualizado"}: {formatDateTimeShort(registro.updated_at)}</p>
                     )}
                 </div>
 

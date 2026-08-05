@@ -1,5 +1,3 @@
-// components/charts/TareasPieChart.tsx
-// Distribución de horas por tarea — bar chart
 "use client";
 
 import { useMemo } from "react";
@@ -7,6 +5,7 @@ import { useTheme } from "next-themes";
 import type { EChartsOption } from "echarts";
 import EChart from "@/components/charts/EChart";
 import { getEchartsTheme } from "@/lib/utils/echarts-theme";
+import { useLocale } from "@/components/providers/LocaleProvider";
 
 interface DataPoint {
   nombre: string;
@@ -26,11 +25,13 @@ const compact = (n: number) =>
 export default function TareasPieChart({ data }: Props) {
   const { resolvedTheme } = useTheme();
   const theme = getEchartsTheme(resolvedTheme === "dark" ? "dark" : "light");
+  const { locale } = useLocale();
+  const isEn = locale === "en";
 
   const option: EChartsOption = useMemo(() => {
     const sorted = [...data]
       .filter((d) => d.horas > 0)
-      .sort((a, b) => a.horas - b.horas); // ascending for horizontal bar
+      .sort((a, b) => a.horas - b.horas);
 
     const nombres = sorted.map((d) => d.nombre);
     const valores = sorted.map((d) => d.horas);
@@ -56,7 +57,9 @@ export default function TareasPieChart({ data }: Props) {
         formatter: (p: any) => {
           const row = Array.isArray(p) ? p[0] : p;
           const pct = sorted[row?.dataIndex]?.porcentaje ?? 0;
-          return `<b>${row?.name ?? ""}</b><br/>Horas: <b>${row?.value ?? 0}h</b><br/>Del total: <b>${pct}%</b>`;
+          return isEn
+            ? `<b>${row?.name ?? ""}</b><br/>Hours: <b>${row?.value ?? 0}h</b><br/>Share: <b>${pct}%</b>`
+            : `<b>${row?.name ?? ""}</b><br/>Horas: <b>${row?.value ?? 0}h</b><br/>Del total: <b>${pct}%</b>`;
         },
       },
       grid: { left: 100, right: 48, top: 4, bottom: 4 },
@@ -99,10 +102,10 @@ export default function TareasPieChart({ data }: Props) {
         },
       ],
     };
-  }, [data, theme]);
+  }, [data, theme, isEn]);
 
   if (!data.filter((d) => d.horas > 0).length) {
-    return <div className="flex h-[200px] items-center justify-center text-sm text-sub">Sin datos</div>;
+    return <div className="flex h-[200px] items-center justify-center text-sm text-sub">{isEn ? "No data" : "Sin datos"}</div>;
   }
 
   return <EChart option={option} height={Math.max(180, data.filter((d) => d.horas > 0).length * 42 + 24)} />;

@@ -57,13 +57,15 @@ export default function WorkspaceClient({ members: initMembers, currentUserEmail
     });
   }
 
+  const isEn = locale === "en";
+
   return (
     <div className="flex flex-col gap-6">
       {/* Formulario de invitación */}
       <div className="bg-surface-lowest rounded-xl p-5 shadow-ambient">
         <h2 className="text-sm font-semibold text-on-surface mb-4 flex items-center gap-2">
           <UserPlus size={16} className="text-primary-fixed" />
-          Invitar miembro
+          {isEn ? "Invite Member" : "Invitar miembro"}
         </h2>
         <form onSubmit={handleInvite} className="flex flex-col gap-3">
           <div className="flex gap-3">
@@ -71,7 +73,7 @@ export default function WorkspaceClient({ members: initMembers, currentUserEmail
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder="email@ejemplo.com"
+              placeholder="email@example.com"
               className="flex-1 h-9 px-3 rounded-lg border border-outline-variant bg-surface-low text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary-fixed/30"
               required
             />
@@ -80,8 +82,8 @@ export default function WorkspaceClient({ members: initMembers, currentUserEmail
               onChange={e => setRol(e.target.value as WorkspaceMemberRol)}
               className="h-9 px-2 rounded-lg border border-outline-variant bg-surface-low text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary-fixed/30"
             >
-              <option value="COLABORADOR">Colaborador</option>
-              <option value="VIEWER">Viewer (solo lectura)</option>
+              <option value="COLABORADOR">{isEn ? "Collaborator" : "Colaborador"}</option>
+              <option value="VIEWER">{isEn ? "Viewer (read-only)" : "Viewer (solo lectura)"}</option>
             </select>
           </div>
 
@@ -89,11 +91,11 @@ export default function WorkspaceClient({ members: initMembers, currentUserEmail
           <div className="flex gap-4 text-xs text-on-surface-variant">
             <span className="flex items-center gap-1">
               <Users size={11} className="text-green-600" />
-              <strong>Colaborador:</strong> puede cargar y editar sus propias horas
+              <strong>{isEn ? "Collaborator:" : "Colaborador:"}</strong> {isEn ? "can log and edit their own hours" : "puede cargar y editar sus propias horas"}
             </span>
             <span className="flex items-center gap-1">
               <Eye size={11} className="text-amber-600" />
-              <strong>Viewer:</strong> solo puede ver reportes y el Dashboard
+              <strong>Viewer:</strong> {isEn ? "can only view reports and dashboard" : "solo puede ver reportes y el Dashboard"}
             </span>
           </div>
 
@@ -105,7 +107,7 @@ export default function WorkspaceClient({ members: initMembers, currentUserEmail
             className="self-start h-9 px-4 bg-primary-fixed hover:bg-secondary text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
           >
             {isPending ? <RefreshCw size={13} className="animate-spin" /> : <UserPlus size={13} />}
-            Invitar
+            {isEn ? "Invite" : "Invitar"}
           </button>
         </form>
       </div>
@@ -115,14 +117,14 @@ export default function WorkspaceClient({ members: initMembers, currentUserEmail
         <div className="px-5 py-4 border-b border-outline-variant/20">
           <h2 className="text-sm font-semibold text-on-surface flex items-center gap-2">
             <Users size={15} className="text-on-surface-variant" />
-            Miembros del workspace ({members.length})
+            {isEn ? `Workspace Members (${members.length})` : `Miembros del workspace (${members.length})`}
           </h2>
         </div>
 
         {members.length === 0 ? (
           <div className="p-8 text-center">
-            <p className="text-sm text-on-surface-variant">No hay miembros invitados aún.</p>
-            <p className="text-xs text-on-surface-variant mt-1 opacity-60">Invitá colaboradores o viewers usando el formulario de arriba.</p>
+            <p className="text-sm text-on-surface-variant">{isEn ? "No invited members yet." : "No hay miembros invitados aún."}</p>
+            <p className="text-xs text-on-surface-variant mt-1 opacity-60">{isEn ? "Invite collaborators or viewers using the form above." : "Invitá colaboradores o viewers usando el formulario de arriba."}</p>
           </div>
         ) : (
           <ul className="divide-y divide-outline-variant/10">
@@ -140,10 +142,10 @@ export default function WorkspaceClient({ members: initMembers, currentUserEmail
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-on-surface truncate">
                       {m.email}
-                      {isMe && <span className="ml-2 text-xs text-on-surface-variant">(vos)</span>}
+                      {isMe && <span className="ml-2 text-xs text-on-surface-variant">({isEn ? "you" : "vos"})</span>}
                     </p>
                     <p className="text-xs text-on-surface-variant">
-                      Invitado por {m.invited_by} · {formatDateShort(m.created_at)}
+                      {isEn ? `Invited by ${m.invited_by}` : `Invitado por ${m.invited_by}`} · {formatDateShort(m.created_at)}
                     </p>
                   </div>
 
@@ -160,7 +162,7 @@ export default function WorkspaceClient({ members: initMembers, currentUserEmail
                       disabled={isPending}
                       className="h-7 px-1.5 text-xs rounded border border-outline-variant bg-surface-low text-on-surface focus:outline-none"
                     >
-                      <option value="COLABORADOR">Colaborador</option>
+                      <option value="COLABORADOR">{isEn ? "Collaborator" : "Colaborador"}</option>
                       <option value="VIEWER">Viewer</option>
                     </select>
                   )}
@@ -171,7 +173,7 @@ export default function WorkspaceClient({ members: initMembers, currentUserEmail
                       onClick={() => handleRemove(m.email)}
                       disabled={isPending}
                       className="p-1.5 rounded-lg text-on-surface-variant hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
-                      title="Remover del workspace"
+                      title={isEn ? "Remove from workspace" : "Remover del workspace"}
                     >
                       <Trash2 size={14} />
                     </button>
