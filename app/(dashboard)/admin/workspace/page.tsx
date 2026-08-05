@@ -5,6 +5,8 @@ import { auth } from "@/auth";
 import WorkspaceClient from "./WorkspaceClient";
 import type { WorkspaceMember } from "@/types/entities";
 
+import { getLocale } from "@/lib/locale";
+
 export const metadata: Metadata = { title: "Workspace" };
 
 export default async function WorkspacePage() {
@@ -13,6 +15,8 @@ export default async function WorkspacePage() {
   const members = await getWorkspaceMembers(ctx);
   const ownerEmail = session?.user?.email?.trim().toLowerCase() ?? "";
   const isAdmin = session?.user?.role === "ADMIN";
+  const locale = getLocale();
+  const isEn = locale === "en";
 
   // Determinar el email del dueño real del workspace
   const adminEmails = (process.env.ADMIN_EMAILS ?? process.env.ADMIN_EMAIL ?? "").split(",").map((e) => e.trim().toLowerCase());
@@ -37,13 +41,13 @@ export default async function WorkspacePage() {
       <div className="mb-8">
         <h1 className="font-display text-3xl text-ink">Workspace</h1>
         <p className="text-slate-500 mt-1">
-          Invitá colaboradores o viewers a trabajar en tu Google Sheet.
+          {isEn ? "Invite collaborators or viewers to work on your Google Sheet." : "Invitá colaboradores o viewers a trabajar en tu Google Sheet."}
         </p>
       </div>
 
       {/* Info del workspace */}
       <div className="bg-surface-lowest rounded-xl p-4 mb-6 shadow-ambient border border-outline-variant/20">
-        <p className="text-xs text-on-surface-variant uppercase tracking-wider font-semibold mb-1">Tu Sheet</p>
+        <p className="text-xs text-on-surface-variant uppercase tracking-wider font-semibold mb-1">{isEn ? "Your Sheet" : "Tu Sheet"}</p>
         <p className="text-sm font-mono text-on-surface truncate">{ctx.sheetId}</p>
         <p className="text-xs text-on-surface-variant mt-1">
           Owner: <span className="font-medium text-on-surface">{session?.user?.email}</span>

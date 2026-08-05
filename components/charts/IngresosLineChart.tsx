@@ -5,6 +5,7 @@ import { useTheme } from "next-themes";
 import type { EChartsOption } from "echarts";
 import EChart from "@/components/charts/EChart";
 import { getEchartsTheme } from "@/lib/utils/echarts-theme";
+import { useLocale } from "@/components/providers/LocaleProvider";
 
 interface DataPoint {
   mes: string;
@@ -33,6 +34,8 @@ const long = (n: number) =>
 export default function IngresosLineChart({ data, moneda = "USD", showHoras = false }: Props) {
   const { resolvedTheme } = useTheme();
   const theme = getEchartsTheme(resolvedTheme === "dark" ? "dark" : "light");
+  const { locale } = useLocale();
+  const isEn = locale === "en";
 
   const { option, kpis } = useMemo(() => {
     const hasManyPoints = data.length > 8;
@@ -47,15 +50,13 @@ export default function IngresosLineChart({ data, moneda = "USD", showHoras = fa
     const peak = Math.max(...ingresos, 0);
     const peakIndex = ingresos.findIndex((v) => v === peak);
 
-    // Bar colors: highlight the highest bar
     const barColors = ingresos.map((v) =>
       v === peak ? theme.palette[0] : `${theme.palette[0]}55`,
     );
 
     const series: any[] = [
-      // ── Bars ──────────────────────────────────────
       {
-        name: "Ingresos",
+        name: isEn ? "Income" : "Ingresos",
         type: "bar",
         data: ingresos.map((v, i) => ({
           value: v,
@@ -81,10 +82,9 @@ export default function IngresosLineChart({ data, moneda = "USD", showHoras = fa
       },
     ];
 
-    // ── Trend line overlay ──────────────────────────
     if (data.length >= 3) {
       series.push({
-        name: "Tendencia",
+        name: isEn ? "Trend" : "Tendencia",
         type: "line",
         smooth: true,
         data: ingresos,
@@ -101,10 +101,9 @@ export default function IngresosLineChart({ data, moneda = "USD", showHoras = fa
       });
     }
 
-    // ── Horas line (optional) ───────────────────────
     if (showHoras) {
       series.push({
-        name: "Horas",
+        name: isEn ? "Hours" : "Horas",
         type: "line",
         smooth: true,
         data: horas,
@@ -136,11 +135,11 @@ export default function IngresosLineChart({ data, moneda = "USD", showHoras = fa
           const actualFmt = long(actual);
           const varSign = varPct >= 0 ? "+" : "";
           const diffColor = varPct >= 0 ? "#10b981" : "#ef4444";
-          const h = showHoras && horas[idx] ? `<br/>Horas: <b>${horas[idx]}h</b>` : "";
+          const h = showHoras && horas[idx] ? `<br/>${isEn ? "Hours" : "Horas"}: <b>${horas[idx]}h</b>` : "";
           return [
             `<b>${rows[0]?.axisValue ?? ""}</b>`,
-            `Ingresos: <b>${moneda} ${actualFmt}</b>${h}`,
-            `<span style="color:${diffColor}">Δ vs ant: ${varSign}${varPct.toFixed(1)}%</span>`,
+            `${isEn ? "Income" : "Ingresos"}: <b>${moneda} ${actualFmt}</b>${h}`,
+            `<span style="color:${diffColor}">Δ vs ${isEn ? "prev" : "ant"}: ${varSign}${varPct.toFixed(1)}%</span>`,
           ].join("<br/>");
         },
       },
@@ -209,31 +208,31 @@ export default function IngresosLineChart({ data, moneda = "USD", showHoras = fa
         peakLabel: peakIndex >= 0 ? data[peakIndex]?.mes : "—",
       },
     };
-  }, [data, moneda, showHoras, theme]);
+  }, [data, moneda, showHoras, theme, isEn]);
 
   if (!data.length) {
-    return <div className="flex h-[260px] items-center justify-center text-sm text-sub">Sin datos para el período</div>;
+    return <div className="flex h-[260px] items-center justify-center text-sm text-sub">{isEn ? "No data for period" : "Sin datos para el período"}</div>;
   }
 
   return (
     <div>
       <div className="mb-4 grid grid-cols-2 gap-2 text-xs md:grid-cols-4">
         <div className="rounded-xl border bg-background/50 px-3 py-2">
-          <p className="text-muted-foreground">Total período</p>
+          <p className="text-muted-foreground">{isEn ? "Period total" : "Total período"}</p>
           <p className="font-semibold text-foreground">{moneda} {compact(kpis.totalIngresos)}</p>
         </div>
         <div className="rounded-xl border bg-background/50 px-3 py-2">
-          <p className="text-muted-foreground">Promedio mensual</p>
+          <p className="text-muted-foreground">{isEn ? "Monthly avg" : "Promedio mensual"}</p>
           <p className="font-semibold text-foreground">{moneda} {compact(kpis.avgIngresos)}</p>
         </div>
         <div className="rounded-xl border bg-background/50 px-3 py-2">
-          <p className="text-muted-foreground">Tendencia</p>
+          <p className="text-muted-foreground">{isEn ? "Trend" : "Tendencia"}</p>
           <p className={`font-semibold ${kpis.deltaPct >= 0 ? "text-emerald-500" : "text-red-500"}`}>
             {kpis.deltaPct >= 0 ? "+" : ""}{kpis.deltaPct.toFixed(1)}%
           </p>
         </div>
         <div className="rounded-xl border bg-background/50 px-3 py-2">
-          <p className="text-muted-foreground">Pico</p>
+          <p className="text-muted-foreground">{isEn ? "Peak" : "Pico"}</p>
           <p className="font-semibold text-foreground">{moneda} {compact(kpis.peak)} · {kpis.peakLabel}</p>
         </div>
       </div>

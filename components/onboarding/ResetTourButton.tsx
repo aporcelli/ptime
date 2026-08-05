@@ -1,21 +1,11 @@
-// components/onboarding/ResetTourButton.tsx
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { HelpCircle } from "lucide-react";
-import { onboardingTranslations, type Locale } from "@/lib/onboarding-i18n";
+import { onboardingTranslations } from "@/lib/onboarding-i18n";
+import { useLocale } from "@/components/providers/LocaleProvider";
 
 export default function ResetTourButton() {
-  const router = useRouter();
-  const [locale, setLocale] = useState<Locale>("en");
-
-  useEffect(() => {
-    const saved = localStorage.getItem("ptime-locale") as Locale | null;
-    if (saved === "en" || saved === "es") {
-      setLocale(saved);
-    }
-  }, []);
+  const { locale } = useLocale();
 
   const handleReset = () => {
     localStorage.removeItem("ptime-onboarding-completed");
@@ -23,7 +13,7 @@ export default function ResetTourButton() {
     window.location.href = "/dashboard";
   };
 
-  const t = onboardingTranslations[locale];
+  const t = onboardingTranslations[locale] || onboardingTranslations.es;
 
   return (
     <button

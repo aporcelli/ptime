@@ -5,6 +5,7 @@ import { useTheme } from "next-themes";
 import type { EChartsOption } from "echarts";
 import EChart from "@/components/charts/EChart";
 import { getEchartsTheme } from "@/lib/utils/echarts-theme";
+import { useLocale } from "@/components/providers/LocaleProvider";
 
 interface DataPoint {
   fecha: string; // YYYY-MM-DD
@@ -14,6 +15,7 @@ interface DataPoint {
 
 interface Props {
   data: DataPoint[];
+  locale?: string;
 }
 
 const shortDate = (iso: string) => {
@@ -30,9 +32,12 @@ function movingAverage(values: number[], windowSize = 7) {
   });
 }
 
-export default function ActividadHeatmap({ data }: Props) {
+export default function ActividadHeatmap({ data, locale: propLocale }: Props) {
   const { resolvedTheme } = useTheme();
   const theme = getEchartsTheme(resolvedTheme === "dark" ? "dark" : "light");
+  const { locale: contextLocale } = useLocale();
+  const locale = propLocale ?? contextLocale ?? "es";
+  const isEn = locale === "en";
 
   const { option, stats } = useMemo(() => {
     const sorted = [...data].sort((a, b) => a.fecha.localeCompare(b.fecha));
@@ -68,7 +73,9 @@ export default function ActividadHeatmap({ data }: Props) {
         formatter: (params: any) => {
           const rows = Array.isArray(params) ? params : [params];
           const idx = rows[0]?.dataIndex ?? 0;
-          return `${fechas[idx]}<br/>Horas: <b>${horas[idx]}h</b><br/>Prom 7d: <b>${ma7[idx]}h</b><br/>Ingresos: <b>${ingresos[idx].toFixed(2)}</b>`;
+          return isEn
+            ? `${fechas[idx]}<br/>Hours: <b>${horas[idx]}h</b><br/>7d Avg: <b>${ma7[idx]}h</b><br/>Income: <b>${ingresos[idx].toFixed(2)}</b>`
+            : `${fechas[idx]}<br/>Horas: <b>${horas[idx]}h</b><br/>Prom 7d: <b>${ma7[idx]}h</b><br/>Ingresos: <b>${ingresos[idx].toFixed(2)}</b>`;
         },
       },
       legend: {
@@ -90,7 +97,7 @@ export default function ActividadHeatmap({ data }: Props) {
       yAxis: [
         {
           type: "value",
-          name: "Horas",
+          name: isEn ? "Hours" : "Horas",
           nameTextStyle: { color: theme.muted, fontSize: 11, padding: [0, 0, 0, 6] },
           axisLabel: { color: theme.muted, fontSize: 11 },
           splitLine: { lineStyle: { color: theme.grid, type: "dashed" as const, opacity: 0.55 } },
@@ -98,7 +105,7 @@ export default function ActividadHeatmap({ data }: Props) {
       ],
       series: [
         {
-          name: "Horas día",
+          name: isEn ? "Daily hours" : "Horas día",
           type: "bar" as const,
           data: horas,
           barMaxWidth: 18,
@@ -120,12 +127,12 @@ export default function ActividadHeatmap({ data }: Props) {
           markLine: {
             symbol: "none" as const,
             lineStyle: { type: "dashed" as const, color: theme.palette[2], width: 1.25 },
-            label: { formatter: `Objetivo ${target}h`, color: theme.palette[2] },
+            label: { formatter: isEn ? `Target ${target}h` : `Objetivo ${target}h`, color: theme.palette[2] },
             data: [{ yAxis: target }],
           },
         },
         {
-          name: "Promedio 7 días",
+          name: isEn ? "7-day average" : "Promedio 7 días",
           type: "line" as const,
           smooth: true,
           data: ma7,
@@ -146,29 +153,29 @@ export default function ActividadHeatmap({ data }: Props) {
         peakDay: peakIndex >= 0 ? fechas[peakIndex] : "—",
       },
     };
-  }, [data, theme]);
+  }, [data, theme, isEn]);
 
   if (!data.length) {
-    return <div className="flex h-[260px] items-center justify-center text-sm text-sub">Sin actividad diaria en el período</div>;
+    return <div className="flex h-[260px] items-center justify-center text-sm text-sub">{isEn ? "No daily activity in period" : "Sin actividad diaria en el período"}</div>;
   }
 
   return (
     <div>
       <div className="mb-4 grid grid-cols-2 gap-2 text-xs md:grid-cols-4">
         <div className="rounded-xl border bg-background/50 px-3 py-2">
-          <p className="text-muted-foreground">Días activos</p>
+          <p className="text-muted-foreground">{isEn ? "Active days" : "Días activos"}</p>
           <p className="font-semibold text-foreground">{stats.activeDays}</p>
         </div>
         <div className="rounded-xl border bg-background/50 px-3 py-2">
-          <p className="text-muted-foreground">Racha actual</p>
-          <p className="font-semibold text-foreground">{stats.streak} días</p>
+          <p className="text-muted-foreground">{isEn ? "Current streak" : "Racha actual"}</p>
+          <p className="font-semibold text-foreground">{stats.streak} {isEn ? "days" : "días"}</p>
         </div>
         <div className="rounded-xl border bg-background/50 px-3 py-2">
-          <p className="text-muted-foreground">Promedio/día activo</p>
+          <p className="text-muted-foreground">{isEn ? "Avg / active day" : "Promedio/día activo"}</p>
           <p className="font-semibold text-foreground">{stats.avgActive.toFixed(1)}h</p>
         </div>
         <div className="rounded-xl border bg-background/50 px-3 py-2">
-          <p className="text-muted-foreground">Pico diario</p>
+          <p className="text-muted-foreground">{isEn ? "Daily peak" : "Pico diario"}</p>
           <p className="font-semibold text-foreground">{stats.peakHoras.toFixed(1)}h · {stats.peakDay}</p>
         </div>
       </div>

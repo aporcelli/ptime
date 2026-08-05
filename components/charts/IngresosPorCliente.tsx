@@ -1,4 +1,3 @@
-// components/charts/IngresosPorCliente.tsx
 "use client";
 
 import { useMemo } from "react";
@@ -6,6 +5,7 @@ import { useTheme } from "next-themes";
 import type { EChartsOption } from "echarts";
 import EChart from "@/components/charts/EChart";
 import { getEchartsTheme } from "@/lib/utils/echarts-theme";
+import { useLocale } from "@/components/providers/LocaleProvider";
 
 interface DataPoint {
   nombre: string;
@@ -26,18 +26,18 @@ const compact = (n: number) =>
 export default function IngresosPorCliente({ data, moneda = "USD" }: Props) {
   const { resolvedTheme } = useTheme();
   const theme = getEchartsTheme(resolvedTheme === "dark" ? "dark" : "light");
+  const { locale } = useLocale();
+  const isEn = locale === "en";
 
   const option: EChartsOption = useMemo(() => {
-    // Sort descending, top clients
     const sorted = [...data]
       .filter((d) => d.ingresos > 0)
-      .sort((a, b) => a.ingresos - b.ingresos); // ascending for horizontal bar
+      .sort((a, b) => a.ingresos - b.ingresos);
 
     const nombres = sorted.map((d) => d.nombre);
     const valores = sorted.map((d) => d.ingresos);
     const maxVal = Math.max(...valores, 1);
 
-    // Color gradient: higher = more intense
     const colors = valores.map(
       (v) => {
         const t = v / maxVal;
@@ -60,7 +60,9 @@ export default function IngresosPorCliente({ data, moneda = "USD" }: Props) {
         textStyle: { color: theme.text },
         formatter: (p: any) => {
           const row = Array.isArray(p) ? p[0] : p;
-          return `<b>${row?.name ?? ""}</b><br/>Ingresos: <b>${moneda} ${(row?.value ?? 0).toFixed(2)}</b>`;
+          return isEn
+            ? `<b>${row?.name ?? ""}</b><br/>Income: <b>${moneda} ${(row?.value ?? 0).toFixed(2)}</b>`
+            : `<b>${row?.name ?? ""}</b><br/>Ingresos: <b>${moneda} ${(row?.value ?? 0).toFixed(2)}</b>`;
         },
       },
       grid: { left: 100, right: 48, top: 8, bottom: 8 },
@@ -113,10 +115,10 @@ export default function IngresosPorCliente({ data, moneda = "USD" }: Props) {
         },
       ],
     };
-  }, [data, moneda, theme]);
+  }, [data, moneda, theme, isEn]);
 
   if (!data.filter((d) => d.ingresos > 0).length) {
-    return <div className="flex h-[260px] items-center justify-center text-sm text-sub">Sin datos para el período</div>;
+    return <div className="flex h-[260px] items-center justify-center text-sm text-sub">{isEn ? "No data for period" : "Sin datos para el período"}</div>;
   }
 
   return <EChart option={option} height={Math.max(220, data.filter((d) => d.ingresos > 0).length * 42 + 40)} />;

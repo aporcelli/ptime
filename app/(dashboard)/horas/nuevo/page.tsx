@@ -5,9 +5,14 @@ import { auth }          from "@/auth";
 import HorasForm         from "@/components/forms/HorasForm";
 import { getMonthlyWorkedHoursAccumulated } from "@/lib/hours/accounting";
 
+import { getLocale } from "@/lib/locale";
+import { dashboardTranslations } from "@/lib/dashboard-i18n";
+
 export const metadata: Metadata = { title: "Cargar Horas" };
 
 export default async function NuevaHoraPage() {
+  const locale = getLocale();
+  const t = dashboardTranslations[locale];
   const ctx     = await getPageCtx();
   const session = await auth();
   const usuarioId = session?.user?.email ?? session?.user?.id ?? "";
@@ -45,8 +50,8 @@ export default async function NuevaHoraPage() {
   return (
     <div className="max-w-2xl mx-auto animate-fade-in">
       <div className="mb-8">
-        <h1 className="font-display text-3xl text-foreground font-semibold tracking-tight">Cargar horas</h1>
-        <p className="text-muted-foreground mt-1">Registrá el tiempo trabajado en un proyecto</p>
+        <h1 className="font-display text-3xl text-foreground font-semibold tracking-tight">{t.formTitleNew}</h1>
+        <p className="text-muted-foreground mt-1">{t.formSubtitle}</p>
       </div>
       <HorasForm
         clientes={clientes}

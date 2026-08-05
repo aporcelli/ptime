@@ -21,12 +21,16 @@ const DAYS_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS_ES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 const MONTHS_EN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-export default function CalendarHeatmap({ data, locale = "es" }: Props) {
-  const t = locale === "en"
-    ? { title: "Daily Activity", hours: "h worked", noData: "No entries this month" }
-    : { title: "Actividad Diaria", hours: "h cargadas", noData: "Sin registros este mes" };
+import { useLocale } from "@/components/providers/LocaleProvider";
 
-  const weekdays = locale === "en" ? DAYS_EN : DAYS_ES;
+export default function CalendarHeatmap({ data, locale: propLocale }: Props) {
+  const { locale: contextLocale } = useLocale();
+  const activeLocale = propLocale ?? contextLocale ?? "es";
+  const t = activeLocale === "en"
+    ? { title: "Daily Activity", hours: "h worked", noData: "No entries this month", noHours: "No hours" }
+    : { title: "Actividad Diaria", hours: "h cargadas", noData: "Sin registros este mes", noHours: "Sin horas" };
+
+  const weekdays = activeLocale === "en" ? DAYS_EN : DAYS_ES;
 
   const { gridCells, monthLabel } = useMemo(() => {
     if (!data.length) return { gridCells: [], monthLabel: "" };
@@ -37,7 +41,7 @@ export default function CalendarHeatmap({ data, locale = "es" }: Props) {
     const month = parseInt(monthStr, 10);
 
     // Etiqueta del mes
-    const monthName = locale === "en" 
+    const monthName = activeLocale === "en" 
       ? new Date(year, month - 1).toLocaleString("en-US", { month: "long" })
       : MONTHS_ES[month - 1];
     const monthLabel = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
@@ -73,7 +77,7 @@ export default function CalendarHeatmap({ data, locale = "es" }: Props) {
     }
 
     return { gridCells: cells, monthLabel };
-  }, [data, locale]);
+  }, [data, activeLocale]);
 
   if (!data.length) {
     return (

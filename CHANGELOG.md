@@ -5,6 +5,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.63] — 2026-08-05
+
+### Mejorado
+- **Internacionalización Exhaustiva (i18n)**:
+  - Migración masiva de componentes de gráficos (`ActividadHeatmap`, `CalendarHeatmap`, `HorasPorProyecto`, `IngresosLineChart`, `IngresosPorCliente`, `TareasPieChart`), vistas de detalle/edición/alta de horas (`HoraDetailPage`, `HoraStatusEditor`, `EditarHoraPage`, `NuevaHoraPage`), filtros (`DashboardMonthFilter`), botones de exportación (`ExportButton`) y tour guiado (`OnboardingTour`, `ResetTourButton`) a la sincronización global reactiva de `useLocale()`.
+  - Traducción bilingüe completa para tooltips, leyendas, tooltips de gráficos, ejes de gráficos, tablas de auditoría y formularios.
+
 ## [1.2.62.1] — 2026-08-05
 
 ### Corregido

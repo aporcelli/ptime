@@ -1,8 +1,8 @@
-// components/DashboardMonthFilter.tsx
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { formatMonthShort } from "@/lib/utils/index";
+import { useLocale } from "@/components/providers/LocaleProvider";
 
 interface Props {
   months: string[]; // List of unique "YYYY-MM" strings
@@ -12,6 +12,8 @@ interface Props {
 export default function DashboardMonthFilter({ months, selectedMonth }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { locale } = useLocale();
+  const isEn = locale === "en";
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const val = e.target.value;
@@ -27,7 +29,7 @@ export default function DashboardMonthFilter({ months, selectedMonth }: Props) {
   return (
     <div className="flex items-center gap-2">
       <label htmlFor="dashboard-month-select" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-        Período:
+        {isEn ? "Period:" : "Período:"}
       </label>
       <select
         id="dashboard-month-select"

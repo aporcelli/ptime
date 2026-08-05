@@ -7,6 +7,9 @@ import ConfigForm from "./ConfigForm";
 import ResetTourButton from "@/components/onboarding/ResetTourButton";
 import { Settings, Database, ShieldCheck } from "lucide-react";
 
+import { getLocale } from "@/lib/locale";
+import { dashboardTranslations } from "@/lib/dashboard-i18n";
+
 export const metadata: Metadata = { title: "Configuración" };
 
 export default async function ConfiguracionPage() {
@@ -15,28 +18,31 @@ export default async function ConfiguracionPage() {
   const config = await getAppConfig(ctx);
   const cookieStore = cookies();
   const sheetId = cookieStore.get("ptime-sheet-id")?.value ?? "";
+  const locale = getLocale();
+  const t = dashboardTranslations[locale];
+  const isEn = locale === "en";
 
   return (
     <div className="flex flex-col gap-8 animate-fade-in max-w-2xl">
       <div>
-        <h1 className="font-display text-3xl text-heading">Configuración</h1>
-        <p className="text-sub mt-1">Ajustes de tu espacio de trabajo en Ptime</p>
+        <h1 className="font-display text-3xl text-heading">{t.configTitle}</h1>
+        <p className="text-sub mt-1">{t.configSubtitle}</p>
       </div>
 
       {/* Sección: Precios */}
       <section>
-        <SectionHeader icon={<Settings size={16} />} title="Precios globales" />
+        <SectionHeader icon={<Settings size={16} />} title={t.configSectionPrices} />
         <ConfigForm defaultValues={config} />
       </section>
 
       {/* Sección: Sheet conectado */}
       <section>
-        <SectionHeader icon={<Database size={16} />} title="Google Sheet conectado" />
+        <SectionHeader icon={<Database size={16} />} title={t.configSectionSheet} />
         <div className="card p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-heading">Sheet ID activo</p>
-              <p className="font-mono text-xs text-faint mt-1 break-all">{sheetId || "No configurado"}</p>
+              <p className="text-sm font-medium text-heading">{t.configLabelActiveId}</p>
+              <p className="font-mono text-xs text-faint mt-1 break-all">{sheetId || (isEn ? "Not configured" : "No configurado")}</p>
             </div>
             <form action={async () => {
               "use server";
@@ -44,20 +50,20 @@ export default async function ConfiguracionPage() {
             }}>
               <button type="submit"
                 className="text-xs text-red-500 hover:text-red-700 border border-red-200 dark:border-red-500/20 hover:border-red-400 px-3 py-1.5 rounded-lg transition-colors">
-                Desconectar
+                {t.configBtnDisconnect}
               </button>
             </form>
           </div>
           <a href={`https://docs.google.com/spreadsheets/d/${sheetId}`} target="_blank" rel="noopener noreferrer"
             className="mt-3 text-xs text-brand-600 hover:underline inline-flex items-center gap-1">
-            Abrir en Google Sheets →
+            {t.configLinkOpenSheet}
           </a>
         </div>
       </section>
 
       {/* Sección: Tu cuenta */}
       <section>
-        <SectionHeader icon={<ShieldCheck size={16} />} title="Tu cuenta" />
+        <SectionHeader icon={<ShieldCheck size={16} />} title={t.configSectionAccount} />
         <div className="card p-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {session?.user?.image && (
