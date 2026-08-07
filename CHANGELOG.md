@@ -5,6 +5,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.64.4] — 2026-08-07
+
+### Corregido
+- **Manejo Elegante de Planilla Eliminada en Google Drive**:
+  - `getPageCtx` y `SetupPage` ahora detectan planillas borradas/inexistentes (404/403) y redirigen limpiamente a `/setup?error=SheetNotFound` borrando la cookie obsoleta.
+  - Creado el componente Error Boundary `app/(dashboard)/error.tsx` para capturar excepciones del servidor al acceder a planillas borradas, ofreciendo un botón claro para "Conectar o Crear Planilla Nueva" sin pantallas de error crudo (`Digest: 3428052916`).
+
 ## [1.2.64.3] — 2026-08-07
 
 ### Corregido

@@ -41,7 +41,7 @@ function isGoogleSheetsUrl(input: string): boolean {
   return input.includes("docs.google.com/spreadsheets") || input.includes("sheets.google.com");
 }
 
-export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string }) {
+export default function SetupForm({ sharedSheetId, initialError }: { sharedSheetId?: string; initialError?: string }) {
   const router = useRouter();
   const isDriveFile = process.env.NEXT_PUBLIC_OAUTH_SCOPE === "https://www.googleapis.com/auth/drive.file";
   const [showPicker, setShowPicker] = useState(isDriveFile);
@@ -49,6 +49,16 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
   const [rawInput, setRawInput] = useState("");
   const [locale, setLocale] = useState<Locale>("en");
   const ot = onboardingTranslations[locale];
+
+  const [status, setStatus]     = useState<"idle"|"loading"|"success"|"error">(initialError ? "error" : "idle");
+  const [message, setMessage]   = useState(
+    initialError === "SheetNotFound"
+      ? (locale === "en" 
+          ? "The connected Google Sheet was not found in your Google Drive (it may have been deleted or moved to trash). Please select or create a new sheet below."
+          : "No se encontró la planilla conectada en tu Google Drive (puede haber sido eliminada o movida a la papelera). Seleccioná o creá una nueva planilla abajo.")
+      : ""
+  );
+  const [showManual, setShowManual] = useState(!sharedSheetId);
 
   useEffect(() => {
     const saved = localStorage.getItem("ptime-locale") as Locale | null;
@@ -62,7 +72,7 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
   const changeLanguage = useCallback((lang: Locale) => {
     setLocale(lang);
     localStorage.setItem("ptime-locale", lang);
-    localStorage.setItem("landing-locale", lang); // sync with landing
+    localStorage.setItem("landing-locale", lang);
     document.cookie = `ptime-locale=${lang}; path=/; max-age=${365 * 24 * 60 * 60}`;
     router.refresh();
   }, [router]);
@@ -129,9 +139,6 @@ export default function SetupForm({ sharedSheetId }: { sharedSheetId?: string })
       </div>
     );
   }
-  const [status, setStatus]     = useState<"idle"|"loading"|"success"|"error">("idle");
-  const [message, setMessage]   = useState("");
-  const [showManual, setShowManual] = useState(!sharedSheetId);
 
   const extractedId = rawInput.trim() ? extractSheetId(rawInput) : "";
   const isUrl = isGoogleSheetsUrl(rawInput);

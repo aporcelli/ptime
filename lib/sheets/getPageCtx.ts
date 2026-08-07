@@ -5,6 +5,7 @@ import { cookies, headers }  from "next/headers";
 import { redirect } from "next/navigation";
 import { getLocalDevAccessContext, getRequestUrlFromHeaders } from "@/lib/env/dev-access";
 import { upsertUserRecord } from "@/app/actions/users";
+import { validateSpreadsheet } from "./client";
 
 export interface SheetCtx {
   sheetId:     string;
@@ -39,6 +40,13 @@ export async function getPageCtx(): Promise<SheetCtx> {
   }
 
   const accessToken = session.user.accessToken;
+
+  // Validar que el Sheet siga existiendo y sea accesible en Google Drive
+  const validation = await validateSpreadsheet(sheetId, accessToken);
+  if (!validation.valid) {
+    cookieStore.delete("ptime-sheet-id");
+    redirect("/setup?error=SheetNotFound");
+  }
 
   // Registrar / actualizar datos de acceso del usuario en la pestaña Usuarios
   if (session.user.email) {
