@@ -6,17 +6,29 @@ import { cookies }  from "next/headers";
 import SetupForm    from "./SetupForm";
 import { findSharedSheetForEmail } from "@/lib/sheets/master";
 
+import { validateSpreadsheet } from "@/lib/sheets/client";
+
 export const metadata: Metadata = { title: "Configurar Sheet | Ptime" };
 
-export default async function SetupPage() {
+export default async function SetupPage({ searchParams }: { searchParams?: { error?: string } }) {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  // Si ya tiene sheet configurado (en JWT o cookie), ir al dashboard
   const cookieStore = cookies();
-  const sheetId     = (session.user as { sheetId?: string }).sheetId
-                   ?? cookieStore.get("ptime-sheet-id")?.value;
-  if (sheetId) redirect("/dashboard");
+  const sheetId = cookieStore.get("ptime-sheet-id")?.value
+               ?? (session.user as { sheetId?: string }).sheetId;
+
+  let isSheetDeleted = searchParams?.error === "SheetNotFound";
+
+  if (sheetId && session.user.accessToken) {
+    const val = await validateSpreadsheet(sheetId, session.user.accessToken);
+    if (val.valid) {
+      redirect("/dashboard");
+    } else {
+      cookieStore.delete("ptime-sheet-id");
+      isSheetDeleted = true;
+    }
+  }
 
   // Verificar si tiene un workspace compartido / sheet previo persistido
   const sharedSheetId = await findSharedSheetForEmail(session.user.email ?? "");
@@ -36,7 +48,7 @@ export default async function SetupPage() {
         </div>
 
         <div className="glass rounded-2xl p-8 shadow-2xl">
-          <SetupForm sharedSheetId={sharedSheetId ?? undefined} />
+          <SetupForm sharedSheetId={sharedSheetId ?? undefined} initialError={isSheetDeleted ? "SheetNotFound" : undefined} />
         </div>
       </div>
     </main>
