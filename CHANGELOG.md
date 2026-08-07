@@ -5,6 +5,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.64.6] — 2026-08-07
+
+### Corregido
+- **Alineado Error Boundary de Mis Horas (`/horas`)**:
+  - Actualizado `app/(dashboard)/horas/error.tsx` para reutilizar el componente unificado `DashboardErrorBoundary`.
+  - Ahora al ingresar a `/horas` con una planilla desconectada o eliminada, se presenta exactamente el mismo diseño con la opción `✨ Conectar o Crear Planilla Nueva`.
+
 ## [1.2.64.5] — 2026-08-07
 
 ### Agregado y Corregido
