@@ -5,6 +5,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.64.2] — 2026-08-07
+
+### Agregado
+- **Pestañas de Planilla Estandarizadas en Inglés (`Hours_Logs`, `Projects`, `Clients`, `Tasks`, `Settings`, `Users`, `Workspace_Members`)**:
+  - Las planillas creadas de cero a partir de ahora incluyen nombres de pestañas e identificadores en inglés.
+  - Mantenida compatibilidad dual completa para planillas existentes con nombres de pestañas en español.
+
 ## [1.2.64.1] — 2026-08-07
 
 ### Corregido
