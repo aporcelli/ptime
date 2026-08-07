@@ -5,6 +5,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.64.3] — 2026-08-07
+
+### Corregido
+- **Mapeador Dinámico de Rangos de Planilla (`resolveRangeTab`)**:
+  - Resuelto el error HTTP 400 `Unable to parse range` en Google Sheets creados previamente con nombres de pestaña en español (`Proyectos`, `Registros_Horas`, `Clientes`, `Tareas`, `Configuraciones`, `Usuarios`).
+  - `valuesGet`, `valuesUpdate`, `valuesAppend` y `valuesClear` ahora mapean dinámicamente cualquier rango solicitado al título real de la solapa presente en el Google Sheet del usuario.
+
 ## [1.2.64.2] — 2026-08-07
 
 ### Agregado
