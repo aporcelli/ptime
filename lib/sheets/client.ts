@@ -61,13 +61,69 @@ async function sheetsRequest<T>(
   throw new Error("Google Sheets request retry loop exhausted");
 }
 
+const TAB_FALLBACKS: Record<string, string[]> = {
+  Hours_Logs: ["Hours_Logs", "Registros_Horas", "Hours"],
+  Registros_Horas: ["Registros_Horas", "Hours_Logs", "Hours"],
+  Projects: ["Projects", "Proyectos"],
+  Proyectos: ["Proyectos", "Projects"],
+  Clients: ["Clients", "Clientes"],
+  Clientes: ["Clientes", "Clients"],
+  Tasks: ["Tasks", "Tareas"],
+  Tareas: ["Tareas", "Tasks"],
+  Settings: ["Settings", "Configuraciones"],
+  Configuraciones: ["Configuraciones", "Settings"],
+  Users: ["Users", "Usuarios"],
+  Usuarios: ["Usuarios", "Users"],
+  Workspace_Members: ["Workspace_Members"],
+};
+
+const _titlesCacheMap = new Map<string, { titles: Set<string>; ts: number }>();
+const TITLES_CACHE_TTL = 5 * 60 * 1000;
+
+async function getSpreadsheetTitles(spreadsheetId: string, accessToken: string): Promise<Set<string>> {
+  const cached = _titlesCacheMap.get(spreadsheetId);
+  if (cached && Date.now() - cached.ts < TITLES_CACHE_TTL) {
+    return cached.titles;
+  }
+  try {
+    const meta = await spreadsheetGet(spreadsheetId, accessToken, "sheets.properties.title");
+    const set = new Set((meta.sheets ?? []).map((s) => s.properties?.title ?? "").filter(Boolean));
+    _titlesCacheMap.set(spreadsheetId, { titles: set, ts: Date.now() });
+    return set;
+  } catch {
+    return new Set();
+  }
+}
+
+export async function resolveRangeTab(spreadsheetId: string, accessToken: string, range: string): Promise<string> {
+  const excl = range.indexOf("!");
+  if (excl === -1) return range;
+  const tabRequested = range.slice(0, excl);
+  const suffix = range.slice(excl);
+
+  const existingTitles = await getSpreadsheetTitles(spreadsheetId, accessToken);
+  if (existingTitles.size === 0 || existingTitles.has(tabRequested)) {
+    return range;
+  }
+
+  const fallbacks = TAB_FALLBACKS[tabRequested] ?? [tabRequested];
+  for (const alt of fallbacks) {
+    if (existingTitles.has(alt)) {
+      return `${alt}${suffix}`;
+    }
+  }
+
+  return range;
+}
+
 async function valuesGet(spreadsheetId: string, accessToken: string, range: string, withDateTime = false): Promise<ValuesResponse> {
+  const resolvedRange = await resolveRangeTab(spreadsheetId, accessToken, range);
   const params = new URLSearchParams({
-    range,
+    range: resolvedRange,
     valueRenderOption: "UNFORMATTED_VALUE",
   });
   if (withDateTime) params.set("dateTimeRenderOption", "FORMATTED_STRING");
-  return sheetsRequest<ValuesResponse>(spreadsheetId, accessToken, `/values/${encodeURIComponent(range)}?${params.toString()}`);
+  return sheetsRequest<ValuesResponse>(spreadsheetId, accessToken, `/values/${encodeURIComponent(resolvedRange)}?${params.toString()}`);
 }
 
 async function valuesUpdate(
@@ -77,8 +133,9 @@ async function valuesUpdate(
   values: Primitive[][],
   valueInputOption: "RAW" | "USER_ENTERED" = "USER_ENTERED",
 ): Promise<void> {
+  const resolvedRange = await resolveRangeTab(spreadsheetId, accessToken, range);
   const params = new URLSearchParams({ valueInputOption });
-  await sheetsRequest(spreadsheetId, accessToken, `/values/${encodeURIComponent(range)}?${params.toString()}`, {
+  await sheetsRequest(spreadsheetId, accessToken, `/values/${encodeURIComponent(resolvedRange)}?${params.toString()}`, {
     method: "PUT",
     body: JSON.stringify({ values }),
   });
@@ -92,15 +149,17 @@ async function valuesAppend(
   valueInputOption: "RAW" | "USER_ENTERED" = "USER_ENTERED",
   insertDataOption: "INSERT_ROWS" | "OVERWRITE" = "INSERT_ROWS",
 ): Promise<void> {
+  const resolvedRange = await resolveRangeTab(spreadsheetId, accessToken, range);
   const params = new URLSearchParams({ valueInputOption, insertDataOption });
-  await sheetsRequest(spreadsheetId, accessToken, `/values/${encodeURIComponent(range)}:append?${params.toString()}`, {
+  await sheetsRequest(spreadsheetId, accessToken, `/values/${encodeURIComponent(resolvedRange)}:append?${params.toString()}`, {
     method: "POST",
     body: JSON.stringify({ values }),
   });
 }
 
 async function valuesClear(spreadsheetId: string, accessToken: string, range: string): Promise<void> {
-  await sheetsRequest(spreadsheetId, accessToken, `/values/${encodeURIComponent(range)}:clear`, {
+  const resolvedRange = await resolveRangeTab(spreadsheetId, accessToken, range);
+  await sheetsRequest(spreadsheetId, accessToken, `/values/${encodeURIComponent(resolvedRange)}:clear`, {
     method: "POST",
     body: JSON.stringify({}),
   });
