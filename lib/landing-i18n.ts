@@ -10,7 +10,7 @@ export const translations = {
     heroTitle: "Track your hours",
     heroTitleAccent: "from your own Google Sheets",
     heroDesc:
-      "Ptime is a professional time-tracking and invoicing tool. Your data lives in your Google Sheets — not on external servers. Full control, no migrations, no surprises.",
+      "Ptime is a professional solution to track hours, manage projects, and automate client billing. Your data lives in your Google Sheets — not on external servers. Full control, no migrations, no surprises.",
     whyTitle: "Why Ptime?",
     features: [
       {
@@ -66,7 +66,7 @@ export const translations = {
     heroTitle: "Gestioná tus horas",
     heroTitleAccent: "desde tu propio Google Sheets",
     heroDesc:
-      "Ptime es una herramienta profesional de registro de horas y facturación. Tus datos viven en tu Google Sheets — no en servidores externos. Control total, sin migraciones, sin sorpresas.",
+      "Ptime es la solución profesional para registrar horas, gestionar proyectos y controlar la facturación de tus clientes. Tus datos viven en tu Google Sheets — no en servidores externos. Control total, sin migraciones, sin sorpresas.",
     whyTitle: "¿Por qué Ptime?",
     features: [
       {

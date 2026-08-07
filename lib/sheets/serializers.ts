@@ -51,6 +51,7 @@ export function parseProyectoRow(row: unknown[]): Proyecto {
     umbral_precio_alto: parseNum(row[5], PRICING_DEFAULTS.umbralHoras),
     precio_base: parseNum(row[6], PRICING_DEFAULTS.precioBase),
     precio_alto: parseNum(row[7], PRICING_DEFAULTS.precioAlto),
+    usar_tarifa_fija: parseBool(row[11]),
     estado: (["activo", "pausado", "cerrado"].includes(estado) ? estado : "activo") as Proyecto["estado"],
     created_at: String(row[9] ?? ""),
     updated_at: String(row[10] ?? ""),

@@ -4,7 +4,7 @@ import { SHEET_RANGES } from "@/lib/constants";
 import type { Cliente, Proyecto, Tarea, RegistroHoras, AppConfig, ReporteFilters, WorkspaceMember, WorkspaceMemberRol } from "@/types/entities";
 import { PRICING_DEFAULTS } from "@/lib/constants";
 import { toPlainJson } from "@/lib/actions/result";
-import { parseClienteRow, parseNum, parseProyectoRow, parseRegistroHorasRow, parseTareaRow } from "./serializers";
+import { parseBool, parseClienteRow, parseNum, parseProyectoRow, parseRegistroHorasRow, parseTareaRow } from "./serializers";
 import { WorkspaceMemberSchema } from "./schemas";
 
 interface SheetCtx { sheetId: string; accessToken: string; }
@@ -69,10 +69,11 @@ export async function getAppConfig(ctx: SheetCtx): Promise<AppConfig> {
   const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, SHEET_RANGES.CONFIGURACIONES);
   const map  = Object.fromEntries(rows.filter((r) => r[0]).map((r) => [r[0], r[1]]));
   const config = {
-    precioBase:    parseNum(map.precio_base_global, PRICING_DEFAULTS.precioBase),
-    precioAlto:    parseNum(map.precio_alto_global, PRICING_DEFAULTS.precioAlto),
-    umbralHoras:   parseNum(map.umbral_horas_global, PRICING_DEFAULTS.umbralHoras),
-    moneda:        map.moneda         ?? PRICING_DEFAULTS.moneda,
+    precioBase:     parseNum(map.precio_base_global, PRICING_DEFAULTS.precioBase),
+    precioAlto:     parseNum(map.precio_alto_global, PRICING_DEFAULTS.precioAlto),
+    umbralHoras:    parseNum(map.umbral_horas_global, PRICING_DEFAULTS.umbralHoras),
+    usarTarifaFija: parseBool(map.usar_tarifa_fija_global),
+    moneda:         map.moneda         ?? PRICING_DEFAULTS.moneda,
     nombreEmpresa: map.nombre_empresa ?? "Ptime",
     logoUrl:       map.logo_url       || undefined,
     updated_at:    map.updated_at     ?? new Date().toISOString(),

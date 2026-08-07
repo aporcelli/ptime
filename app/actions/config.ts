@@ -7,7 +7,7 @@ import { configSchema } from "@/lib/schemas/client";
 import { auth }          from "@/auth";
 import { revalidatePath } from "next/cache";
 import type { AppConfig, PricingConfig, ActionResult } from "@/types/entities";
-import { CONFIG_CACHE_TTL, PRICING_DEFAULTS } from "@/lib/constants";
+import { CONFIG_CACHE_TTL } from "@/lib/constants";
 
 let _cache: Map<string, { config: AppConfig; ts: number }> = new Map();
 
@@ -31,9 +31,10 @@ export async function getPricingConfigForProject(proyectoId: string): Promise<Pr
   const [global, proyecto] = await Promise.all([getConfig(), getProyectoById(ctx, proyectoId)]);
   if (!proyecto) return global;
   return {
-    precioBase:  proyecto.precio_base        ?? global.precioBase,
-    precioAlto:  proyecto.precio_alto        ?? global.precioAlto,
-    umbralHoras: proyecto.umbral_precio_alto ?? global.umbralHoras,
+    precioBase:     proyecto.precio_base        ?? global.precioBase,
+    precioAlto:     proyecto.precio_alto        ?? global.precioAlto,
+    umbralHoras:    proyecto.umbral_precio_alto ?? global.umbralHoras,
+    usarTarifaFija: proyecto.usar_tarifa_fija   ?? global.usarTarifaFija,
   };
 }
 
@@ -45,11 +46,12 @@ export async function updateConfig(rawData: unknown): Promise<ActionResult> {
   const parsed = configSchema.safeParse(rawData);
   if (!parsed.success) return { success: false, error: "Datos inválidos" };
   const ctx = await getSheetCtx();
-  const { precioBase, precioAlto, umbralHoras } = parsed.data;
+  const { precioBase, precioAlto, umbralHoras, usarTarifaFija } = parsed.data;
   await Promise.all([
-    upsertConfig(ctx, "precio_base_global",  String(precioBase)),
-    upsertConfig(ctx, "precio_alto_global",  String(precioAlto)),
-    upsertConfig(ctx, "umbral_horas_global", String(umbralHoras)),
+    upsertConfig(ctx, "precio_base_global",      String(precioBase)),
+    upsertConfig(ctx, "precio_alto_global",      String(precioAlto)),
+    upsertConfig(ctx, "umbral_horas_global",     String(umbralHoras)),
+    upsertConfig(ctx, "usar_tarifa_fija_global", String(!!usarTarifaFija)),
   ]);
   await invalidateConfigCache();
   revalidatePath("/admin/configuracion");

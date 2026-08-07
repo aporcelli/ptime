@@ -47,7 +47,27 @@ export function calculateHoursAmount(
   horasAcumuladasMes: number,
   config: PricingConfig
 ): CalculationResult {
-  const { precioBase, precioAlto, umbralHoras } = config;
+  const { precioBase, precioAlto, umbralHoras, usarTarifaFija } = config;
+
+  if (usarTarifaFija) {
+    const horas = round4(horasNuevas);
+    const horasEnTramo1 = roundBaseHours(horas);
+    const montoTramo1 = round2(horasEnTramo1 * precioBase);
+    return {
+      montoTotal: montoTramo1,
+      precioAplicado: precioBase,
+      horasTrabajadas: horas,
+      horasACobrar: horasEnTramo1,
+      desglose: {
+        horasTrabajadasTramo1: horas,
+        horasTrabajadasTramo2: 0,
+        horasEnTramo1,
+        horasEnTramo2: 0,
+        montoTramo1,
+        montoTramo2: 0,
+      },
+    };
+  }
 
   const horas = round4(horasNuevas);
   const acum = round4(horasAcumuladasMes);
@@ -80,8 +100,22 @@ export function previewMonto(
 }
 
 export function calculateMonthlyBillingSnapshot(totalWorkedHours: number, config: PricingConfig): MonthlyBillingSnapshot {
-  const { precioBase, precioAlto, umbralHoras } = config;
+  const { precioBase, precioAlto, umbralHoras, usarTarifaFija } = config;
   const totalWorked = round4(Math.max(totalWorkedHours, 0));
+
+  if (usarTarifaFija) {
+    const baseBillableHours = roundBaseHours(totalWorked);
+    const baseAmount = round2(baseBillableHours * precioBase);
+    return {
+      baseBillableHours,
+      highBillableHours: 0,
+      totalBillableHours: baseBillableHours,
+      baseAmount,
+      highAmount: 0,
+      totalAmount: baseAmount,
+    };
+  }
+
   const baseWorked = Math.min(totalWorked, umbralHoras);
   const highWorked = Math.max(totalWorked - umbralHoras, 0);
 
@@ -140,6 +174,13 @@ if (import.meta.vitest) {
       const r = calculateHoursAmount(55, 0, cfg);
       expect(r.montoTotal).toBe(2275);
       expect(r.horasACobrar).toBe(55);
+    });
+
+    it("usarTarifaFija activa: 55h a precioBase (35) = 1925", () => {
+      const r = calculateHoursAmount(55, 0, { ...cfg, usarTarifaFija: true });
+      expect(r.montoTotal).toBe(1925);
+      expect(r.horasACobrar).toBe(55);
+      expect(r.precioAplicado).toBe(35);
     });
   });
 }
