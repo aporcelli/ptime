@@ -69,14 +69,14 @@ export async function getAppConfig(ctx: SheetCtx): Promise<AppConfig> {
   const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, SHEET_RANGES.CONFIGURACIONES);
   const map  = Object.fromEntries(rows.filter((r) => r[0]).map((r) => [r[0], r[1]]));
   const config = {
-    precioBase:     parseNum(map.precio_base_global, PRICING_DEFAULTS.precioBase),
-    precioAlto:     parseNum(map.precio_alto_global, PRICING_DEFAULTS.precioAlto),
-    umbralHoras:    parseNum(map.umbral_horas_global, PRICING_DEFAULTS.umbralHoras),
-    usarTarifaFija: parseBool(map.usar_tarifa_fija_global),
-    moneda:         map.moneda         ?? PRICING_DEFAULTS.moneda,
-    nombreEmpresa: map.nombre_empresa ?? "Ptime",
-    logoUrl:       map.logo_url       || undefined,
-    updated_at:    map.updated_at     ?? new Date().toISOString(),
+    precioBase:     parseNum(map.base_rate_global ?? map.precio_base_global, PRICING_DEFAULTS.precioBase),
+    precioAlto:     parseNum(map.high_rate_global ?? map.precio_alto_global, PRICING_DEFAULTS.precioAlto),
+    umbralHoras:    parseNum(map.threshold_hours_global ?? map.umbral_horas_global, PRICING_DEFAULTS.umbralHoras),
+    usarTarifaFija: parseBool(map.use_flat_rate_global ?? map.usar_tarifa_fija_global),
+    moneda:         map.currency         ?? map.moneda         ?? PRICING_DEFAULTS.moneda,
+    nombreEmpresa: map.company_name     ?? map.nombre_empresa ?? "Ptime",
+    logoUrl:       map.logo_url         || map.logoUrl        || undefined,
+    updated_at:    map.updated_at       ?? new Date().toISOString(),
   } satisfies AppConfig;
   return safeReturn(config);
 }

@@ -27,38 +27,47 @@ async function requireAdmin() {
   return session;
 }
 
-export async function upsertUserRecord(user: {
-  id: string; nombre: string; email: string; sheetId: string;
-}): Promise<void> {
+export async function upsertUserRecord(
+  user: { id: string; nombre: string; email: string; sheetId: string },
+  customCtx?: { sheetId: string; accessToken: string },
+): Promise<void> {
   try {
     const validated = userUpsertSchema.parse(user);
     const session = await auth();
-    if (!session?.user) return;
-    const ctx = await getSheetCtx();
-    const rows = await getSheetRows(ctx.sheetId, ctx.accessToken, RANGE);
+    if (!session?.user?.accessToken) return;
+    const sheetId = customCtx?.sheetId || validated.sheetId;
+    const accessToken = customCtx?.accessToken || session.user.accessToken;
+    if (!sheetId || !accessToken) return;
 
-    const idx = rows.findIndex((r) => r[2] === validated.email);
+    const rows = await getSheetRows(sheetId, accessToken, RANGE);
+    const idx = rows.findIndex((r) => (r[2] ?? "").toLowerCase() === validated.email.toLowerCase());
     const isAdmin = session.user.role === "ADMIN";
     const now = new Date().toISOString();
 
     if (idx === -1) {
-      await appendSheetRow(ctx.sheetId, ctx.accessToken, RANGE, [
-        validated.id, validated.nombre, validated.email,
+      await appendSheetRow(sheetId, accessToken, RANGE, [
+        validated.id,
+        validated.nombre,
+        validated.email,
         isAdmin ? "ADMIN" : "USER",
-        "true", now, validated.sheetId,
+        "true",
+        now,
+        sheetId,
       ]);
     } else {
       const current = rows[idx];
-      await updateSheetRow(ctx.sheetId, ctx.accessToken, SHEET, idx + 2, [
-        current[0], current[1], current[2],
-        current[3],
-        current[4],
+      await updateSheetRow(sheetId, accessToken, SHEET, idx + 2, [
+        current[0] || validated.id,
+        current[1] || validated.nombre,
+        current[2] || validated.email,
+        current[3] || (isAdmin ? "ADMIN" : "USER"),
+        current[4] || "true",
         now,
-        validated.sheetId,
+        sheetId,
       ]);
     }
   } catch {
-    // Silencioso — no bloquear el login por esto
+    // Silencioso — no bloquear el flujo por esto
   }
 }
 

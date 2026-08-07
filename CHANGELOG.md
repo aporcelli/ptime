@@ -5,6 +5,19 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.64.1] — 2026-08-07
+
+### Corregido
+- **Eliminado Email Hardcodeado de Workspace Owner**:
+  - `WorkspacePage` ahora detecta al dueño real del workspace mediante el primer miembro con rol `OWNER` o la sesión activa (`session.user.email`), sin forzar la dirección del administrador del sistema.
+  - Al inicializar nuevas planillas, se registra automáticamente al usuario creador con rol `OWNER` en `Workspace_Members`.
+- **Eliminación de la Hoja Inicial en Blanco ("Hoja 1" / "Sheet1")**:
+  - `initializeSpreadsheet` ejecuta un `deleteSheet` batchUpdate para eliminar la pestaña en blanco que Google Sheets crea automáticamente en planillas nuevas.
+- **Sincronización Automática de Usuarios**:
+  - Conectada la llamada a `upsertUserRecord` en `getPageCtx()` para poblar y actualizar la pestaña `Usuarios` (`id`, `nombre`, `email`, `rol`, `activo`, `ultimo_acceso`, `sheet_id`) en cada navegación/login.
+- **Estandarización de Encabezados a Inglés**:
+  - Estandarizados los nombres de columnas de la fila 1 a inglés para hojas nuevas, manteniendo compatibilidad positional total con planillas existentes.
+
 ## [1.2.64] — 2026-08-07
 
 ### Agregado

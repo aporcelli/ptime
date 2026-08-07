@@ -18,23 +18,23 @@ export default async function WorkspacePage() {
   const locale = getLocale();
   const isEn = locale === "en";
 
-  // Determinar el email del dueño real del workspace
-  const adminEmails = (process.env.ADMIN_EMAILS ?? process.env.ADMIN_EMAIL ?? "").split(",").map((e) => e.trim().toLowerCase());
-  const realOwnerEmail = adminEmails[0] ?? ownerEmail;
+  // Determinar el email del dueño del workspace (primer OWNER registrado o el usuario con la sesión activa)
+  const existingOwner = members.find((m) => m.rol === "OWNER");
+  const realOwnerEmail = existingOwner?.email.trim().toLowerCase() || ownerEmail;
 
-  const membersWithOwner: WorkspaceMember[] = [
-    // Siempre mostrar al dueño real primero como OWNER
-    {
-      email: realOwnerEmail,
-      sheet_id: ctx.sheetId,
-      rol: "OWNER",
-      invited_by: realOwnerEmail,
-      created_at: "",
-      updated_at: "",
-    },
-    // Luego los miembros invitados, filtrando al dueño real
-    ...members.filter((m) => m.email.trim().toLowerCase() !== realOwnerEmail),
-  ];
+  const membersWithOwner: WorkspaceMember[] = existingOwner
+    ? members
+    : [
+        {
+          email: realOwnerEmail,
+          sheet_id: ctx.sheetId,
+          rol: "OWNER",
+          invited_by: realOwnerEmail,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        ...members.filter((m) => m.email.trim().toLowerCase() !== realOwnerEmail),
+      ];
 
   return (
     <div className="max-w-2xl mx-auto animate-fade-in">

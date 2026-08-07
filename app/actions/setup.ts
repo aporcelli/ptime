@@ -6,9 +6,7 @@
 
 import { auth } from "@/auth";
 import { validateSpreadsheet, initializeSpreadsheet, createSpreadsheet, getSheetRows } from "@/lib/sheets/client";
-import { encode } from "next-auth/jwt";
 import { cookies } from "next/headers";
-
 import { z } from "zod";
 
 export async function validateAndSaveSheetId(
@@ -33,9 +31,13 @@ export async function validateAndSaveSheetId(
   }
 
   // Inicializar hojas requeridas (crea las que falten, no toca las existentes)
-  await initializeSpreadsheet(trimmed, session.user.accessToken);
-  // Verificar autorización: si el sheet ya es un workspace compartido,
-  // el usuario debe ser admin global o estar registrado en Usuarios.
+  await initializeSpreadsheet(trimmed, session.user.accessToken, {
+    email: session.user.email ?? undefined,
+    name: session.user.name ?? undefined,
+    id: session.user.id ?? undefined,
+  });
+
+  // Verificar autorización: si el sheet ya es un workspace compartido
   const adminEmails = (process.env.ADMIN_EMAILS ?? process.env.ADMIN_EMAIL ?? "").split(",").map((e) => e.trim().toLowerCase());
   const userEmail = (session.user.email ?? "").toLowerCase();
   const isGlobalAdmin = adminEmails.includes(userEmail);
@@ -60,10 +62,6 @@ export async function validateAndSaveSheetId(
     }
   }
 
-
-  // Actualizar el JWT con el sheetId
-  // En NextAuth v5 la forma correcta es via update() desde el cliente,
-  // pero como alternativa guardamos en una cookie adicional segura.
   const cookieStore = cookies();
   if (isSharedWorkspace && !isGlobalAdmin) {
     cookieStore.set("ptime-is-shared-workspace", "true", {
@@ -107,8 +105,12 @@ export async function createAndConnectNewSheet(): Promise<{ success: boolean; ti
     // 1. Crear planilla nueva en Google Sheets API
     const sheetId = await createSpreadsheet(title, session.user.accessToken);
 
-    // 2. Inicializar hojas internas (Registros, Clientes, Proyectos, etc.)
-    await initializeSpreadsheet(sheetId, session.user.accessToken);
+    // 2. Inicializar hojas internas con el usuario creador registrado como owner
+    await initializeSpreadsheet(sheetId, session.user.accessToken, {
+      email: session.user.email ?? undefined,
+      name: session.user.name ?? undefined,
+      id: session.user.id ?? undefined,
+    });
 
     // 3. Guardar ID de planilla en cookie segura
     const cookieStore = cookies();
