@@ -3,7 +3,7 @@ import type { PricingConfig, Proyecto, RegistroHoras } from "@/types/entities";
 
 export type MonthFilter = "latest" | "previous" | "all";
 export type ClientFilter = "all" | string;
-type PricingSource = Pick<Proyecto, "precio_base" | "precio_alto" | "umbral_precio_alto">;
+type PricingSource = Pick<Proyecto, "precio_base" | "precio_alto" | "umbral_precio_alto" | "usar_tarifa_fija">;
 
 const round4 = (value: number) => Math.round(value * 10_000) / 10_000;
 const round2 = (value: number) => Math.round(value * 100) / 100;
@@ -28,6 +28,7 @@ function getPricingConfigForRecord(
     precioBase: pricing?.precio_base ?? fallbackConfig.precioBase,
     precioAlto: pricing?.precio_alto ?? fallbackConfig.precioAlto,
     umbralHoras: pricing?.umbral_precio_alto ?? fallbackConfig.umbralHoras,
+    usarTarifaFija: pricing?.usar_tarifa_fija || fallbackConfig.usarTarifaFija,
   };
 }
 

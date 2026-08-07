@@ -17,7 +17,8 @@ const ESTADO_BADGE: Record<string, string> = {
 
 const defaultForm = {
   nombre: "", cliente_id: "", presupuesto_horas: "",
-  precio_base: "35", precio_alto: "45", umbral_precio_alto: "20", estado: "activo",
+  precio_base: "35", precio_alto: "45", umbral_precio_alto: "20",
+  usar_tarifa_fija: false, estado: "activo",
 };
 
 import { useLocale } from "@/components/providers/LocaleProvider";
@@ -25,6 +26,7 @@ import { useLocale } from "@/components/providers/LocaleProvider";
 export default function ProyectosAdmin({ proyectos, clientes }: Props) {
   const router = useRouter();
   const { t, locale } = useLocale();
+  const isEn = locale === "en";
   const [sortKey, setSortKey] = useState<"nombre" | "cliente" | "presupuesto_horas" | "precio_base" | "precio_alto" | "estado">("nombre");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const sorted = useMemo(() => {
@@ -60,7 +62,7 @@ export default function ProyectosAdmin({ proyectos, clientes }: Props) {
   const [error, setError] = useState("");
   const [form, setForm] = useState(defaultForm);
 
-  function set(k: string, v: string) { setForm((f) => ({ ...f, [k]: v })); }
+  function set(k: string, v: any) { setForm((f) => ({ ...f, [k]: v })); }
 
   function openCreate() {
     setEditing(null);
@@ -75,7 +77,9 @@ export default function ProyectosAdmin({ proyectos, clientes }: Props) {
       nombre: p.nombre, cliente_id: p.cliente_id,
       presupuesto_horas: p.presupuesto_horas?.toString() ?? "",
       precio_base: p.precio_base.toString(), precio_alto: p.precio_alto.toString(),
-      umbral_precio_alto: p.umbral_precio_alto.toString(), estado: p.estado,
+      umbral_precio_alto: p.umbral_precio_alto.toString(),
+      usar_tarifa_fija: p.usar_tarifa_fija ?? false,
+      estado: p.estado,
     });
     setError("");
     setOpen(true);
@@ -89,6 +93,7 @@ export default function ProyectosAdmin({ proyectos, clientes }: Props) {
       precio_base: Number(form.precio_base),
       precio_alto: Number(form.precio_alto),
       umbral_precio_alto: Number(form.umbral_precio_alto),
+      usar_tarifa_fija: form.usar_tarifa_fija,
     };
     if (editing) {
       const res = await updateProyectoAction(editing.id, payload);
@@ -112,8 +117,6 @@ export default function ProyectosAdmin({ proyectos, clientes }: Props) {
     setDeleting(null);
     router.refresh();
   }
-
-  const isEn = locale === "en";
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in">
@@ -210,15 +213,54 @@ export default function ProyectosAdmin({ proyectos, clientes }: Props) {
                     {clientes.filter((c) => c.activo).map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
                   </select>
                 </Field>
+                {/* Toggle Usar siempre precio base */}
+                <div className="flex items-center justify-between p-3.5 bg-surface-low border border-outline-variant/30 rounded-xl">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs font-semibold text-on-surface">
+                      {isEn ? "Always use base price" : "Usar siempre precio base"}
+                    </span>
+                    <span className="text-[11px] text-on-surface-variant leading-tight">
+                      {isEn ? "Flat rate only. Disables high rate threshold." : "Tarifa fija única. Desactiva la tarifa alta por umbral."}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={form.usar_tarifa_fija}
+                    onClick={() => set("usar_tarifa_fija", !form.usar_tarifa_fija)}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      form.usar_tarifa_fija ? "bg-emerald-500" : "bg-outline-variant/50"
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                        form.usar_tarifa_fija ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                </div>
+
                 <div className="grid grid-cols-3 gap-3">
                   <Field label={isEn ? "Base $/h" : "$/h base"}>
                     <input type="number" className="input-field" value={form.precio_base} onChange={(e) => set("precio_base", e.target.value)} />
                   </Field>
                   <Field label={isEn ? "High $/h" : "$/h alto"}>
-                    <input type="number" className="input-field" value={form.precio_alto} onChange={(e) => set("precio_alto", e.target.value)} />
+                    <input
+                      type="number"
+                      disabled={form.usar_tarifa_fija}
+                      className={`input-field ${form.usar_tarifa_fija ? "opacity-40 cursor-not-allowed bg-surface-low" : ""}`}
+                      value={form.usar_tarifa_fija ? form.precio_base : form.precio_alto}
+                      onChange={(e) => set("precio_alto", e.target.value)}
+                    />
                   </Field>
                   <Field label={isEn ? "Threshold (h)" : "Umbral (h)"}>
-                    <input type="number" className="input-field" value={form.umbral_precio_alto} onChange={(e) => set("umbral_precio_alto", e.target.value)} />
+                    <input
+                      type="number"
+                      disabled={form.usar_tarifa_fija}
+                      className={`input-field ${form.usar_tarifa_fija ? "opacity-40 cursor-not-allowed bg-surface-low" : ""}`}
+                      value={form.usar_tarifa_fija ? "0" : form.umbral_precio_alto}
+                      onChange={(e) => set("umbral_precio_alto", e.target.value)}
+                    />
                   </Field>
                 </div>
                 <Field label={isEn ? "Hours Budget (optional)" : "Presupuesto de horas (opcional)"}>
