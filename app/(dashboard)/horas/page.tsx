@@ -15,71 +15,46 @@ export default async function HorasPage() {
   const locale = getLocale();
   const t = dashboardTranslations[locale];
 
-  try {
-    const ctx = await getPageCtx();
+  const ctx = await getPageCtx();
 
-    let registros, proyectos, tareas, clientes, config;
-    try {
-      [registros, proyectos, tareas, clientes, config] = await Promise.all([
-        getRegistrosHoras(ctx),
-        getProyectos(ctx),
-        getTareas(ctx),
-        getClientes(ctx, true),
-        getAppConfig(ctx),
-      ]);
-    } catch (err: any) {
-      return (
-        <div className="p-8 bg-red-50 text-red-900 rounded-lg border border-red-200">
-          <h2 className="text-xl font-bold mb-2">Error cargando los datos</h2>
-          <p className="mb-4">Ocurrió un error al consultar Google Sheets en producción.</p>
-          <pre className="bg-red-100 p-4 rounded text-sm overflow-auto">
-            {err?.message || String(err)}
-          </pre>
+  const [registros, proyectos, tareas, clientes, config] = await Promise.all([
+    getRegistrosHoras(ctx),
+    getProyectos(ctx),
+    getTareas(ctx),
+    getClientes(ctx, true),
+    getAppConfig(ctx),
+  ]);
+
+  const proyectosMap = Object.fromEntries(proyectos.map((p) => [p.id, p]));
+  const tareasMap = Object.fromEntries(tareas.map((t) => [t.id, t]));
+  const clientesMap = Object.fromEntries(clientes.map((c) => [c.id, c]));
+  const ordenados = [...registros].sort((a, b) => b.fecha.localeCompare(a.fecha));
+
+  return (
+    <div className="flex flex-col gap-8 animate-fade-in">
+      <div className="flex flex-col gap-4 justify-between md:flex-row md:items-center">
+        <div>
+          <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">
+            {t.myHoursTitle}
+          </h1>
+          <p className="mt-1 text-muted-foreground">
+            {t.myHoursSubtitle}
+          </p>
         </div>
-      );
-    }
-
-    const proyectosMap = Object.fromEntries(proyectos.map((p) => [p.id, p]));
-    const tareasMap = Object.fromEntries(tareas.map((t) => [t.id, t]));
-    const clientesMap = Object.fromEntries(clientes.map((c) => [c.id, c]));
-    const ordenados = [...registros].sort((a, b) => b.fecha.localeCompare(a.fecha));
-
-    return (
-      <div className="flex flex-col gap-8 animate-fade-in">
-        <div className="flex flex-col gap-4 justify-between md:flex-row md:items-center">
-          <div>
-            <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">
-              {t.myHoursTitle}
-            </h1>
-            <p className="mt-1 text-muted-foreground">
-              {t.myHoursSubtitle}
-            </p>
-          </div>
-          <Button asChild className="w-full shadow-md transition-all active:scale-95 md:w-auto">
-            <Link href="/horas/nuevo">
-              <Plus className="mr-2 h-4 w-4" /> {t.formTitleNew}
-            </Link>
-          </Button>
-        </div>
-
-        <HorasClientList
-          registros={ordenados}
-          proyectosMap={proyectosMap}
-          tareasMap={tareasMap}
-          clientesMap={clientesMap}
-          fallbackConfig={config}
-        />
+        <Button asChild className="w-full shadow-md transition-all active:scale-95 md:w-auto">
+          <Link href="/horas/nuevo">
+            <Plus className="mr-2 h-4 w-4" /> {t.formTitleNew}
+          </Link>
+        </Button>
       </div>
-    );
-  } catch (globalError) {
-    return (
-      <div className="p-8 m-8 bg-red-50 text-red-900 rounded-lg border border-red-200">
-        <h2 className="text-xl font-bold mb-2">Error Crítico</h2>
-        <p className="mb-4">Falló de forma imprevista la página de horas.</p>
-        <pre className="bg-red-100 p-4 rounded text-sm mt-4 overflow-auto">
-          {globalError instanceof Error ? globalError.message : String(globalError)}
-        </pre>
-      </div>
-    );
-  }
+
+      <HorasClientList
+        registros={ordenados}
+        proyectosMap={proyectosMap}
+        tareasMap={tareasMap}
+        clientesMap={clientesMap}
+        fallbackConfig={config}
+      />
+    </div>
+  );
 }

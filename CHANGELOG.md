@@ -5,6 +5,17 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.64.5] — 2026-08-07
+
+### Agregado y Corregido
+- **Nombres de Pestañas en Inglés en `initializeSpreadsheet`**:
+  - `initializeSpreadsheet` ahora crea pestañas utilizando las claves estandarizadas de `SHEET_NAMES` (`Hours_Logs`, `Projects`, `Clients`, `Tasks`, `Settings`, `Users`, `Workspace_Members`), asegurando que las planillas nuevas se creen 100% en inglés.
+- **Soporte de Tarifa Fija por Proyecto (`usar_tarifa_fija`)**:
+  - Agregado el selector "Usar siempre precio base" en el formulario de creación/edición de proyectos (`ProyectosAdmin.tsx`).
+  - Cuando la opción está activa, se deshabilitan la tarifa alta y el umbral de horas en la interfaz del proyecto, calculando todas las horas de dicho proyecto a la tarifa base.
+- **Corregido Manejo de Errores en `/horas`**:
+  - Eliminado try/catch local rígido en `HorasPage` para que los errores de planilla faltante se propaguen limpiamente hacia la redirección o hacia el Error Boundary global.
+
 ## [1.2.64.4] — 2026-08-07
 
 ### Corregido

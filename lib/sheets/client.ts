@@ -287,13 +287,13 @@ export async function initializeSpreadsheet(
   if (accessToken === LOCAL_DEV_ACCESS_TOKEN) return;
 
   const headers: Record<string, readonly string[]> = {
-    Registros_Horas: SHEET_HEADERS.REGISTROS_HORAS,
-    Proyectos: SHEET_HEADERS.PROYECTOS,
-    Clientes: SHEET_HEADERS.CLIENTES,
-    Tareas: SHEET_HEADERS.TAREAS,
-    Configuraciones: SHEET_HEADERS.CONFIGURACIONES,
-    Usuarios: SHEET_HEADERS.USUARIOS,
-    Workspace_Members: SHEET_HEADERS.WORKSPACE_MEMBERS,
+    [SHEET_NAMES.REGISTROS_HORAS]: SHEET_HEADERS.REGISTROS_HORAS,
+    [SHEET_NAMES.PROYECTOS]: SHEET_HEADERS.PROYECTOS,
+    [SHEET_NAMES.CLIENTES]: SHEET_HEADERS.CLIENTES,
+    [SHEET_NAMES.TAREAS]: SHEET_HEADERS.TAREAS,
+    [SHEET_NAMES.CONFIGURACIONES]: SHEET_HEADERS.CONFIGURACIONES,
+    [SHEET_NAMES.USUARIOS]: SHEET_HEADERS.USUARIOS,
+    [SHEET_NAMES.WORKSPACE_MEMBERS]: SHEET_HEADERS.WORKSPACE_MEMBERS,
   };
 
   const meta = await spreadsheetGet(spreadsheetId, accessToken, "sheets.properties");
@@ -303,8 +303,10 @@ export async function initializeSpreadsheet(
   const requests: Array<Record<string, unknown>> = [];
   const nuevas: string[] = [];
 
-  for (const nombre of Object.keys(headers)) {
-    if (!existentes.has(nombre)) {
+  for (const [nombre] of Object.entries(headers)) {
+    const fallbacks = TAB_FALLBACKS[nombre] ?? [nombre];
+    const alreadyExists = fallbacks.some((alt) => existentes.has(alt));
+    if (!alreadyExists) {
       requests.push({ addSheet: { properties: { title: nombre } } });
       nuevas.push(nombre);
     }

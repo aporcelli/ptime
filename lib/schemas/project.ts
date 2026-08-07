@@ -7,9 +7,10 @@ export const projectFormSchema = z.object({
   umbral_precio_alto: z.number().positive().default(20),
   precio_base:        z.number().positive().default(35),
   precio_alto:        z.number().positive().default(45),
+  usar_tarifa_fija:   z.boolean().optional().default(false),
   estado:             z.enum(["activo", "pausado", "cerrado"]).default("activo"),
 }).refine(
-  (d) => d.precio_alto > d.precio_base,
+  (d) => d.usar_tarifa_fija || d.precio_alto > d.precio_base,
   { message: "El precio alto debe ser mayor al precio base", path: ["precio_alto"] }
 );
 

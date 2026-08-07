@@ -41,6 +41,7 @@ export async function createProyectoAction(rawData: unknown): Promise<ActionResu
       umbral_precio_alto: clean.umbral_precio_alto ?? 20,
       precio_base: clean.precio_base ?? 35,
       precio_alto: clean.precio_alto ?? 45,
+      usar_tarifa_fija: clean.usar_tarifa_fija ?? false,
       estado: clean.estado,
       created_at: ts,
       updated_at: ts,
