@@ -22,26 +22,32 @@ export const SHEET_RANGES = {
   WORKSPACE_MEMBERS:  "Workspace_Members!A:F",
 } as const;
 
-// Encabezados de cada hoja (fila 1) — deben coincidir exactamente con el Spreadsheet
+// Encabezados de cada hoja (fila 1) — estandarizados en inglés
 export const SHEET_HEADERS = {
   REGISTROS_HORAS: [
-    "id", "proyecto_id", "tarea_id", "usuario_id", "fecha", "horas",
-    "descripcion", "precio_hora_aplicado", "monto_total", "estado",
-    "created_at", "updated_at", "cliente_id", "horas_trabajadas", "horas_a_cobrar",
+    "id", "project_id", "task_id", "user_id", "date", "hours",
+    "description", "applied_hourly_rate", "total_amount", "status",
+    "created_at", "updated_at", "client_id", "worked_hours", "billable_hours",
   ],
   PROYECTOS: [
-    "id", "nombre", "cliente_id", "presupuesto_horas", "horas_acumuladas",
-    "umbral_precio_alto", "precio_base", "precio_alto", "estado",
-    "created_at", "updated_at",
+    "id", "name", "client_id", "budget_hours", "accumulated_hours",
+    "high_rate_threshold", "base_rate", "high_rate", "status",
+    "created_at", "updated_at", "use_flat_rate",
   ],
   CLIENTES: [
-    "id", "nombre", "email", "telefono", "activo", "created_at", "updated_at",
+    "id", "name", "email", "phone", "active", "created_at", "updated_at",
   ],
   TAREAS: [
-    "id", "nombre", "categoria", "activa", "created_at", "horas_acumuladas",
+    "id", "name", "category", "active", "created_at", "accumulated_hours",
   ],
   CONFIGURACIONES: [
-    "clave", "valor", "updated_at",
+    "key", "value", "updated_at",
+  ],
+  USUARIOS: [
+    "id", "name", "email", "role", "active", "last_access", "sheet_id",
+  ],
+  WORKSPACE_MEMBERS: [
+    "email", "sheet_id", "role", "invited_by", "created_at", "updated_at",
   ],
 } as const;
 

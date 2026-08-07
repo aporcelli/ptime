@@ -9,7 +9,7 @@ import { appendLocalRow, clearLocalRow, getLocalRows, updateLocalRow } from "./l
 type Primitive = string | number | boolean;
 
 type SheetsGetResponse = {
-  sheets?: Array<{ properties?: { title?: string } }>;
+  sheets?: Array<{ properties?: { title?: string; sheetId?: number } }>;
   properties?: { title?: string };
 };
 
@@ -220,7 +220,11 @@ export async function validateSpreadsheet(
   }
 }
 
-export async function initializeSpreadsheet(spreadsheetId: string, accessToken: string): Promise<void> {
+export async function initializeSpreadsheet(
+  spreadsheetId: string,
+  accessToken: string,
+  userDetails?: { email?: string; name?: string; id?: string },
+): Promise<void> {
   if (accessToken === LOCAL_DEV_ACCESS_TOKEN) return;
 
   const headers: Record<string, readonly string[]> = {
@@ -229,12 +233,13 @@ export async function initializeSpreadsheet(spreadsheetId: string, accessToken: 
     Clientes: SHEET_HEADERS.CLIENTES,
     Tareas: SHEET_HEADERS.TAREAS,
     Configuraciones: SHEET_HEADERS.CONFIGURACIONES,
-    Usuarios: ["id", "nombre", "email", "rol", "activo", "ultimo_acceso", "sheet_id"],
-    Workspace_Members: ["email", "sheet_id", "rol", "invited_by", "created_at", "updated_at"],
+    Usuarios: SHEET_HEADERS.USUARIOS,
+    Workspace_Members: SHEET_HEADERS.WORKSPACE_MEMBERS,
   };
 
-  const meta = await spreadsheetGet(spreadsheetId, accessToken, "sheets.properties.title");
-  const existentes = new Set((meta.sheets ?? []).map((s) => s.properties?.title ?? ""));
+  const meta = await spreadsheetGet(spreadsheetId, accessToken, "sheets.properties");
+  const existingSheets = meta.sheets ?? [];
+  const existentes = new Set(existingSheets.map((s) => s.properties?.title ?? ""));
 
   const requests: Array<Record<string, unknown>> = [];
   const nuevas: string[] = [];
@@ -243,6 +248,20 @@ export async function initializeSpreadsheet(spreadsheetId: string, accessToken: 
     if (!existentes.has(nombre)) {
       requests.push({ addSheet: { properties: { title: nombre } } });
       nuevas.push(nombre);
+    }
+  }
+
+  // Detectar y eliminar la hoja en blanco por defecto ("Hoja 1", "Sheet1")
+  const defaultSheets = existingSheets.filter((s) => {
+    const t = s.properties?.title ?? "";
+    return t === "Hoja 1" || t === "Hoja1" || t === "Sheet1" || t === "Sheet 1";
+  });
+
+  if (defaultSheets.length > 0 && (requests.length > 0 || existentes.size > defaultSheets.length)) {
+    for (const ds of defaultSheets) {
+      if (ds.properties?.sheetId !== undefined) {
+        requests.push({ deleteSheet: { sheetId: ds.properties.sheetId } });
+      }
     }
   }
 
@@ -258,16 +277,37 @@ export async function initializeSpreadsheet(spreadsheetId: string, accessToken: 
     }
   }
 
+  const now = new Date().toISOString();
+
   if (nuevas.includes("Configuraciones")) {
-    const now = new Date().toISOString();
     const defaults: Primitive[][] = [
-      ["precio_base_global", "35", now],
-      ["precio_alto_global", "45", now],
-      ["umbral_horas_global", "20", now],
-      ["moneda", "USD", now],
-      ["nombre_empresa", "Ptime", now],
+      ["base_rate_global", "35", now],
+      ["high_rate_global", "45", now],
+      ["threshold_hours_global", "20", now],
+      ["use_flat_rate_global", "false", now],
+      ["currency", "USD", now],
+      ["company_name", "Ptime", now],
     ];
     await valuesAppend(spreadsheetId, accessToken, "Configuraciones!A2", defaults, "RAW", "INSERT_ROWS");
+  }
+
+  // Registrar automáticamente al usuario creador/owner en Workspace_Members y Usuarios
+  if (userDetails?.email) {
+    const emailNorm = userDetails.email.trim().toLowerCase();
+    const nameNorm = userDetails.name || emailNorm.split("@")[0];
+    const userId = userDetails.id || emailNorm;
+
+    if (nuevas.includes("Workspace_Members")) {
+      await valuesAppend(spreadsheetId, accessToken, "Workspace_Members!A2", [
+        [emailNorm, spreadsheetId, "OWNER", emailNorm, now, now],
+      ], "RAW", "INSERT_ROWS");
+    }
+
+    if (nuevas.includes("Usuarios")) {
+      await valuesAppend(spreadsheetId, accessToken, "Usuarios!A2", [
+        [userId, nameNorm, emailNorm, "ADMIN", "true", now, spreadsheetId],
+      ], "RAW", "INSERT_ROWS");
+    }
   }
 }
 

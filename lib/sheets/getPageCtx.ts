@@ -4,6 +4,7 @@ import { auth }     from "@/auth";
 import { cookies, headers }  from "next/headers";
 import { redirect } from "next/navigation";
 import { getLocalDevAccessContext, getRequestUrlFromHeaders } from "@/lib/env/dev-access";
+import { upsertUserRecord } from "@/app/actions/users";
 
 export interface SheetCtx {
   sheetId:     string;
@@ -38,6 +39,14 @@ export async function getPageCtx(): Promise<SheetCtx> {
   }
 
   const accessToken = session.user.accessToken;
+
+  // Registrar / actualizar datos de acceso del usuario en la pestaña Usuarios
+  if (session.user.email) {
+    const userEmail = session.user.email;
+    const userName = session.user.name || userEmail.split("@")[0];
+    const userId = session.user.id || userEmail;
+    upsertUserRecord({ id: userId, nombre: userName, email: userEmail, sheetId }, { sheetId, accessToken }).catch(() => {});
+  }
 
   return { sheetId, accessToken };
 }

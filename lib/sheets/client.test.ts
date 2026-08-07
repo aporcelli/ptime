@@ -14,7 +14,7 @@ describe("mergeSheetHeaders", () => {
 
     expect(merged).toHaveLength(15);
     expect(merged.slice(0, legacy.length)).toEqual(legacy);
-    expect(merged.slice(13)).toEqual(["horas_trabajadas", "horas_a_cobrar"]);
+    expect(merged.slice(13)).toEqual(["worked_hours", "billable_hours"]);
   });
 
   it("fills blank header cells but preserves custom non-empty legacy names", () => {
