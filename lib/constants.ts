@@ -4,21 +4,23 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const SHEET_NAMES = {
-  REGISTROS_HORAS:    "Registros_Horas",
-  PROYECTOS:          "Proyectos",
-  CLIENTES:           "Clientes",
-  TAREAS:             "Tareas",
-  CONFIGURACIONES:    "Configuraciones",
+  REGISTROS_HORAS:    "Hours_Logs",
+  PROYECTOS:          "Projects",
+  CLIENTES:           "Clients",
+  TAREAS:             "Tasks",
+  CONFIGURACIONES:    "Settings",
+  USUARIOS:           "Users",
   WORKSPACE_MEMBERS:  "Workspace_Members",
 } as const;
 
 // Rangos de columnas por hoja (A:O = todas las columnas relevantes)
 export const SHEET_RANGES = {
-  REGISTROS_HORAS:    "Registros_Horas!A:O",
-  PROYECTOS:          "Proyectos!A:K",
-  CLIENTES:           "Clientes!A:G",
-  TAREAS:             "Tareas!A:G",
-  CONFIGURACIONES:    "Configuraciones!A:C",
+  REGISTROS_HORAS:    "Hours_Logs!A:O",
+  PROYECTOS:          "Projects!A:L",
+  CLIENTES:           "Clients!A:G",
+  TAREAS:             "Tasks!A:G",
+  CONFIGURACIONES:    "Settings!A:C",
+  USUARIOS:           "Users!A:G",
   WORKSPACE_MEMBERS:  "Workspace_Members!A:F",
 } as const;
 

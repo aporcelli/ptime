@@ -26,11 +26,18 @@ const cloneStore = (source: Record<string, Row[]>) => Object.fromEntries(
 const store: Record<string, Row[]> = cloneStore(initialStore);
 
 const sheetNameToRange: Record<string, string> = {
+  Clients: SHEET_RANGES.CLIENTES,
   Clientes: SHEET_RANGES.CLIENTES,
+  Projects: SHEET_RANGES.PROYECTOS,
   Proyectos: SHEET_RANGES.PROYECTOS,
+  Tasks: SHEET_RANGES.TAREAS,
   Tareas: SHEET_RANGES.TAREAS,
+  Hours_Logs: SHEET_RANGES.REGISTROS_HORAS,
   Registros_Horas: SHEET_RANGES.REGISTROS_HORAS,
+  Settings: SHEET_RANGES.CONFIGURACIONES,
   Configuraciones: SHEET_RANGES.CONFIGURACIONES,
+  Users: SHEET_RANGES.USUARIOS,
+  Usuarios: SHEET_RANGES.USUARIOS,
   Workspace_Members: SHEET_RANGES.WORKSPACE_MEMBERS,
 };
 
