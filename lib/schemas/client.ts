@@ -12,10 +12,11 @@ export type ClientFormData = z.infer<typeof clientFormSchema>;
 
 // lib/schemas/config.ts (inlined here for brevity)
 export const configSchema = z.object({
-  precioBase:   z.number().positive(),
-  precioAlto:   z.number().positive(),
-  umbralHoras:  z.number().positive(),
+  precioBase:     z.number().positive(),
+  precioAlto:     z.number().positive(),
+  umbralHoras:    z.number().positive(),
+  usarTarifaFija: z.boolean().default(false),
 }).refine(
-  (d) => d.precioAlto > d.precioBase,
+  (d) => d.usarTarifaFija || d.precioAlto > d.precioBase,
   { message: "precio_alto debe ser mayor que precio_base", path: ["precioAlto"] }
 );

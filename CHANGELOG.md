@@ -5,6 +5,15 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.64] — 2026-08-07
+
+### Agregado
+- **Modo Tarifa Fija (Solo Precio Base)**:
+  - Nueva opción en Configuración para forzar el cobro siempre a Tarifa Base ignorando umbrales mensuales y tarifa alta.
+  - Implementado cuadro de confirmación (Modal Dialog) al activar/desactivar el modo explicativo del recálculo dinámico de horas en borrador/confirmadas.
+- **Mejora del Copys de la Landing Page**:
+  - Actualizado el texto principal para explicitar el registro de horas, gestión de proyectos y liquidación de clientes manteniendo la soberanía de datos en Google Sheets.
+
 ## [1.2.63.5] — 2026-08-05
 
 ### Corregido

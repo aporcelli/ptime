@@ -43,6 +43,7 @@ export interface Proyecto {
   umbral_precio_alto: number;  // default: 20
   precio_base: number;         // default: 35
   precio_alto: number;         // default: 45
+  usar_tarifa_fija?: boolean;  // opcional: si true, ignora precio alto y umbral
   estado: ProyectoEstado;
   created_at: string;
   updated_at: string;
@@ -84,6 +85,7 @@ export interface PricingConfig {
   precioBase: number;
   precioAlto: number;
   umbralHoras: number;
+  usarTarifaFija?: boolean;
 }
 
 export interface AppConfig extends PricingConfig {
