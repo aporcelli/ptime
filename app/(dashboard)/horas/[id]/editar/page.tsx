@@ -4,7 +4,7 @@ import { getTareas, getProyectos, getClientes, getRegistrosHoras, getAppConfig, 
 import { getPageCtx } from "@/lib/sheets/getPageCtx";
 import { auth } from "@/auth";
 import HorasForm from "@/components/forms/HorasForm";
-import { getMonthlyWorkedHoursAccumulated } from "@/lib/hours/accounting";
+import { getAccumulatedWorkedHoursUpTo } from "@/lib/hours/accounting";
 
 import { getLocale } from "@/lib/locale";
 import { dashboardTranslations } from "@/lib/dashboard-i18n";
@@ -77,7 +77,7 @@ export default async function EditarHoraPage({ params }: { params: { id: string 
     // Mes de la fecha original
     const mes = registro.fecha.slice(0, 7);
     // Restamos el registro actual para no sumarlo 2 veces en el acumulado previo del mes
-    const horasAcumuladasMes = getMonthlyWorkedHoursAccumulated(registrosMes, mes, registro.id);
+    const horasAcumuladasMes = getAccumulatedWorkedHoursUpTo(registrosMes, mes, registro.fecha, registro.id);
 
     return (
       <div className="max-w-2xl mx-auto animate-fade-in">

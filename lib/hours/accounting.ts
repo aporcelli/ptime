@@ -44,3 +44,30 @@ export function getMonthlyWorkedHoursAccumulated(
       .reduce((sum, record) => sum + record.horas, 0),
   );
 }
+
+/**
+ * Acumulado mensual respetando la POSICIÓN CRONOLÓGICA del registro.
+ *
+ * Solo suma registros del mismo mes con fecha ESTRICTAMENTE anterior a
+ * `referenceDate`. Evita que el tramo base/alta de un registro se calcule
+ * con horas cargadas DESPUÉS de su fecha (bug de recálculo al editar
+ * registros viejos o al hacer backfill de fechas pasadas).
+ */
+export function getAccumulatedWorkedHoursUpTo(
+  records: MonthlyWorkedHourSnapshot[],
+  month: string,
+  referenceDate: string,
+  excludedRecordId?: string,
+): number {
+  const referenceDay = String(referenceDate ?? "").slice(0, 10);
+  return round4(
+    records
+      .filter((record) => record.fecha.startsWith(month))
+      .filter((record) => !excludedRecordId || record.id !== excludedRecordId)
+      .filter((record) => {
+        const recordDay = String(record.fecha ?? "").slice(0, 10);
+        return recordDay < referenceDay;
+      })
+      .reduce((sum, record) => sum + record.horas, 0),
+  );
+}

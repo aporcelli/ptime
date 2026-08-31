@@ -132,7 +132,7 @@ export async function PUT(req: NextRequest) {
     const {
       calculateProjectHourAdjustments,
       applyProjectHourDelta,
-      getMonthlyWorkedHoursAccumulated,
+      getAccumulatedWorkedHoursUpTo,
     } = await import("@/lib/hours/accounting");
 
     stage = "load-current-registro";
@@ -155,7 +155,7 @@ export async function PUT(req: NextRequest) {
     if (pricingSensitiveChanged) {
       const mes = data.fecha.slice(0, 7);
       const registrosMes = await getRegistrosHoras(ctx, { usuarioId });
-      const horasAcumuladasMes = getMonthlyWorkedHoursAccumulated(registrosMes, mes, id);
+      const horasAcumuladasMes = getAccumulatedWorkedHoursUpTo(registrosMes, mes, data.fecha, id);
 
       const proyecto = await getProyectoById(ctx, data.proyecto_id);
       const precioBase = proyecto?.precio_base ?? 35;

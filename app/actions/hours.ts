@@ -12,7 +12,7 @@ import { sanitize }          from "@/lib/utils/sanitize";
 import { generateUUID }      from "@/lib/utils/index";
 import type { ActionResult, HoraEstado, RegistroHoras } from "@/types/entities";
 import { actionDone, actionError, validationError } from "@/lib/actions/result";
-import { applyProjectHourDelta, calculateProjectHourAdjustments, getMonthlyWorkedHoursAccumulated } from "@/lib/hours/accounting";
+import { applyProjectHourDelta, calculateProjectHourAdjustments, getAccumulatedWorkedHoursUpTo } from "@/lib/hours/accounting";
 import { getLocalDevUser, getRequestUrlFromHeaders } from "@/lib/env/dev-access";
 import { saveHourFromActionInput } from "@/lib/hours/save-flow";
 import { getEligibleInvoiceRecordIds } from "@/lib/hours/monthly";
@@ -119,7 +119,7 @@ export async function updateHourAction(id: string, rawData: unknown): Promise<Ac
     if (pricingSensitiveChanged) {
       const mes = data.fecha.slice(0, 7);
       const registrosMes = await getRegistrosHoras(ctx, { usuarioId });
-      const horasAcumuladasMes = getMonthlyWorkedHoursAccumulated(registrosMes, mes, id);
+      const horasAcumuladasMes = getAccumulatedWorkedHoursUpTo(registrosMes, mes, data.fecha, id);
       const pricingConfig = await getPricingConfigForProject(data.proyecto_id);
       const recalculated = calculateHoursAmount(data.horas, horasAcumuladasMes, pricingConfig);
       horasTrabajadas = recalculated.horasTrabajadas;

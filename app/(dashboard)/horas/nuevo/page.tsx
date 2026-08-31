@@ -3,7 +3,7 @@ import { getTareas, getProyectos, getClientes, getRegistrosHoras, getAppConfig }
 import { getPageCtx }    from "@/lib/sheets/getPageCtx";
 import { auth }          from "@/auth";
 import HorasForm         from "@/components/forms/HorasForm";
-import { getMonthlyWorkedHoursAccumulated } from "@/lib/hours/accounting";
+import { getAccumulatedWorkedHoursUpTo } from "@/lib/hours/accounting";
 
 import { getLocale } from "@/lib/locale";
 import { dashboardTranslations } from "@/lib/dashboard-i18n";
@@ -45,7 +45,7 @@ export default async function NuevaHoraPage() {
   const proyectos = todosProyectos.filter(p => p.estado === "activo");
 
   // Acumulado mensual global: todas las horas del usuario en el mes actual
-  const horasAcumuladasMes = getMonthlyWorkedHoursAccumulated(registrosMes, mesActual);
+  const horasAcumuladasMes = getAccumulatedWorkedHoursUpTo(registrosMes, mesActual, new Date().toISOString().split("T")[0]);
 
   return (
     <div className="max-w-2xl mx-auto animate-fade-in">

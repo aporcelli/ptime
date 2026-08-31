@@ -8,7 +8,7 @@ import { getProyectoById, getRegistrosHoras, getTareaById } from "@/lib/sheets/q
 import { createRegistroHoras, updateProyectoHorasAcumuladas, updateTareaHorasAcumuladas } from "@/lib/sheets/mutations";
 import { generateUUID } from "@/lib/utils/index";
 import type { ActionResult } from "@/types/entities";
-import { getMonthlyWorkedHoursAccumulated } from "@/lib/hours/accounting";
+import { getAccumulatedWorkedHoursUpTo } from "@/lib/hours/accounting";
 
 type ActionUser = { id?: string | null; email?: string | null };
 
@@ -35,7 +35,7 @@ export async function saveHourFromActionInput(rawData: unknown, options: SaveHou
 
     const mes = data.fecha.slice(0, 7);
     const registrosMes = await getRegistrosHoras(options.ctx, { usuarioId });
-    const horasAcumuladasMes = getMonthlyWorkedHoursAccumulated(registrosMes, mes);
+    const horasAcumuladasMes = getAccumulatedWorkedHoursUpTo(registrosMes, mes, data.fecha);
 
     const pricingConfig = options.getPricingConfig
       ? await options.getPricingConfig(data.proyecto_id)

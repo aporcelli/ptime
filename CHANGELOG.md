@@ -5,6 +5,15 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.65.6] — 2026-08-31
+
+### Corregido
+- **Bug de recálculo de pricing al editar registros viejos**: el acumulado mensual para calcular el tramo base/alta se calculaba con la suma de TODO el mes (o todo menos el editado), sin respetar la fecha del registro. Al editar un registro de fecha anterior cuando el mes ya tenía más horas, se re-preciaba a tarifa alta con un acumulado que no le correspondía.
+- **Nueva función `getAccumulatedWorkedHoursUpTo`** en `lib/hours/accounting.ts`: el acumulado previo de un registro ahora es la suma de horas de los registros del mismo mes con fecha estrictamente anterior a la suya (posición cronológica real). Aplicada en creación (`save-flow.ts`), edición (`app/actions/hours.ts`), API PUT (`app/api/horas/route.ts`) y previews (`horas/nuevo` y `horas/[id]/editar`).
+
+### Añadido
+- **Skill `ptime-pricing-audit`**: guía permanente para auditar montos, horas y costos con la lógica oficial de Ptime (umbral global por usuario, redondeos, recalculos y acceso al sheet).
+
 ## [1.2.64.6] — 2026-08-07
 
 ### Corregido

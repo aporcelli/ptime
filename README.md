@@ -65,10 +65,15 @@ npm run build        # Production build
 
 ## Billing Rules
 
-- First **N hours** (configurable, default 20) per project/month: **base rate**
-- After N hours: **premium rate**
-- Base tier fractions round to **0.5h**; premium tier fractions round to **next full hour**
+- **Threshold: 20h per month per user (global, not per project)** — configurable
+- Up to 20h accumulated: **base rate** ($35 default)
+- After 20h: **premium rate** ($45 default)
+- Base tier fractions round to **0.5h** (ceil); premium tier fractions round to **next full hour** (ceil)
+- Records crossing the threshold: base portion rounds to 0.5h, premium portion rounds to full hour
 - `horas_trabajadas` = actual hours; `horas_a_cobrar` = billable hours after rounding
+- The accumulated hours for a record = sum of the same month's records with a **date strictly before** its own date (position in the month), so editing an old record never re-prices it with later hours (`getAccumulatedWorkedHoursUpTo`)
+
+See the `ptime-pricing-audit` skill for the full audit procedure.
 
 ## Deployment (Vercel)
 
