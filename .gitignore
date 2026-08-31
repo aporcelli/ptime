@@ -40,3 +40,7 @@ build.log
 .atl/
 ptime/
 tsconfig.tsbuildinfo
+
+# Local agent runtime state (Pi / subagents)
+.pi/
+.pi-subagents/
