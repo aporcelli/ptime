@@ -127,6 +127,7 @@ See the `ptime-pricing-audit` skill for the full audit procedure.
 
 - [CHANGELOG.md](./CHANGELOG.md) — Full version history since v1.2.11
 - [docs/GUARDRAILS.md](./docs/GUARDRAILS.md) — Developer pre-commit checklist
+- [docs/skills/ptime-pricing-audit.md](./docs/skills/ptime-pricing-audit.md) — Pricing audit skill (threshold, rounding, recalcs, sheet access)
 - [docs/gcp-verification-response.md](./docs/gcp-verification-response.md) — Google OAuth verification correspondence
 
 ## License
