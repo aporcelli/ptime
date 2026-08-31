@@ -103,7 +103,9 @@ npm run build        # 🏗️ Production build
 
 ## 💰 Billing Rules — How Pricing Works
 
-Ptime uses a **tiered monthly pricing model**, global per user:
+Ptime supports **two pricing modes** per project, plus editable per-record rates:
+
+### 1️⃣ Tiered Pricing (default)
 
 | Rule | Detail |
 |---|---|
@@ -112,7 +114,29 @@ Ptime uses a **tiered monthly pricing model**, global per user:
 | 🚀 **After 20h** | **Premium rate** ($45 default) — fractions round to **next full hour** (ceil) |
 | 🔀 **Crossing the threshold** | Base portion rounds to 0.5h; premium portion rounds to full hour |
 
-### 📐 Example
+### 2️⃣ Flat Rate (single price, no threshold)
+
+When **Flat Rate** is enabled for a project, the tiered logic is bypassed
+entirely: **every hour is billed at a single rate** (the base rate), with no
+20h threshold and no premium tier.
+
+- 🔘 Toggle: **Projects → edit → Flat Rate** (`usar_tarifa_fija`)
+- 🧮 Every record: `horas × base_rate`, fractions round to **0.5h**
+- ✅ Ideal for fixed-price retainers, support plans, or any client where you
+  don't want the base/premium split
+
+### 3️⃣ Editable Rates Per Record
+
+Every time entry stores its own **applied rate** and **total amount**
+(`applied_hourly_rate` + `total_amount` columns in `Registros_Horas`).
+
+- ✏️ You can **edit rates and amounts directly in the sheet** — the app
+  respects persisted values when rendering reports (`hasPersistedBilling`)
+- 🔄 Edits that change **hours, date, or project** trigger a recalculation with
+  the official logic; edits to description/status only **keep the existing
+  pricing**
+
+### 📐 Example — Tiered Crossing
 
 > Accumulated **19h** + new record of **2.5h**:
 >

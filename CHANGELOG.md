@@ -11,6 +11,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 ### Añadido
 - **Script de auditoría de pricing `scripts/audit-pricing.ts`**: herramienta oficial para auditar montos, horas y costos de cualquier mes/año contra la lógica de negocio (umbral 20h/mes global por usuario, base $35 redondeo 0.5h, alta $45 redondeo 1h, posición cronológica). Lee del sheet vía gws, reporta inconsistencias (fila, id, valores actuales vs esperados, desglose) y puede corregir con `--fix` (requiere aprobación). Ejecutable con `npm run audit:pricing`.
 - **Skill `ptime-pricing-audit` actualizado**: referencia al script oficial como primer paso (no recalcular a mano), procedimiento, acceso al sheet y casos de referencia.
+- **README: documentados los 3 modos de tarifa** — pricing por tramos (umbral 20h base/premium), tarifa plana por proyecto (`usar_tarifa_fija`, una sola tarifa sin umbral) y tarifas editables por registro (valores persistidos respetados).
 
 ## [1.2.65.6] — 2026-08-31
 
