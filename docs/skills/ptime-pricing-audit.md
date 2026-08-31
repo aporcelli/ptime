@@ -20,7 +20,8 @@ existe y hace todo el trabajo:
 
 ```bash
 cd /home/porche/git-repos/ptime
-export GOOGLE_WORKSPACE_PROJECT_ID=PTIME_GWS_PROJECT_PLACEHOLDER
+export GOOGLE_WORKSPACE_PROJECT_ID=<GWS_PROJECT_ID>   # del entorno local, NO del repo
+export PTIME_SHEET_ID=<SPREADSHEET_ID>                # del entorno local, NO del repo
 
 # Reporte del mes actual
 npx tsx scripts/audit-pricing.ts
@@ -29,7 +30,7 @@ npx tsx scripts/audit-pricing.ts
 npx tsx scripts/audit-pricing.ts --month 2026-08
 
 # Filtrar por usuario
-npx tsx scripts/audit-pricing.ts --month 2026-08 --user owner@example.com
+npx tsx scripts/audit-pricing.ts --month 2026-08 --user tu@email.com
 
 # Solo reportar qué se corregiría (sin escribir)
 npx tsx scripts/audit-pricing.ts --month 2026-08 --dry-run
@@ -39,6 +40,10 @@ npx tsx scripts/audit-pricing.ts --month 2026-08 --fix
 ```
 
 También disponible como: `npm run audit:pricing -- --month 2026-08`
+
+**Los valores reales de `PTIME_SHEET_ID` y `GOOGLE_WORKSPACE_PROJECT_ID`
+viven en el entorno local del usuario (shell profile, .env local, o como el
+usuario los tenga configurados). NUNCA hardcodearlos ni commitearlos.**
 
 El script lee `Registros_Horas!A:O` y `Proyectos!A:J` vía gws, calcula con la
 lógica oficial (posición cronológica) y reporta:
@@ -85,10 +90,9 @@ mismo mes con fecha ESTRICTAMENTE anterior a la fecha del registro**
 
 ## Datos del sheet (para referencia / escritura manual)
 
-- Sheet oficial: **ptime_db**
-- Spreadsheet ID: `PTIME_SHEET_ID_PLACEHOLDER`
-- Acceso: `gws` autenticado como `owner@example.com`
-- Env: `GOOGLE_WORKSPACE_PROJECT_ID=PTIME_GWS_PROJECT_PLACEHOLDER`
+- Sheet oficial: **ptime_db** — los valores de spreadsheet ID y project ID se
+  obtienen del entorno local (ver sección de uso arriba). NO están en el repo.
+- Acceso: `gws` autenticado con la cuenta del workspace.
 - Comando lectura: `gws sheets +read --spreadsheet <ID> --range "Registros_Horas!A:O" --format json`
 - Comando escritura: `gws sheets spreadsheets values update --params '{"spreadsheetId":"<ID>","range":"Registros_Horas!H<FILA>","valueInputOption":"USER_ENTERED"}' --json '{"values":[[35]]}' --format json`
 

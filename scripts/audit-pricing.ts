@@ -7,13 +7,13 @@
  * Uso:
  *   npx tsx scripts/audit-pricing.ts                     # mes actual
  *   npx tsx scripts/audit-pricing.ts --month 2026-08     # mes específico
- *   npx tsx scripts/audit-pricing.ts --month 2026-08 --user owner@example.com
+ *   npx tsx scripts/audit-pricing.ts --month 2026-08 --user tu@email.com
  *   npx tsx scripts/audit-pricing.ts --month 2026-08 --dry-run   # solo reporte
  *   npx tsx scripts/audit-pricing.ts --month 2026-08 --fix       # corrige en el sheet
  *
  * Requisitos:
- *   - gws autenticado como owner@example.com (gws auth status)
- *   - GOOGLE_WORKSPACE_PROJECT_ID=PTIME_GWS_PROJECT_PLACEHOLDER en el entorno
+ *   - gws autenticado con la cuenta del workspace (gws auth status)
+ *   - GOOGLE_WORKSPACE_PROJECT_ID en el entorno (project de GWS con acceso al sheet)
  *   - Acceso al sheet ptime_db (spreadsheet ID hardcodeado abajo)
  *
  * LÓGICA DE NEGOCIO (única y oficial):
@@ -28,8 +28,16 @@
 import { execSync } from "child_process";
 
 // ── Configuración ────────────────────────────────────────────────────────────
-const SHEET_ID = process.env.PTIME_SHEET_ID ?? "PTIME_SHEET_ID_PLACEHOLDER";
-const PROJECT_ID = process.env.GOOGLE_WORKSPACE_PROJECT_ID ?? "PTIME_GWS_PROJECT_PLACEHOLDER";
+const SHEET_ID = process.env.PTIME_SHEET_ID ?? "";
+const PROJECT_ID = process.env.GOOGLE_WORKSPACE_PROJECT_ID ?? "";
+
+if (!SHEET_ID || !PROJECT_ID) {
+  console.error("Faltan variables de entorno:");
+  console.error("  PTIME_SHEET_ID=<spreadsheet id>");
+  console.error("  GOOGLE_WORKSPACE_PROJECT_ID=<gws project id>");
+  console.error("Copialas de tu entorno local (NO hardcodear en el repo).");
+  process.exit(1);
+}
 const TAB_REGISTROS = "Registros_Horas";
 const TAB_PROYECTOS = "Proyectos";
 
