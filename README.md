@@ -75,6 +75,34 @@ npm run build        # Production build
 
 See the `ptime-pricing-audit` skill for the full audit procedure.
 
+## Pricing Audit Tool
+
+Quickly check that hours, billable hours, and amounts in the sheet match the
+official pricing logic for any month:
+
+```bash
+# Report for the current month
+npm run audit:pricing
+
+# Specific month
+npm run audit:pricing -- --month 2026-08
+
+# Dry-run: show what would be corrected (no writes)
+npm run audit:pricing -- --month 2026-08 --dry-run
+
+# Apply corrections (requires explicit user approval)
+npm run audit:pricing -- --month 2026-08 --fix
+```
+
+- Requires `gws` authenticated with the workspace account and
+  `GOOGLE_WORKSPACE_PROJECT_ID=PTIME_GWS_PROJECT_PLACEHOLDER` in the environment.
+- Reads `Registros_Horas` + `Proyectos` directly from the sheet, recomputes
+  every record with the official logic (chronological accumulation), and reports
+  totals plus per-record discrepancies (row, id, sheet vs expected, breakdown).
+- Never writes without `--fix`, and `--fix` always requires user approval.
+- Source: `scripts/audit-pricing.ts`. Full procedure in the
+  `ptime-pricing-audit` skill (`docs/skills/ptime-pricing-audit.md`).
+
 ## Deployment (Vercel)
 
 1. Import repo in Vercel
