@@ -9,6 +9,7 @@ function getErrorStatus(error: unknown): number {
   if (error instanceof Error && error.message === "NO_SESSION") return 401;
   if (error instanceof Error && error.message === "NO_SHEET_CONFIGURED") return 428;
   if (error instanceof Error && error.message === "SHEET_CONTEXT_MISMATCH") return 403;
+  if (error instanceof Error && error.message === "REGISTRO_NOT_FOUND") return 404;
   return 500;
 }
 
@@ -16,7 +17,8 @@ function getPublicError(error: unknown, fallback: string): string {
   if (error instanceof Error && (
     error.message === "NO_SESSION" ||
     error.message === "NO_SHEET_CONFIGURED" ||
-    error.message === "SHEET_CONTEXT_MISMATCH"
+    error.message === "SHEET_CONTEXT_MISMATCH" ||
+    error.message === "REGISTRO_NOT_FOUND"
   )) {
     return error.message;
   }
@@ -77,15 +79,12 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  let stage = "init";
   try {
-    stage = "auth";
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ success: false, error: "No autenticado" }, { status: 401 });
     }
 
-    stage = "parse-body";
     const body = await req.json();
     const { id, sheetId, ...rawData } = body ?? {};
 
@@ -93,119 +92,28 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ success: false, error: "ID inválido" }, { status: 400 });
     }
 
-    stage = "import-schema";
     const { hourFormSchema } = await import("@/lib/schemas/hour");
     const parsed = hourFormSchema.safeParse(rawData);
     if (!parsed.success) {
       return NextResponse.json({ success: false, error: "Datos inválidos", fieldErrors: parsed.error.flatten().fieldErrors }, { status: 400 });
     }
 
-    stage = "build-ctx";
     const ctx = buildSheetCtxFromRequest(session, req, sheetId);
-    const data = parsed.data;
     const usuarioId = session.user.email ?? session.user.id;
-
     if (!usuarioId) {
       return NextResponse.json({ success: false, error: "No autenticado" }, { status: 401 });
     }
 
-    stage = "import-queries";
-    const {
-      getProyectoById,
-      getRegistroById,
-      getRegistrosHoras,
-    } = await import("@/lib/sheets/queries");
-
-    stage = "import-mutations";
-    const {
-      updateRegistroHoras,
-      updateProyectoHorasAcumuladas,
-    } = await import("@/lib/sheets/mutations");
-
-    stage = "import-sanitize";
-    const { sanitize } = await import("@/lib/utils/sanitize");
-
-    stage = "import-pricing";
-    const { calculateHoursAmount } = await import("@/lib/pricing/calculateHoursAmount");
-
-    stage = "import-accounting";
-    const {
-      calculateProjectHourAdjustments,
-      applyProjectHourDelta,
-      getAccumulatedWorkedHoursUpTo,
-    } = await import("@/lib/hours/accounting");
-
-    stage = "load-current-registro";
-    const currentRegistro = await getRegistroById(ctx, id);
-    if (!currentRegistro) {
-      return NextResponse.json({ success: false, error: "Registro no encontrado" }, { status: 404 });
-    }
-
-    const normalizeDate = (value: string) => String(value ?? "").slice(0, 10);
-    const pricingSensitiveChanged =
-      currentRegistro.proyecto_id !== data.proyecto_id ||
-      normalizeDate(currentRegistro.fecha) !== normalizeDate(data.fecha) ||
-      Number(currentRegistro.horas) !== Number(data.horas);
-
-    let horasTrabajadas = currentRegistro.horas_trabajadas ?? currentRegistro.horas;
-    let horasACobrar = currentRegistro.horas_a_cobrar ?? currentRegistro.horas;
-    let precioAplicado = currentRegistro.precio_hora_aplicado;
-    let montoTotal = currentRegistro.monto_total;
-
-    if (pricingSensitiveChanged) {
-      const mes = data.fecha.slice(0, 7);
-      const registrosMes = await getRegistrosHoras(ctx, { usuarioId });
-      const horasAcumuladasMes = getAccumulatedWorkedHoursUpTo(registrosMes, mes, data.fecha, id);
-
-      const proyecto = await getProyectoById(ctx, data.proyecto_id);
-      const precioBase = proyecto?.precio_base ?? 35;
-      const precioAlto = proyecto?.precio_alto ?? 45;
-      const umbralHoras = proyecto?.umbral_precio_alto ?? 20;
-
-      const recalculated = calculateHoursAmount(data.horas, horasAcumuladasMes, { precioBase, precioAlto, umbralHoras });
-      horasTrabajadas = recalculated.horasTrabajadas;
-      horasACobrar = recalculated.horasACobrar;
-      precioAplicado = recalculated.precioAplicado;
-      montoTotal = recalculated.montoTotal;
-    }
-
-    stage = "update-registro";
-    await updateRegistroHoras(ctx, id, {
-      cliente_id: data.cliente_id,
-      proyecto_id: data.proyecto_id,
-      tarea_id: data.tarea_id,
-      fecha: data.fecha,
-      horas: data.horas,
-      horas_trabajadas: horasTrabajadas,
-      horas_a_cobrar: horasACobrar,
-      descripcion: sanitize(data.descripcion),
-      precio_hora_aplicado: precioAplicado,
-      monto_total: montoTotal,
-      estado: data.estado,
-    });
-
-    stage = "update-proyecto-hours";
-    for (const adjustment of calculateProjectHourAdjustments(currentRegistro, data)) {
-      const p = await getProyectoById(ctx, adjustment.proyectoId);
-      if (p) {
-        await updateProyectoHorasAcumuladas(
-          ctx,
-          adjustment.proyectoId,
-          applyProjectHourDelta(p.horas_acumuladas, adjustment.deltaHoras),
-        );
-      }
-    }
+    // Lógica unificada en lib/hours/service.ts (recálculo + ajustes de proyecto/tarea)
+    const { updateHourRecord } = await import("@/lib/hours/service");
+    await updateHourRecord(ctx, id, parsed.data, usuarioId);
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[api/horas PUT]", { stage, error });
-    const status = getErrorStatus(error);
-    const publicError = getPublicError(error, "Error al actualizar");
-    const debugCode = `PUT_${stage.toUpperCase().replace(/[^A-Z0-9]+/g, "_")}`;
-    const debugMessage = error instanceof Error ? error.message : String(error);
+    console.error("[api/horas PUT]", error);
     return NextResponse.json(
-      { success: false, error: publicError, debugCode, debugMessage: status === 500 ? debugMessage : undefined },
-      { status },
+      { success: false, error: getPublicError(error, "Error al actualizar") },
+      { status: getErrorStatus(error) },
     );
   }
 }

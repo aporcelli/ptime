@@ -4,7 +4,18 @@ Todos los cambios notables del proyecto están documentados en este archivo.
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
----
+
+## [1.2.67.6] — 2026-08-31
+
+### Corregido
+- **Bug: tarifa fija ignorada en la API PUT de horas**: `app/api/horas/route.ts` construía la config de pricing a mano sin incluir `usarTarifaFija`, por lo que editar horas vía API en un proyecto con tarifa plana aplicaba el pricing por tramos incorrectamente. Ahora la lógica está unificada en `lib/hours/service.ts` y siempre respeta la tarifa plana.
+- **Bug: API PUT no ajustaba horas acumuladas de tareas**: la ruta API omitía los ajustes de tarea (cambio de tarea / delta de horas) que sí hacía el Server Action. Unificado.
+
+### Refactorizado
+- **Capa de servicio única para horas** (`lib/hours/service.ts`): nueva fuente de verdad con `resolvePricingConfig` (incluye tarifa fija), `updateHourRecord` (recálculo por posición cronológica + ajustes de proyecto/tarea) y `deleteHourRecord`. `app/actions/hours.ts` pasó de 234→129 líneas y `app/api/horas/route.ts` de 211→119 — controladores delgados que delegan en el service. Sin cambios en contratos públicos ni en la UI.
+
+### Añadido
+- **Tests del service** (`lib/hours/service.test.ts`): cobertura de tarifa plana (fix), recálculo por posición cronológica, no-recalculo en ediciones de descripción y `REGISTRO_NOT_FOUND`. 77 tests totales.
 
 ## [1.2.66.6] — 2026-08-31
 
