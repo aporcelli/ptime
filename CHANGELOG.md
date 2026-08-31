@@ -5,6 +5,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.68.6] — 2026-08-31
+
+### Refactorizado
+- **HorasForm descompuesto en hook + componentes presentacionales**: `components/forms/HorasForm.tsx` pasó de 541→162 líneas (contenedor orquestador). Lógica extraída a `hooks/useHorasForm.ts` (estado, cálculo reactivo de preview, submit con fallback API, modales de creación rápida) y vista dividida en `components/forms/horas/HorasFormFields.tsx`, `PricingPreviewCard.tsx` y `QuickCreateModals.tsx`. Sin cambios en la UI ni en los contratos.
+
+### Añadido
+- **`hooks/useHorasForm.ts`**: custom hook con toda la lógica de formulario y cálculo reactivo (preview de tarifa en vivo, reset de proyecto al cambiar cliente, creación rápida de cliente/proyecto/tarea, submit con fallback a `/api/horas` en errores RSC).
+
 ## [1.2.67.6] — 2026-08-31
 
 ### Corregido
