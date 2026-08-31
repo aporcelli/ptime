@@ -13,6 +13,41 @@ description: >-
 Lógica de negocio de precios de Ptime y cómo auditar registros contra ella.
 **NO aplicar criterio propio: usar SIEMPRE esta lógica.**
 
+## 🚀 LO PRIMERO: ejecutar el script de auditoría
+
+**NO generar código nuevo ni recalcular en Python.** El script oficial ya
+existe y hace todo el trabajo:
+
+```bash
+cd /home/porche/git-repos/ptime
+export GOOGLE_WORKSPACE_PROJECT_ID=PTIME_GWS_PROJECT_PLACEHOLDER
+
+# Reporte del mes actual
+npx tsx scripts/audit-pricing.ts
+
+# Mes específico (acepta --month YYYY-MM o --month=YYYY-MM)
+npx tsx scripts/audit-pricing.ts --month 2026-08
+
+# Filtrar por usuario
+npx tsx scripts/audit-pricing.ts --month 2026-08 --user owner@example.com
+
+# Solo reportar qué se corregiría (sin escribir)
+npx tsx scripts/audit-pricing.ts --month 2026-08 --dry-run
+
+# Corregir en el sheet (SOLO con aprobación explícita del usuario)
+npx tsx scripts/audit-pricing.ts --month 2026-08 --fix
+```
+
+También disponible como: `npm run audit:pricing -- --month 2026-08`
+
+El script lee `Registros_Horas!A:O` y `Proyectos!A:J` vía gws, calcula con la
+lógica oficial (posición cronológica) y reporta:
+- Totales: horas cargadas, horas facturables (base + alta), monto esperado vs sheet
+- Inconsistencias: fila, id, valores actuales vs esperados, desglose del cálculo
+- Modo `--fix`: corrige solo las celdas necesarias (H rate, I monto, O billable, L updated_at)
+
+**El script SOLO escribe con `--fix`, y eso exige aprobación del usuario antes.**
+
 ## Regla de negocio (única y oficial)
 
 - **Umbral: 20 horas por MES por USUARIO** (acumulado GLOBAL, no por proyecto).
@@ -44,31 +79,18 @@ mismo mes con fecha ESTRICTAMENTE anterior a la fecha del registro**
 1. **Separar por proyecto**: el umbral es GLOBAL por usuario/mes, nunca por proyecto.
 2. **Usar acumulado histórico total del proyecto** (134–139h): todo queda a tarifa alta.
 3. **Usar todo el mes al editar un registro viejo**: bug v1.2.64.x que re-preciaba
-   registros del 05-08 con el acumulado del 07-08 (fix: `getAccumulatedWorkedHoursUpTo`).
+   registros del 05-08 con el acumulado del 07-08 (fix v1.2.65.6: `getAccumulatedWorkedHoursUpTo`).
 4. **`hasPersistedBilling`**: `repriceMonthlyRecords` respeta registros con
    `horas_trabajadas`, `horas_a_cobrar` y `monto_total > 0` persistidos — no los recalcula.
 
-## Cómo auditar un mes (procedimiento)
+## Datos del sheet (para referencia / escritura manual)
 
-1. Leer `Registros_Horas!A:O` y `Proyectos!A:J` del sheet oficial.
-2. El sheet oficial es `ptime_db`:
-   - Spreadsheet ID: `PTIME_SHEET_ID_PLACEHOLDER`
-   - Acceso: `gws` autenticado como `owner@example.com`
-   - Env: `GOOGLE_WORKSPACE_PROJECT_ID=PTIME_GWS_PROJECT_PLACEHOLDER`
-   - Comando: `gws sheets +read --spreadsheet <ID> --range "Registros_Horas!A:O" --format json`
-3. Filtrar registros del mes (`fecha.startsWith("YYYY-MM")`).
-4. Ordenar por `created_at` (orden real de carga) o por fecha.
-5. Para cada registro, acumular globalmente (todos los proyectos juntos) y aplicar:
-   - `t1 = min(max(20 - acumulado_previo, 0), horas)`
-   - `t2 = horas - t1`
-   - `h1 = ceil(t1 * 2) / 2` (base, redondeo 0.5)
-   - `h2 = ceil(t2)` (alta, redondeo 1h)
-   - `monto = h1 × base + h2 × alta`
-   - tarifa aplicada = alta si `t2 > 0`, si no base
-6. Comparar con columnas del sheet: `H` (applied_hourly_rate), `I` (total_amount),
-   `N` (worked_hours), `O` (billable_hours).
-7. Los registros con `updated_at != created_at` fueron EDITADOS — revisar si la
-   edición recalculó con posición correcta.
+- Sheet oficial: **ptime_db**
+- Spreadsheet ID: `PTIME_SHEET_ID_PLACEHOLDER`
+- Acceso: `gws` autenticado como `owner@example.com`
+- Env: `GOOGLE_WORKSPACE_PROJECT_ID=PTIME_GWS_PROJECT_PLACEHOLDER`
+- Comando lectura: `gws sheets +read --spreadsheet <ID> --range "Registros_Horas!A:O" --format json`
+- Comando escritura: `gws sheets spreadsheets values update --params '{"spreadsheetId":"<ID>","range":"Registros_Horas!H<FILA>","valueInputOption":"USER_ENTERED"}' --json '{"values":[[35]]}' --format json`
 
 ## Columnas de Registros_Horas
 
@@ -80,29 +102,15 @@ K=created_at, L=updated_at, M=client_id, N=worked_hours, O=billable_hours
 
 ## Archivos clave del código
 
+- `scripts/audit-pricing.ts` — script oficial de auditoría (usar SIEMPRE primero)
 - `lib/hours/accounting.ts` — `getAccumulatedWorkedHoursUpTo` (acumulado por fecha)
 - `lib/pricing/calculateHoursAmount.ts` — cálculo marginal base/alta con redondeos
 - `lib/hours/save-flow.ts` — creación de registro
 - `app/actions/hours.ts` + `app/api/horas/route.ts` — edición (recalcula solo si cambian proyecto/fecha/horas)
 - `lib/hours/monthly.ts` — `repriceMonthlyRecords` (respeta `hasPersistedBilling`)
 
-## Cómo corregir un registro en el sheet
-
-Usar `gws sheets spreadsheets values update`:
-
-```bash
-export GOOGLE_WORKSPACE_PROJECT_ID=PTIME_GWS_PROJECT_PLACEHOLDER
-gws sheets spreadsheets values update \
-  --params '{"spreadsheetId":"PTIME_SHEET_ID_PLACEHOLDER","range":"Registros_Horas!H<FILA>","valueInputOption":"USER_ENTERED"}' \
-  --json '{"values":[[35]]}' --format json
-```
-
-Actualizar SOLO las celdas necesarias (H rate, I monto, O billable, L updated_at).
-**Pedir aprobación al usuario antes de escribir en el sheet.**
-
 ## Referencia del caso real (agosto 2026)
 
 - 89h cargadas → 95h facturables (redondeos alta) → $4,075.00
 - Base: 20h × $35 = $700 · Alta: 75h × $45 = $3,375
-- Registro corregido: 05-08 Impl (2h → rate 35, billable 2, monto $70)
-- Registro corregido: 06-08 Admin (monto $97.50 → $107.50)
+- Meses verificados sin inconsistencias: abril, mayo, junio, julio, agosto 2026
