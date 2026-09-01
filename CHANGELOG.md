@@ -5,6 +5,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.64.14] — 2026-08-31
+
+### Corregido
+- **Período por defecto en Reportes con zona horaria del usuario**: el default de "este mes" se calculaba con `new Date()` en UTC (runtime de Vercel). Entre las 21:00–24:00 del último día del mes (horario de Argentina), UTC ya está en el mes siguiente → Reportes mostraba septiembre cuando aún era 31 de agosto. Ahora el cliente detecta su zona con `Intl.DateTimeFormat().resolvedOptions().timeZone`, la guarda en la cookie `ptime-tz`, y el server calcula "hoy"/"este mes" con esa zona — correcto para cualquier país.
+- **Aplicado también en horas/nuevo**: el mes actual y la fecha de referencia del formulario usan la zona del usuario.
+- **Nuevo helper `lib/utils/date.ts`** (`todayLocal`, `currentMonthLocal`, `startOfCurrentMonthLocal`) con `date-fns-tz`.
+
+
 ## [1.2.64.13] — 2026-08-31
 
 ### Corregido

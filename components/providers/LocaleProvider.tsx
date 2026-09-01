@@ -16,6 +16,13 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("es");
 
   useEffect(() => {
+    // Sincronizar la zona horaria del usuario con el server (cookie ptime-tz)
+    // para que "hoy"/"este mes" en reportes y horas usen la zona local de cada usuario.
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (tz) document.cookie = `ptime-tz=${tz}; path=/; max-age=${365 * 24 * 60 * 60}`;
+    } catch {}
+
     const saved = localStorage.getItem("ptime-locale") as Locale | null;
     if (saved === "en" || saved === "es") {
       setLocaleState(saved);

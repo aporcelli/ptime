@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getRegistrosHoras, getProyectos, getTareas, getAppConfig, getClientes } from "@/lib/sheets/queries";
 import { getPageCtx } from "@/lib/sheets/getPageCtx";
 import { formatCurrency, formatDateShort, formatHours, formatMonthYearLabel, formatPeriodLabel } from "@/lib/utils/index";
-import { format, startOfMonth } from "date-fns";
+import { format } from "date-fns";
 import IngresosLineChart from "@/components/charts/IngresosLineChart";
 import HorasPorProyecto from "@/components/charts/HorasPorProyecto";
 import TareasPieChart from "@/components/charts/TareasPieChart";
@@ -15,7 +15,8 @@ import type { HoraEstado } from "@/types/entities";
 import { DataPanel, MetricCard, PageShell, SectionCard } from "@/components/ui/structure";
 import { repriceMonthlyRecords } from "@/lib/hours/monthly";
 
-import { getLocale } from "@/lib/locale";
+import { getLocale, getUserTimeZone } from "@/lib/locale";
+import { startOfCurrentMonthLocal, todayLocal } from "@/lib/utils/date";
 import { dashboardTranslations } from "@/lib/dashboard-i18n";
 
 export const metadata: Metadata = { title: "Reportes" };
@@ -28,8 +29,9 @@ export default async function ReportesPage({
   const locale = getLocale();
   const t = dashboardTranslations[locale];
   const ctx = await getPageCtx();
-  const defaultFechaDesde = format(startOfMonth(new Date()), "yyyy-MM-dd");
-  const defaultFechaHasta = format(new Date(), "yyyy-MM-dd");
+  const timeZone = getUserTimeZone();
+  const defaultFechaDesde = startOfCurrentMonthLocal(timeZone);
+  const defaultFechaHasta = todayLocal(timeZone);
 
   const fechaDesde = searchParams.fechaDesde ?? defaultFechaDesde;
   const fechaHasta = searchParams.fechaHasta ?? defaultFechaHasta;

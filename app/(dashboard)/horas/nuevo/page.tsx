@@ -4,6 +4,8 @@ import { getPageCtx }    from "@/lib/sheets/getPageCtx";
 import { auth }          from "@/auth";
 import HorasForm         from "@/components/forms/HorasForm";
 import { getAccumulatedWorkedHoursUpTo } from "@/lib/hours/accounting";
+import { getUserTimeZone } from "@/lib/locale";
+import { currentMonthLocal, todayLocal } from "@/lib/utils/date";
 
 import { getLocale } from "@/lib/locale";
 import { dashboardTranslations } from "@/lib/dashboard-i18n";
@@ -18,7 +20,8 @@ export default async function NuevaHoraPage() {
   const usuarioId = session?.user?.email ?? session?.user?.id ?? "";
 
   // Mes actual para calcular el acumulado mensual global del usuario
-  const mesActual = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+  const timeZone = getUserTimeZone();
+  const mesActual = currentMonthLocal(timeZone); // "YYYY-MM" (zona del usuario)
 
   let clientes, tareas, todosProyectos, config, registrosMes;
   try {
@@ -45,7 +48,7 @@ export default async function NuevaHoraPage() {
   const proyectos = todosProyectos.filter(p => p.estado === "activo");
 
   // Acumulado mensual global: todas las horas del usuario en el mes actual
-  const horasAcumuladasMes = getAccumulatedWorkedHoursUpTo(registrosMes, mesActual, new Date().toISOString().split("T")[0]);
+  const horasAcumuladasMes = getAccumulatedWorkedHoursUpTo(registrosMes, mesActual, todayLocal(timeZone));
 
   return (
     <div className="max-w-2xl mx-auto animate-fade-in">

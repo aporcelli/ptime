@@ -1,6 +1,6 @@
 {
   "name": "ptime",
-  "version": "1.2.64.13",
+  "version": "1.2.64.14",
   "private": true,
   "engines": {
     "node": "24.x"
@@ -36,6 +36,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
+    "date-fns-tz": "^3.2.0",
     "echarts": "^6.1.0",
     "echarts-for-react": "^3.0.6",
     "framer-motion": "^11.18.2",
