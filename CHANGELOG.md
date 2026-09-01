@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.69.6] — 2026-08-31
+
+### Corregido
+- **Google Picker robusto ante bloqueos de red/ad blocker**: `public/picker.html` ahora reintenta la carga del script de Google (3 intentos con backoff), usa timeout de 20s, y muestra instrucciones de pegado manual de URL SIEMPRE cuando falla. También distingue el diagnóstico: el error "Failed to load Google API script" suele ser un ad blocker (uBlock/AdBlock/Privacy Badger) bloqueando `apis.google.com`, no un problema de conexión.
+- **Manejo del error de sesión del Picker**: se captura `google.picker.Action.ERROR` con mensaje claro si el token de acceso expiró (situación típica tras inactividad: la app pide reconectar porque el token de Google venció).
+
 ## [1.2.68.6] — 2026-08-31
 
 ### Refactorizado

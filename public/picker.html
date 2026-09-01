@@ -7,7 +7,7 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0b1020; color: #e2e8f0; font-family: system-ui, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; }
-    .box { text-align: center; max-width: 340px; padding: 24px; }
+    .box { text-align: center; max-width: 380px; padding: 24px; }
     h2 { font-size: 16px; margin-bottom: 8px; }
     p { font-size: 13px; color: #94a3b8; margin-bottom: 12px; line-height: 1.5; }
     .spinner { width: 32px; height: 32px; border: 3px solid #1e293b; border-top-color: #10b981; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; display: block; }
@@ -16,6 +16,18 @@
     .text-destructive { color: #ef4444; }
     .text-muted-foreground { color: #64748b; }
     .py-2 { padding-top: 8px; padding-bottom: 8px; }
+    .btn {
+      display: inline-block; margin-top: 8px; padding: 10px 16px; border-radius: 8px;
+      background: #10b981; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
+      border: none; text-decoration: none;
+    }
+    .btn.secondary { background: #334155; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .code-box {
+      margin-top: 10px; padding: 10px; background: #0f172a; border: 1px solid #1e293b;
+      border-radius: 8px; font-family: monospace; font-size: 11px; color: #94a3b8;
+      word-break: break-all; text-align: left; max-height: 120px; overflow-y: auto;
+    }
   </style>
 </head>
 <body>
@@ -26,52 +38,89 @@
     <div id="error-container" class="py-2" style="display: none;">
       <p id="error-msg" class="text-xs text-destructive"></p>
     </div>
+    <div id="manual-container" style="display: none;">
+      <button id="btn-retry" class="btn" type="button">Retry loading</button>
+      <button id="btn-manual" class="btn secondary" type="button">Paste URL manually</button>
+      <div id="manual-box" class="code-box" style="display: none;"></div>
+    </div>
   </div>
 
   <script>
     var params = new URLSearchParams(window.location.search);
     var token = params.get("token");
     var key = params.get("key");
-    var fileId = params.get("fileId") || null;
 
     var $title = document.getElementById("status-title");
     var $subtitle = document.getElementById("status-subtitle");
-    var $status = document.getElementById("status");
     var $errorMsg = document.getElementById("error-msg");
     var $errorContainer = document.getElementById("error-container");
     var $spinner = document.getElementById("spinner-loader");
+    var $manualContainer = document.getElementById("manual-container");
+    var $btnRetry = document.getElementById("btn-retry");
+    var $btnManual = document.getElementById("btn-manual");
+    var $manualBox = document.getElementById("manual-box");
 
-    function showError(msg) {
+    var attempts = 0;
+    var MAX_ATTEMPTS = 3;
+
+    function showError(msg, showManual) {
       $spinner.style.display = "none";
       $title.textContent = "Error";
       $subtitle.textContent = msg;
       $errorContainer.style.display = "block";
-      $errorMsg.textContent = "Please close this window and use the manual URL paste option.";
+      $errorMsg.textContent = msg;
+      if (showManual !== false) {
+        $manualContainer.style.display = "block";
+      }
     }
 
     function log(msg) { console.log(msg); }
 
-    function init() {
-      log("Step 1: validating parameters…");
-      if (!token || !key) {
-        showError("Missing OAuth token or API key. Please re-login.");
-        return;
-      }
+    // Copiar la URL del sheet al portapapeles y mostrarla para pegado manual
+    function buildManualHint() {
+      var url = "https://docs.google.com/spreadsheets";
+      $manualBox.textContent = "1) Abrí https://docs.google.com/spreadsheets\n2) Copiá el link del sheet (Compartir → Copiar link)\n3) Pegalo en el campo de Setup de Ptime";
+      $manualBox.style.display = "block";
+      $btnManual.textContent = "Hide instructions";
+      log("[Picker] manual fallback shown");
+    }
 
-      log("Step 2: loading Google API script…");
+    $btnRetry.addEventListener("click", function() {
+      $manualContainer.style.display = "none";
+      $errorContainer.style.display = "none";
+      $spinner.style.display = "block";
+      $title.textContent = "Loading Google Picker…";
+      $subtitle.textContent = "Connecting securely with Google Drive.";
+      attempts = 0;
+      loadGapi();
+    });
+
+    $btnManual.addEventListener("click", function() {
+      if ($manualBox.style.display === "none") {
+        buildManualHint();
+      } else {
+        $manualBox.style.display = "none";
+        $btnManual.textContent = "Paste URL manually";
+      }
+    });
+
+    function loadGapi() {
+      log("Step 2: loading Google API script (attempt " + (attempts + 1) + ")…");
       var script = document.createElement("script");
       script.src = "https://apis.google.com/js/api.js";
+      script.async = true;
 
       var loadTimeout = setTimeout(function() {
-        showError("Google API script timed out (15s). Check your connection or disable ad blockers.");
-      }, 15000);
+        log("[Picker] timeout waiting for gapi");
+        handleLoadFailure("Google API script timed out (20s). This is usually an ad blocker or network issue blocking apis.google.com.");
+      }, 20000);
 
       script.onload = function() {
         clearTimeout(loadTimeout);
         log("Step 3: loading Picker module…");
 
         if (!window.gapi || !window.gapi.load) {
-          showError("gapi not available after script load.");
+          handleLoadFailure("gapi not available after script load.");
           return;
         }
 
@@ -102,6 +151,9 @@
                 } else if (data.action === google.picker.Action.CANCEL) {
                   localStorage.setItem("ptime-picker-result", JSON.stringify({ cancelled: true }));
                   window.close();
+                } else if (data.action === google.picker.Action.ERROR) {
+                  console.error("[Picker] Error action:", data);
+                  showError("Google Picker error: " + (data.error?.message || "unknown error. Your session token may have expired — close and try again."), true);
                 }
               });
 
@@ -113,17 +165,42 @@
             }
           },
           onerror: function() {
-            showError("Failed to load Picker module.");
+            handleLoadFailure("Failed to load Picker module. This is usually an ad blocker or network issue blocking Google APIs.");
           }
         });
       };
 
       script.onerror = function() {
         clearTimeout(loadTimeout);
-        showError("Failed to load Google API script. Check your internet connection.");
+        handleLoadFailure("Failed to load Google API script. This is usually an ad blocker or network issue blocking apis.google.com.");
       };
 
       document.head.appendChild(script);
+    }
+
+    function handleLoadFailure(msg) {
+      attempts++;
+      if (attempts < MAX_ATTEMPTS) {
+        log("[Picker] retrying… (" + attempts + "/" + MAX_ATTEMPTS + ")");
+        var delay = 1000 * attempts;
+        setTimeout(function() {
+          $spinner.style.display = "block";
+          loadGapi();
+        }, delay);
+        return;
+      }
+      log("[Picker] giving up after " + MAX_ATTEMPTS + " attempts");
+      showError(msg, true);
+      $subtitle.textContent = "Ad blockers (uBlock, AdBlock, Privacy Badger) often block apis.google.com. Disable it for this site, or use the manual URL paste option below.";
+    }
+
+    function init() {
+      log("Step 1: validating parameters…");
+      if (!token || !key) {
+        showError("Missing OAuth token or API key. Please re-login.", false);
+        return;
+      }
+      loadGapi();
     }
 
     init();
