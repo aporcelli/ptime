@@ -5,6 +5,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.64.17] — 2026-08-31
+
+### Corregido
+- **Picker simplificado**: eliminado el botón "List my sheets (API direct)" que se había agregado sin ser solicitado. El picker queda con Retry loading + Paste URL manually únicamente.
+- **Botón "Sign out" fijo en Setup**: movido a posición absoluta (arriba a la derecha) para que sea siempre visible, incluso cuando el selector de idioma ocupa todo el ancho. Permite salir de `/setup` sin depender del Picker.
+
+
 ## [1.2.64.16] — 2026-08-31
 
 ### Corregido

@@ -22,7 +22,6 @@
       border: none; text-decoration: none;
     }
     .btn.secondary { background: #334155; }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .code-box {
       margin-top: 10px; padding: 10px; background: #0f172a; border: 1px solid #1e293b;
       border-radius: 8px; font-family: monospace; font-size: 11px; color: #94a3b8;
@@ -40,14 +39,8 @@
     </div>
     <div id="manual-container" style="display: none;">
       <button id="btn-retry" class="btn" type="button">Retry loading</button>
-      <button id="btn-list" class="btn secondary" type="button">📋 List my sheets (API direct)</button>
       <button id="btn-manual" class="btn secondary" type="button">Paste URL manually</button>
       <div id="manual-box" class="code-box" style="display: none;"></div>
-    </div>
-    <div id="list-container" style="display: none; text-align: left; margin-top: 12px;">
-      <p class="text-xs text-muted-foreground" style="margin-bottom: 8px;">Select a spreadsheet to connect:</p>
-      <div id="list-box" class="code-box" style="max-height: 240px;"></div>
-      <p id="list-error" class="text-xs text-destructive" style="display: none; margin-top: 8px;"></p>
     </div>
   </div>
 
@@ -64,59 +57,7 @@
     var $manualContainer = document.getElementById("manual-container");
     var $btnRetry = document.getElementById("btn-retry");
     var $btnManual = document.getElementById("btn-manual");
-    var $btnList = document.getElementById("btn-list");
     var $manualBox = document.getElementById("manual-box");
-    var $listContainer = document.getElementById("list-container");
-    var $listBox = document.getElementById("list-box");
-    var $listError = document.getElementById("list-error");
-
-    // ── Fallback: listar sheets vía Drive API directa (sin gapi) ────────────
-    async function listSheetsViaApi() {
-      $listError.style.display = "none";
-      $listBox.innerHTML = "Loading your spreadsheets…";
-      $listContainer.style.display = "block";
-      try {
-        var res = await fetch("https://www.googleapis.com/drive/v3/files?q=mimeType='application/vnd.google-apps.spreadsheet'&fields=files(id,name)&pageSize=50&orderBy=modifiedTime desc", {
-          headers: { Authorization: "Bearer " + token }
-        });
-        if (!res.ok) {
-          var err = await res.json().catch(function(){ return {}; });
-          var msg = err.error ? (err.error.message || "API error") : ("HTTP " + res.status);
-          if (res.status === 401 || res.status === 403) {
-            msg = "Tu token expiró o no tiene permisos. Cerrá esta ventana, hacé logout y volvé a iniciar sesión.";
-          }
-          throw new Error(msg);
-        }
-        var data = await res.json();
-        var files = data.files || [];
-        if (files.length === 0) {
-          $listBox.innerHTML = '<p class="text-xs text-muted-foreground">No se encontraron spreadsheets en tu cuenta. Creá uno o compartilo.</p>';
-          return;
-        }
-        $listBox.innerHTML = "";
-        files.forEach(function(file) {
-          var row = document.createElement("button");
-          row.type = "button";
-          row.textContent = "📄 " + (file.name || "Untitled");
-          row.style.cssText = "display:block;width:100%;text-align:left;padding:8px 10px;margin:4px 0;border-radius:6px;background:#1e293b;color:#e2e8f0;font-size:12px;cursor:pointer;border:1px solid #334155;";
-          row.addEventListener("click", function() {
-            localStorage.setItem("ptime-picker-result", JSON.stringify({ fileId: file.id, fileName: file.name || "Untitled" }));
-            window.close();
-          });
-          $listBox.appendChild(row);
-        });
-      } catch (e) {
-        $listError.style.display = "block";
-        $listError.textContent = e.message || "Error al listar sheets.";
-        $listBox.innerHTML = "";
-      }
-    }
-
-    $btnList.addEventListener("click", function() {
-      $manualBox.style.display = "none";
-      $btnManual.textContent = "Paste URL manually";
-      listSheetsViaApi();
-    });
 
     var attempts = 0;
     var MAX_ATTEMPTS = 3;
@@ -134,15 +75,6 @@
 
     function log(msg) { console.log(msg); }
 
-    // Copiar la URL del sheet al portapapeles y mostrarla para pegado manual
-    function buildManualHint() {
-      var url = "https://docs.google.com/spreadsheets";
-      $manualBox.textContent = "1) Abrí https://docs.google.com/spreadsheets\n2) Copiá el link del sheet (Compartir → Copiar link)\n3) Pegalo en el campo de Setup de Ptime";
-      $manualBox.style.display = "block";
-      $btnManual.textContent = "Hide instructions";
-      log("[Picker] manual fallback shown");
-    }
-
     $btnRetry.addEventListener("click", function() {
       $manualContainer.style.display = "none";
       $errorContainer.style.display = "none";
@@ -155,7 +87,9 @@
 
     $btnManual.addEventListener("click", function() {
       if ($manualBox.style.display === "none") {
-        buildManualHint();
+        $manualBox.textContent = "1) Abrí https://docs.google.com/spreadsheets\n2) Copiá el link del sheet (Compartir → Copiar link)\n3) Pegalo en el campo de Setup de Ptime";
+        $manualBox.style.display = "block";
+        $btnManual.textContent = "Hide instructions";
       } else {
         $manualBox.style.display = "none";
         $btnManual.textContent = "Paste URL manually";
@@ -170,7 +104,7 @@
 
       var loadTimeout = setTimeout(function() {
         log("[Picker] timeout waiting for gapi");
-        handleLoadFailure("Google API script timed out (20s). This is usually an ad blocker or network issue blocking apis.google.com.");
+        handleLoadFailure("Google API script timed out (20s). Check your connection.");
       }, 20000);
 
       script.onload = function() {
@@ -223,14 +157,14 @@
             }
           },
           onerror: function() {
-            handleLoadFailure("Failed to load Picker module. This is usually an ad blocker or network issue blocking Google APIs.");
+            handleLoadFailure("Failed to load Picker module. Check your connection or disable ad blockers.");
           }
         });
       };
 
       script.onerror = function() {
         clearTimeout(loadTimeout);
-        handleLoadFailure("Failed to load Google API script. This is usually an ad blocker or network issue blocking apis.google.com.");
+        handleLoadFailure("Failed to load Google API script. Check your connection or disable ad blockers.");
       };
 
       document.head.appendChild(script);
@@ -240,16 +174,14 @@
       attempts++;
       if (attempts < MAX_ATTEMPTS) {
         log("[Picker] retrying… (" + attempts + "/" + MAX_ATTEMPTS + ")");
-        var delay = 1000 * attempts;
         setTimeout(function() {
           $spinner.style.display = "block";
           loadGapi();
-        }, delay);
+        }, 1000 * attempts);
         return;
       }
       log("[Picker] giving up after " + MAX_ATTEMPTS + " attempts");
       showError(msg, true);
-      $subtitle.textContent = "Ad blockers (uBlock, AdBlock, Privacy Badger) often block apis.google.com. Disable it for this site, or use the manual URL paste option below.";
     }
 
     function init() {
