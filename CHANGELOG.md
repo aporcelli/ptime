@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.64.16] — 2026-08-31
+
+### Corregido
+- **Botón "Sign out" en la pantalla de Setup**: cuando el Google Picker falla (ad blocker/red), el usuario quedaba atrapado en `/setup` sin forma de desconectarse — la única salida era pegar la URL del sheet manualmente. Ahora hay un botón de cerrar sesión junto al selector de idioma que vuelve al login.
+
+
 ## [1.2.64.15] — 2026-08-31
 
 ### Corregido

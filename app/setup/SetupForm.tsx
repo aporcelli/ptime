@@ -5,6 +5,7 @@ import { useState }      from "react";
 import { useRouter }     from "next/navigation";
 import { motion }     from "framer-motion";
 import { validateAndSaveSheetId, createAndConnectNewSheet } from "@/app/actions/setup";
+import { signOut } from "next-auth/react";
 import GoogleSheetPicker from "@/components/GoogleSheetPicker";
 import { useEffect, useCallback } from "react";
 import { onboardingTranslations, type Locale } from "@/lib/onboarding-i18n";
@@ -284,7 +285,17 @@ export default function SetupForm({ sharedSheetId, initialError }: { sharedSheet
 
   return (
     <div className="flex flex-col gap-6">
-      {renderLanguageSelector()}
+      <div className="flex items-center justify-between gap-2">
+        {renderLanguageSelector()}
+        <button
+          type="button"
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+          title={locale === "en" ? "Sign out" : "Cerrar sesión"}
+        >
+          {locale === "en" ? "Sign out" : "Cerrar sesión"} →
+        </button>
+      </div>
       {renderCardHeader()}
       <div className="mb-6 p-4 bg-muted/50 border border-border rounded-xl text-sm text-muted-foreground space-y-2">
         <p className="font-semibold text-foreground text-xs uppercase tracking-wide">{ot.setupStepTitle}</p>
