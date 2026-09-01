@@ -5,6 +5,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.64.15] — 2026-08-31
+
+### Corregido
+- **CSP ampliada para el Google Picker**: `next.config.mjs` ahora permite `ssl.gstatic.com` en script-src/style-src y `clients6.google.com`/`content.googleapis.com` en connect-src — los dominios que gapi necesita al cargar el módulo picker. El script principal cargaba pero el módulo podía fallar por CSP.
+- **Fallback por API directa en el Picker**: cuando gapi no carga (ad blocker/red), `picker.html` ahora ofrece un botón "📋 List my sheets (API direct)" que lista los spreadsheets vía `drive/v3/files` con el access token — sin depender de scripts de terceros. Si el token expiró, muestra mensaje claro de re-login.
+
+
 ## [1.2.64.14] — 2026-08-31
 
 ### Corregido
