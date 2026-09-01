@@ -1,6 +1,6 @@
 {
   "name": "ptime",
-  "version": "1.2.70.6",
+  "version": "1.2.64.13",
   "private": true,
   "engines": {
     "node": "24.x"
@@ -15,7 +15,10 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:ui": "vitest --ui",
-    "audit:pricing": "tsx scripts/audit-pricing.ts"
+    "audit:pricing": "tsx scripts/audit-pricing.ts",
+    "version:feature": "node scripts/bump-version.mjs feature",
+    "version:fix": "node scripts/bump-version.mjs fix",
+    "version:major": "node scripts/bump-version.mjs major"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

@@ -5,19 +5,29 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
-## [1.2.70.6] — 2026-08-31
+## [1.2.64.13] — 2026-08-31
+
+### Corregido
+- **Esquema de versionado restaurado**: las entradas `1.2.65.6`–`1.2.70.6` fueron renumeradas a `1.2.64.7`–`1.2.64.12` — eran fixes/refactors que debieron ser PATCH, no MINOR. La versión actual vuelve a la línea coherente desde la base `1.2.64` de Agy.
+
+### Añadido
+- **`scripts/bump-version.mjs`**: script automatizado de bump que respeta el esquema `MAJOR.MINOR.PATCH.HOTFIX`. Npm scripts: `version:feature`, `version:fix`, `version:hotfix`, `version:major`. Actualiza package.json, Sidebar y lockfile.
+- **`docs/GUARDRAILS.md`**: documentado el esquema de versionado obligatorio (feature sube MINOR, fix sube PATCH, hotfix sube HOTFIX) con las reglas críticas para no repetir el error.
+
+
+## [1.2.64.12] — 2026-08-31
 
 ### Corregido
 - **Scope OAuth incorrecto en producción**: la variable `NEXT_PUBLIC_OAUTH_SCOPE` estaba configurada como `drive.file`, que solo permite el Google Picker pero NO operar el sheet (leer/escribir horas). El token emitido por Google no incluía `spreadsheets`, causando desconexiones tras inactividad y errores en el Picker. Ahora el scope es `https://www.googleapis.com/auth/spreadsheets` (documentado en `.env.example`; si la env var se deja vacía, el código usa `spreadsheets` por defecto).
   **Acción requerida en Vercel**: actualizar `NEXT_PUBLIC_OAUTH_SCOPE` a `https://www.googleapis.com/auth/spreadsheets` (o eliminarla) y re-autorizar: logout + login para que Google emita un token nuevo con el scope correcto.
 
-## [1.2.69.6] — 2026-08-31
+## [1.2.64.11] — 2026-08-31
 
 ### Corregido
 - **Google Picker robusto ante bloqueos de red/ad blocker**: `public/picker.html` ahora reintenta la carga del script de Google (3 intentos con backoff), usa timeout de 20s, y muestra instrucciones de pegado manual de URL SIEMPRE cuando falla. También distingue el diagnóstico: el error "Failed to load Google API script" suele ser un ad blocker (uBlock/AdBlock/Privacy Badger) bloqueando `apis.google.com`, no un problema de conexión.
 - **Manejo del error de sesión del Picker**: se captura `google.picker.Action.ERROR` con mensaje claro si el token de acceso expiró (situación típica tras inactividad: la app pide reconectar porque el token de Google venció).
 
-## [1.2.68.6] — 2026-08-31
+## [1.2.64.10] — 2026-08-31
 
 ### Refactorizado
 - **HorasForm descompuesto en hook + componentes presentacionales**: `components/forms/HorasForm.tsx` pasó de 541→162 líneas (contenedor orquestador). Lógica extraída a `hooks/useHorasForm.ts` (estado, cálculo reactivo de preview, submit con fallback API, modales de creación rápida) y vista dividida en `components/forms/horas/HorasFormFields.tsx`, `PricingPreviewCard.tsx` y `QuickCreateModals.tsx`. Sin cambios en la UI ni en los contratos.
@@ -25,7 +35,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 ### Añadido
 - **`hooks/useHorasForm.ts`**: custom hook con toda la lógica de formulario y cálculo reactivo (preview de tarifa en vivo, reset de proyecto al cambiar cliente, creación rápida de cliente/proyecto/tarea, submit con fallback a `/api/horas` en errores RSC).
 
-## [1.2.67.6] — 2026-08-31
+## [1.2.64.9] — 2026-08-31
 
 ### Corregido
 - **Bug: tarifa fija ignorada en la API PUT de horas**: `app/api/horas/route.ts` construía la config de pricing a mano sin incluir `usarTarifaFija`, por lo que editar horas vía API en un proyecto con tarifa plana aplicaba el pricing por tramos incorrectamente. Ahora la lógica está unificada en `lib/hours/service.ts` y siempre respeta la tarifa plana.
@@ -37,14 +47,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 ### Añadido
 - **Tests del service** (`lib/hours/service.test.ts`): cobertura de tarifa plana (fix), recálculo por posición cronológica, no-recalculo en ediciones de descripción y `REGISTRO_NOT_FOUND`. 77 tests totales.
 
-## [1.2.66.6] — 2026-08-31
+## [1.2.64.8] — 2026-08-31
 
 ### Añadido
 - **Script de auditoría de pricing `scripts/audit-pricing.ts`**: herramienta oficial para auditar montos, horas y costos de cualquier mes/año contra la lógica de negocio (umbral 20h/mes global por usuario, base $35 redondeo 0.5h, alta $45 redondeo 1h, posición cronológica). Lee del sheet vía gws, reporta inconsistencias (fila, id, valores actuales vs esperados, desglose) y puede corregir con `--fix` (requiere aprobación). Ejecutable con `npm run audit:pricing`.
 - **Skill `ptime-pricing-audit` actualizado**: referencia al script oficial como primer paso (no recalcular a mano), procedimiento, acceso al sheet y casos de referencia.
 - **README: documentados los 3 modos de tarifa** — pricing por tramos (umbral 20h base/premium), tarifa plana por proyecto (`usar_tarifa_fija`, una sola tarifa sin umbral) y tarifas editables por registro (valores persistidos respetados).
 
-## [1.2.65.6] — 2026-08-31
+## [1.2.64.7] — 2026-08-31
 
 ### Corregido
 - **Bug de recálculo de pricing al editar registros viejos**: el acumulado mensual para calcular el tramo base/alta se calculaba con la suma de TODO el mes (o todo menos el editado), sin respetar la fecha del registro. Al editar un registro de fecha anterior cuando el mes ya tenía más horas, se re-preciaba a tarifa alta con un acumulado que no le correspondía.
