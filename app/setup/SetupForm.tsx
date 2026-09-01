@@ -5,7 +5,6 @@ import { useState }      from "react";
 import { useRouter }     from "next/navigation";
 import { motion }     from "framer-motion";
 import { validateAndSaveSheetId, createAndConnectNewSheet } from "@/app/actions/setup";
-import { signOut } from "next-auth/react";
 import GoogleSheetPicker from "@/components/GoogleSheetPicker";
 import { useEffect, useCallback } from "react";
 import { onboardingTranslations, type Locale } from "@/lib/onboarding-i18n";
@@ -284,16 +283,7 @@ export default function SetupForm({ sharedSheetId, initialError }: { sharedSheet
   }
 
     return (
-    <div className="flex flex-col gap-6 relative">
-      {/* Botón de cerrar sesión siempre visible (escape cuando el Picker falla) */}
-      <button
-        type="button"
-        onClick={() => signOut({ callbackUrl: "/login" })}
-        className="absolute top-0 right-0 z-20 text-xs font-semibold px-3 py-1.5 rounded-lg border border-border bg-background text-muted-foreground hover:text-red-500 hover:border-red-400/50 transition-colors"
-        title={locale === "en" ? "Sign out" : "Cerrar sesión"}
-      >
-        {locale === "en" ? "Sign out" : "Cerrar sesión"} →
-      </button>
+    <div className="flex flex-col gap-6">
       {renderLanguageSelector()}
       {renderCardHeader()}
       <div className="mb-6 p-4 bg-muted/50 border border-border rounded-xl text-sm text-muted-foreground space-y-2">

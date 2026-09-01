@@ -4,6 +4,7 @@ import { auth }     from "@/auth";
 import { redirect } from "next/navigation";
 import { cookies }  from "next/headers";
 import SetupForm    from "./SetupForm";
+import SignOutButton  from "@/components/SignOutButton";
 import { findSharedSheetForEmail } from "@/lib/sheets/master";
 
 import { validateSpreadsheet } from "@/lib/sheets/client";
@@ -35,6 +36,7 @@ export default async function SetupPage({ searchParams }: { searchParams?: { err
 
   return (
     <main className="min-h-screen bg-background text-foreground flex items-center justify-center p-4 relative overflow-hidden">
+          <SignOutButton />
       {/* Blobs decorativos */}
       <div aria-hidden className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-primary/20 blur-[120px] pointer-events-none" />
       <div aria-hidden className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-emerald-500/10 blur-[100px] pointer-events-none" />

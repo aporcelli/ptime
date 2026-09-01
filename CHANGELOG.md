@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.64.18] — 2026-08-31
+
+### Corregido
+- **Botón Sign out garantizado en /setup**: ahora es un componente fijo (fixed top-right, z-50) renderizado directamente en la página, fuera del layout del form — visible siempre, sin depender de estilos del SetupForm.
+
+
 ## [1.2.64.17] — 2026-08-31
 
 ### Corregido
