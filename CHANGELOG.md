@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.70.6] — 2026-08-31
+
+### Corregido
+- **Scope OAuth incorrecto en producción**: la variable `NEXT_PUBLIC_OAUTH_SCOPE` estaba configurada como `drive.file`, que solo permite el Google Picker pero NO operar el sheet (leer/escribir horas). El token emitido por Google no incluía `spreadsheets`, causando desconexiones tras inactividad y errores en el Picker. Ahora el scope es `https://www.googleapis.com/auth/spreadsheets` (documentado en `.env.example`; si la env var se deja vacía, el código usa `spreadsheets` por defecto).
+  **Acción requerida en Vercel**: actualizar `NEXT_PUBLIC_OAUTH_SCOPE` a `https://www.googleapis.com/auth/spreadsheets` (o eliminarla) y re-autorizar: logout + login para que Google emita un token nuevo con el scope correcto.
+
 ## [1.2.69.6] — 2026-08-31
 
 ### Corregido
