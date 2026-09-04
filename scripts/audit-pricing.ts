@@ -164,7 +164,14 @@ function main() {
   const delMes = registros
     .filter((r) => r.fecha.startsWith(month))
     .filter((r) => !userArg || r.usuario_id.toLowerCase() === userArg.toLowerCase())
-    .sort((a, b) => (a.created_at || "").localeCompare(b.created_at || ""));
+    .sort((a, b) => {
+      const byDate = a.fecha.localeCompare(b.fecha);
+      if (byDate !== 0) return byDate;
+      const byCreated = (a.created_at || "").localeCompare(b.created_at || "");
+      if (byCreated !== 0) return byCreated;
+      return a.id.localeCompare(b.id);
+    });
+
 
   if (delMes.length === 0) {
     console.log("⚠️  No hay registros para ese mes/usuario.");

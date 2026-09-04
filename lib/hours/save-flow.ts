@@ -35,7 +35,8 @@ export async function saveHourFromActionInput(rawData: unknown, options: SaveHou
 
     const mes = data.fecha.slice(0, 7);
     const registrosMes = await getRegistrosHoras(options.ctx, { usuarioId });
-    const horasAcumuladasMes = getAccumulatedWorkedHoursUpTo(registrosMes, mes, data.fecha);
+    const timestamp = options.now?.() ?? new Date().toISOString();
+    const horasAcumuladasMes = getAccumulatedWorkedHoursUpTo(registrosMes, mes, data.fecha, undefined, timestamp);
 
     const pricingConfig = options.getPricingConfig
       ? await options.getPricingConfig(data.proyecto_id)
@@ -45,7 +46,7 @@ export async function saveHourFromActionInput(rawData: unknown, options: SaveHou
           umbralHoras: proyecto.umbral_precio_alto ?? 20,
         };
     const { montoTotal, precioAplicado, horasTrabajadas, horasACobrar } = calculateHoursAmount(data.horas, horasAcumuladasMes, pricingConfig);
-    const timestamp = options.now?.() ?? new Date().toISOString();
+
 
     const registro: RegistroHoras = {
       id: options.idFactory?.() ?? generateUUID(),

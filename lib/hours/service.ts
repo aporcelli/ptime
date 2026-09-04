@@ -73,7 +73,7 @@ export async function updateHourRecord(
   if (isPricingSensitiveChange(currentRegistro, data)) {
     const mes = data.fecha.slice(0, 7);
     const registrosMes = await getRegistrosHoras(ctx, { usuarioId });
-    const horasAcumuladasMes = getAccumulatedWorkedHoursUpTo(registrosMes, mes, data.fecha, id);
+    const horasAcumuladasMes = getAccumulatedWorkedHoursUpTo(registrosMes, mes, data.fecha, id, currentRegistro.created_at);
     const pricingConfig = await resolvePricingConfig(ctx, data.proyecto_id);
     const recalculated = calculateHoursAmount(data.horas, horasAcumuladasMes, pricingConfig);
     horasTrabajadas = recalculated.horasTrabajadas;

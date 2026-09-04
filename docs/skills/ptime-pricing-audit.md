@@ -77,7 +77,7 @@ mismo mes con fecha ESTRICTAMENTE anterior a la fecha del registro**
 
 - **NO** es la suma de todo el mes (eso rompe la lógica al editar registros viejos).
 - **NO** es el acumulado histórico total del proyecto.
-- Los registros del mismo día que el de referencia NO cuentan en su acumulado.
+- **Mismo día**: se desempatan por orden cronológico de creación (`created_at`). El registro creado antes suma al posterior; el registro posterior nunca suma al anterior.
 
 ## Errores históricos conocidos (no repetir)
 

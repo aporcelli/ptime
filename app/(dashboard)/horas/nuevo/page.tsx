@@ -47,8 +47,8 @@ export default async function NuevaHoraPage() {
   // Solo proyectos activos para cargar horas (pero sin filtrar por cliente aún)
   const proyectos = todosProyectos.filter(p => p.estado === "activo");
 
-  // Acumulado mensual global: todas las horas del usuario en el mes actual
-  const horasAcumuladasMes = getAccumulatedWorkedHoursUpTo(registrosMes, mesActual, todayLocal(timeZone));
+  // Acumulado mensual global: todas las horas del usuario en el mes actual (incluyendo registros previos de hoy)
+  const horasAcumuladasMes = getAccumulatedWorkedHoursUpTo(registrosMes, mesActual, todayLocal(timeZone), undefined, new Date().toISOString());
 
   return (
     <div className="max-w-2xl mx-auto animate-fade-in">

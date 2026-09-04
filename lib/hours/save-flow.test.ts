@@ -162,4 +162,49 @@ describe("hour save flow runtime normalization", () => {
     expectReactFlightSafe(result);
     expect(getLocalRows(SHEET_RANGES.REGISTROS_HORAS)).toEqual([]);
   });
+
+  it("correctly calculates threshold split when multiple entries are saved on the same day", async () => {
+    resetLocalStore({
+      [SHEET_RANGES.CLIENTES]: [[clienteId, "Cliente", "cliente@ptime.test", "", "true", "", ""]],
+      [SHEET_RANGES.PROYECTOS]: [[proyectoId, "Proyecto", clienteId, "", 0, 20, 35, 45, "activo", "", ""]],
+      [SHEET_RANGES.TAREAS]: [[tareaId, "Desarrollo", "General", "true", ""]],
+      [SHEET_RANGES.REGISTROS_HORAS]: [
+        // 17h from earlier in the month
+        ["prev-1", proyectoId, tareaId, "local.dev@ptime.local", "2026-09-01", "17", "Anterior", "35", "595", "confirmado", "2026-09-01T10:00:00.000Z", "", clienteId, "17", "17"],
+        // 1.5h logged today earlier at 18:45 (brings total to 18.5h)
+        ["today-1", proyectoId, tareaId, "local.dev@ptime.local", "2026-09-04", "1.5", "Primera carga de hoy", "35", "52.5", "confirmado", "2026-09-04T18:45:39.104Z", "", clienteId, "1.5", "1.5"],
+      ],
+    });
+
+    // Second entry logged today at 18:47 with 2.0h -> crosses 20h threshold (1.5h base + 0.5h high -> 1h billable high)
+    const result = await saveHourFromActionInput(
+      {
+        cliente_id: clienteId,
+        proyecto_id: proyectoId,
+        tarea_id: tareaId,
+        fecha: "2026-09-04",
+        horas: 2.0,
+        descripcion: "Segunda carga de hoy con cruce de umbral",
+        estado: "confirmado",
+      },
+      {
+        ctx: { sheetId: "local", accessToken: LOCAL_DEV_ACCESS_TOKEN },
+        user: { id: "local", email: "local.dev@ptime.local" },
+        idFactory: () => "today-2",
+        now: () => "2026-09-04T18:47:55.489Z",
+      },
+    );
+
+    expect(result).toMatchObject({
+      success: true,
+      data: {
+        horas: 2.0,
+        horas_trabajadas: 2.0,
+        horas_a_cobrar: 2.5,
+        precio_hora_aplicado: 45,
+        monto_total: 97.5,
+      },
+    });
+  });
 });
+

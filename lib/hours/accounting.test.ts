@@ -40,12 +40,37 @@ describe("getAccumulatedWorkedHoursUpTo — posición cronológica", () => {
     ], "2026-08", "2026-08-06")).toBe(5);
   });
 
-  it("no incluye registros del mismo día que la referencia", () => {
+  it("no incluye registros del mismo día si no se provee referenceCreatedAt", () => {
     expect(getAccumulatedWorkedHoursUpTo([
       { id: "r1", fecha: "2026-08-05", horas: 3 },
       { id: "r2", fecha: "2026-08-05", horas: 2 },
     ], "2026-08", "2026-08-05")).toBe(0);
   });
+
+  it("mismo día: suma registros creados estrictamente antes según created_at", () => {
+    const registros = [
+      { id: "r1", fecha: "2026-09-04", horas: 1.5, created_at: "2026-09-04T18:45:39.104Z" },
+      { id: "r2", fecha: "2026-09-04", horas: 2.0, created_at: "2026-09-04T18:47:55.489Z" },
+      { id: "r3", fecha: "2026-09-04", horas: 3.0, created_at: "2026-09-04T19:00:00.000Z" },
+    ];
+    // Para r2 (18:47), solo r1 (18:45) fue creado antes → 1.5h
+    expect(getAccumulatedWorkedHoursUpTo(registros, "2026-09", "2026-09-04", "r2", "2026-09-04T18:47:55.489Z")).toBe(1.5);
+    // Para r3 (19:00), r1 y r2 fueron creados antes → 1.5 + 2.0 = 3.5h
+    expect(getAccumulatedWorkedHoursUpTo(registros, "2026-09", "2026-09-04", "r3", "2026-09-04T19:00:00.000Z")).toBe(3.5);
+    // Para r1 (18:45), ningún registro previo → 0h
+    expect(getAccumulatedWorkedHoursUpTo(registros, "2026-09", "2026-09-04", "r1", "2026-09-04T18:45:39.104Z")).toBe(0);
+  });
+
+  it("mismo día + días previos: suma todos los días previos más los del mismo día creados antes", () => {
+    const registros = [
+      { id: "r0", fecha: "2026-09-01", horas: 17, created_at: "2026-09-01T10:00:00.000Z" },
+      { id: "r1", fecha: "2026-09-04", horas: 1.5, created_at: "2026-09-04T18:45:39.104Z" },
+      { id: "r2", fecha: "2026-09-04", horas: 2.0, created_at: "2026-09-04T18:47:55.489Z" },
+    ];
+    // Para r2: 17h (día 01) + 1.5h (día 04 anterior) = 18.5h
+    expect(getAccumulatedWorkedHoursUpTo(registros, "2026-09", "2026-09-04", "r2", "2026-09-04T18:47:55.489Z")).toBe(18.5);
+  });
+
 
   it("ignora registros de otros meses", () => {
     expect(getAccumulatedWorkedHoursUpTo([

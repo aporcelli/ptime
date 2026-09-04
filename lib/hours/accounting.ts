@@ -12,6 +12,7 @@ export interface MonthlyWorkedHourSnapshot {
   id?: string;
   fecha: string;
   horas: number;
+  created_at?: string;
 }
 
 const round4 = (value: number) => Math.round(value * 10_000) / 10_000;
@@ -48,16 +49,21 @@ export function getMonthlyWorkedHoursAccumulated(
 /**
  * Acumulado mensual respetando la POSICIÓN CRONOLÓGICA del registro.
  *
- * Solo suma registros del mismo mes con fecha ESTRICTAMENTE anterior a
- * `referenceDate`. Evita que el tramo base/alta de un registro se calcule
- * con horas cargadas DESPUÉS de su fecha (bug de recálculo al editar
- * registros viejos o al hacer backfill de fechas pasadas).
+ * Suma registros del mismo mes que sean anteriores en la línea de tiempo:
+ * 1. Registros con fecha estrictamente anterior (< referenceDay).
+ * 2. Registros del mismo día (=== referenceDay) creados estrictamente antes
+ *    (< referenceCreatedAt), permitiendo múltiples cargas en el mismo día
+ *    sin perder el acumulado ni omitir saltos de tarifa.
+ *
+ * Evita que el tramo base/alta de un registro se calcule con horas cargadas
+ * DESPUÉS de su momento (evita bugs de recálculo al editar o hacer backfills).
  */
 export function getAccumulatedWorkedHoursUpTo(
   records: MonthlyWorkedHourSnapshot[],
   month: string,
   referenceDate: string,
   excludedRecordId?: string,
+  referenceCreatedAt?: string,
 ): number {
   const referenceDay = String(referenceDate ?? "").slice(0, 10);
   return round4(
@@ -66,8 +72,21 @@ export function getAccumulatedWorkedHoursUpTo(
       .filter((record) => !excludedRecordId || record.id !== excludedRecordId)
       .filter((record) => {
         const recordDay = String(record.fecha ?? "").slice(0, 10);
-        return recordDay < referenceDay;
+        if (recordDay < referenceDay) {
+          return true;
+        }
+        if (recordDay > referenceDay) {
+          return false;
+        }
+        // Mismo día calendario:
+        // Si no se especifica timestamp de creación de referencia, mantenemos solo fechas previas
+        if (!referenceCreatedAt) {
+          return false;
+        }
+        const recordCreated = String(record.created_at ?? "");
+        return recordCreated !== "" && recordCreated < referenceCreatedAt;
       })
       .reduce((sum, record) => sum + record.horas, 0),
   );
 }
+

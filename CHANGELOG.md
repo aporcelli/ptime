@@ -5,7 +5,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
 ---
 
+## [1.2.64.19] — 2026-09-04
+
+### Corregido
+- **Acumulado cronológico de horas en el mismo día**: corrección de `getAccumulatedWorkedHoursUpTo` en `lib/hours/accounting.ts` para soportar `referenceCreatedAt`. Ahora múltiples registros cargados el mismo día acumulan cronológicamente los registros previos según `created_at` (desempate por tupla `fecha, created_at, id`), calculando correctamente el salto al tramo de tarifa alta ($45/h con redondeo a hora entera) al cruzar el umbral de 20h.
+- **Flujos de guardado y edición sincronizados**: `lib/hours/save-flow.ts`, `lib/hours/service.ts`, `app/(dashboard)/horas/nuevo/page.tsx` y `app/(dashboard)/horas/[id]/editar/page.tsx` actualizados para propagar el timestamp de creación de referencia.
+- **Auditoría de pricing**: alineado el ordenamiento canónico en `scripts/audit-pricing.ts`.
+
+
 ## [1.2.64.18] — 2026-08-31
+
 
 ### Corregido
 - **Botón Sign out garantizado en /setup**: ahora es un componente fijo (fixed top-right, z-50) renderizado directamente en la página, fuera del layout del form — visible siempre, sin depender de estilos del SetupForm.

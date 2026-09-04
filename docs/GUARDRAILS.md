@@ -44,4 +44,30 @@ Después: agregá la entrada en `CHANGELOG.md` con la nueva versión.
 
 ---
 
-## Versión actual: v1.2.64.13
+## 🔑 Triggers Automáticos por Palabras Clave
+
+Cuando el usuario use estas palabras clave, tomar siempre y en forma automática estas reglas:
+
+- **"aplicar fix" / "fix" / "arreglar bug"**:
+  1. Investigar causa raíz en toda la cadena (servicios, acciones, API, vistas UI).
+  2. Implementar código y tests unitarios.
+  3. `npm run test:run` y `npx tsc --noEmit`.
+  4. `npm run version:fix` (actualiza `package.json`, `package-lock.json`, `Sidebar.tsx`).
+  5. Entrada nueva en `CHANGELOG.md` con fecha y versión.
+  6. Git commit: `git commit -m "fix(<VERSION>): <resumen>"` (sin Co-Authored-By).
+
+- **"cambios" / "feature"**:
+  1. Diseño limpio y tests.
+  2. `npm run version:feature`.
+  3. Entrada en `CHANGELOG.md`.
+  4. Git commit: `git commit -m "feat(<VERSION>): <resumen>"`.
+
+- **"subir a git" / "git push"**:
+  1. Verificar tests y sincronización de versión/CHANGELOG.
+  2. `git push origin master`.
+  3. NUNCA hacer push sin pedido explícito del usuario.
+
+---
+
+## Versión actual: v1.2.64.19
+

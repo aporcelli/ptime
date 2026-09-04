@@ -77,7 +77,7 @@ export default async function EditarHoraPage({ params }: { params: { id: string 
     // Mes de la fecha original
     const mes = registro.fecha.slice(0, 7);
     // Restamos el registro actual para no sumarlo 2 veces en el acumulado previo del mes
-    const horasAcumuladasMes = getAccumulatedWorkedHoursUpTo(registrosMes, mes, registro.fecha, registro.id);
+    const horasAcumuladasMes = getAccumulatedWorkedHoursUpTo(registrosMes, mes, registro.fecha, registro.id, registro.created_at);
 
     return (
       <div className="max-w-2xl mx-auto animate-fade-in">
